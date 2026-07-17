@@ -37,7 +37,7 @@ Règle d'usage :
 | Events semi-real backend | `done` | Paris Open Data branché avec fallback mock |
 | Mobility forecast backend | `done` | forecast déterministe `hour_of_week` branché |
 | AgentCore orchestration | `todo` | non démarré |
-| Déploiement AWS | `blocked` | déploiement réel tenté sur `aws100demo1` / `194031983377`, bloqué par quota `AWS::BedrockAgentCore::Runtime` (`maxAgents limit exceeded`) |
+| Déploiement AWS | `blocked` | déploiement réel tenté sur un compte AWS de démo, bloqué par quota `AWS::BedrockAgentCore::Runtime` (`maxAgents limit exceeded`) |
 
 ---
 
@@ -156,7 +156,7 @@ Règle d'usage :
 - `in_progress` : implémenter `destroy.sh` sur la même base
 - `next` : remplacer le `main.py` AgentCore template par un runtime POC minimal branché sur le vrai flux métier local
 - `next` : préparer le câblage `AgentCore Gateway` sur les contrats tools déjà stabilisés
-- `blocked` : reprendre le déploiement live après augmentation du quota AgentCore / runtime sur le compte `194031983377`
+- `blocked` : reprendre le déploiement live après augmentation du quota AgentCore / runtime sur le compte AWS de démo
 
 ---
 
@@ -229,7 +229,7 @@ Considéré comme `done` quand :
 
 - bootstrap CDK réel : `done`
 - déploiement live réel : `blocked`
-- cause du blocage : quota `AWS::BedrockAgentCore::Runtime` / `maxAgents limit exceeded` sur le compte `194031983377`
+- cause du blocage : quota `AWS::BedrockAgentCore::Runtime` / `maxAgents limit exceeded` sur le compte AWS de démo
 
 ---
 

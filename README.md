@@ -252,8 +252,8 @@ source scripts/aws_env.sh
 
 Le mode strict vérifie ensuite :
 
-- `AWS_PROFILE=aws100demo1`
-- `EXPECTED_AWS_ACCOUNT_ID=194031983377`
+- `AWS_PROFILE=my-demo-profile`
+- `EXPECTED_AWS_ACCOUNT_ID=123456789012`
 - `AWS_REGION=us-east-1`
 
 ## Scripts infra
