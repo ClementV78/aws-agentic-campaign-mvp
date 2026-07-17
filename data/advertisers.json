@@ -1,0 +1,47 @@
+[
+  {
+    "id": "coca_cola",
+    "name": "Coca-Cola",
+    "sector": "beverage",
+    "target_audience": ["young_adults", "families", "mass_market"],
+    "preferred_contexts": ["hot_weather", "high_footfall", "events", "weekend"],
+    "exclusions": ["brand_safety_incident", "major_transport_disruption"],
+    "priority": 0.8
+  },
+  {
+    "id": "chanel",
+    "name": "Chanel",
+    "sector": "luxury",
+    "target_audience": ["luxury_shoppers", "high_income_visitors", "tourists"],
+    "preferred_contexts": ["premium_zone", "fashion_event", "tourist_density", "good_weather"],
+    "exclusions": ["low_end_context", "transport_strike"],
+    "priority": 0.95
+  },
+  {
+    "id": "ouigo",
+    "name": "OUIGO",
+    "sector": "mobility",
+    "target_audience": ["commuters", "families", "budget_travelers"],
+    "preferred_contexts": ["station_area", "holiday_departure", "weekend_trip", "high_mobility"],
+    "exclusions": ["severe_transport_disruption"],
+    "priority": 0.82
+  },
+  {
+    "id": "nike",
+    "name": "Nike",
+    "sector": "sportswear",
+    "target_audience": ["young_adults", "sports_fans", "urban_active"],
+    "preferred_contexts": ["sports_event", "high_energy_zone", "weekend", "good_weather"],
+    "exclusions": ["brand_safety_incident"],
+    "priority": 0.88
+  },
+  {
+    "id": "parc_asterix",
+    "name": "Parc Asterix",
+    "sector": "leisure",
+    "target_audience": ["families", "domestic_travelers", "weekend_visitors"],
+    "preferred_contexts": ["school_holiday", "weekend", "family_leisure", "station_area"],
+    "exclusions": ["heavy_rain", "major_transport_disruption"],
+    "priority": 0.78
+  }
+]

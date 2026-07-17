@@ -1,0 +1,33 @@
+{
+  "city": "Paris",
+  "datetime": "2026-09-18T19:30:00+02:00",
+  "time_context": {
+    "day_type": "weekday",
+    "time_slot": "evening",
+    "school_holiday": false
+  },
+  "weather": {
+    "summary": "clear",
+    "temperature_c": 24,
+    "impact_tags": ["good_weather"]
+  },
+  "events": [
+    {
+      "type": "major_concert",
+      "zone_ids": ["accor_arena", "gare_de_lyon"],
+      "impact_level": "high"
+    }
+  ],
+  "mobility": {
+    "global_status": "normal",
+    "affected_zone_ids": [],
+    "impact_tags": []
+  },
+  "urban_signals": {
+    "tourist_density": "high",
+    "commuter_density": "medium",
+    "premium_activity": "low"
+  },
+  "warnings": [],
+  "confidence": 0.84
+}

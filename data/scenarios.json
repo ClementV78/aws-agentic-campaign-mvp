@@ -1,0 +1,296 @@
+[
+  {
+    "id": "heatwave_saturday",
+    "name": "Heatwave Saturday",
+    "datetime": "2026-07-11T15:00:00+02:00",
+    "city": "Paris",
+    "calendar": {
+      "day_type": "weekend",
+      "school_holiday": false
+    },
+    "inputs": {
+      "weather": {
+        "mode": "mock",
+        "raw_condition": "hot_weather",
+        "temperature_c": 33,
+        "precipitation_mm": 0.0,
+        "wind_kph": 11
+      },
+      "events": [
+        {
+          "mode": "mock",
+          "event_type": "family_event",
+          "title": "Summer Family Festival at Bois de Vincennes",
+          "venue": "Bois de Vincennes",
+          "description": "An outdoor summer family festival with games, food stalls, and children activities.",
+          "audience_hint": ["families", "weekend_visitors", "domestic_travelers"],
+          "raw_tags": ["family", "outdoor", "summer", "festival"],
+          "start_local": "2026-07-11T14:00:00+02:00"
+        }
+      ],
+      "mobility": {
+        "mode": "mock",
+        "network_status": "dense_central",
+        "severity": "medium",
+        "affected_zone_ids": ["opera", "champs_elysees", "boulevard_haussmann", "avenue_montaigne"]
+      }
+    }
+  },
+  {
+    "id": "concert_bercy",
+    "name": "Concert at Accor Arena",
+    "datetime": "2026-09-18T19:30:00+02:00",
+    "city": "Paris",
+    "calendar": {
+      "day_type": "weekday",
+      "school_holiday": false
+    },
+    "inputs": {
+      "weather": {
+        "mode": "mock",
+        "raw_condition": "clear",
+        "temperature_c": 22,
+        "precipitation_mm": 0.0,
+        "wind_kph": 8
+      },
+      "events": [
+        {
+          "mode": "mock",
+          "event_type": "major_concert",
+          "title": "Dua Lipa Live at Accor Arena",
+          "venue": "Accor Arena",
+          "description": "A sold-out international pop concert drawing a young, urban, and mass-market audience.",
+          "audience_hint": ["young_adults", "mass_market", "tourists"],
+          "raw_tags": ["pop", "music", "arena", "international_artist"],
+          "start_local": "2026-09-18T19:30:00+02:00"
+        }
+      ],
+      "mobility": {
+        "mode": "mock",
+        "network_status": "localized_peak",
+        "severity": "medium",
+        "affected_zone_ids": ["accor_arena", "gare_de_lyon", "bercy_village"]
+      }
+    }
+  },
+  {
+    "id": "transport_strike",
+    "name": "Transport Strike",
+    "datetime": "2026-10-06T08:30:00+02:00",
+    "city": "Paris",
+    "calendar": {
+      "day_type": "weekday",
+      "school_holiday": false
+    },
+    "inputs": {
+      "weather": {
+        "mode": "mock",
+        "raw_condition": "cloudy",
+        "temperature_c": 17,
+        "precipitation_mm": 0.2,
+        "wind_kph": 12
+      },
+      "events": [],
+      "mobility": {
+        "mode": "mock",
+        "network_status": "major_transport_disruption",
+        "severity": "high",
+        "affected_zone_ids": ["gare_du_nord", "gare_de_lyon", "gare_montparnasse", "gare_saint_lazare", "chatelet", "republique"]
+      }
+    }
+  },
+  {
+    "id": "fashion_week",
+    "name": "Fashion Week",
+    "datetime": "2026-09-30T17:00:00+02:00",
+    "city": "Paris",
+    "calendar": {
+      "day_type": "weekday",
+      "school_holiday": false
+    },
+    "inputs": {
+      "weather": {
+        "mode": "mock",
+        "raw_condition": "clear",
+        "temperature_c": 21,
+        "precipitation_mm": 0.0,
+        "wind_kph": 9
+      },
+      "events": [
+        {
+          "mode": "mock",
+          "event_type": "fashion_event",
+          "title": "Paris Fashion Week - Avenue Montaigne Shows",
+          "venue": "Avenue Montaigne",
+          "description": "A major premium fashion week sequence with luxury houses, buyers, tourists, and media.",
+          "audience_hint": ["luxury_shoppers", "high_income_visitors", "tourists"],
+          "raw_tags": ["fashion", "luxury", "premium", "tourism"],
+          "start_local": "2026-09-30T17:00:00+02:00"
+        }
+      ],
+      "mobility": {
+        "mode": "mock",
+        "network_status": "dense_central",
+        "severity": "medium",
+        "affected_zone_ids": ["opera", "champs_elysees", "boulevard_haussmann", "avenue_montaigne"]
+      }
+    }
+  },
+  {
+    "id": "school_holiday_departure",
+    "name": "School Holiday Departure",
+    "datetime": "2026-12-19T10:00:00+01:00",
+    "city": "Paris",
+    "calendar": {
+      "day_type": "weekend",
+      "school_holiday": true
+    },
+    "inputs": {
+      "weather": {
+        "mode": "mock",
+        "raw_condition": "cold",
+        "temperature_c": 4,
+        "precipitation_mm": 0.0,
+        "wind_kph": 10
+      },
+      "events": [],
+      "mobility": {
+        "mode": "mock",
+        "network_status": "station_peak",
+        "severity": "medium",
+        "affected_zone_ids": ["gare_du_nord", "gare_de_lyon", "gare_montparnasse", "gare_saint_lazare"]
+      }
+    }
+  },
+  {
+    "id": "multi_events_paris",
+    "name": "Multi Events in Paris",
+    "datetime": "2026-09-30T18:30:00+02:00",
+    "city": "Paris",
+    "calendar": {
+      "day_type": "weekday",
+      "school_holiday": false
+    },
+    "inputs": {
+      "weather": {
+        "mode": "mock",
+        "raw_condition": "clear",
+        "temperature_c": 20,
+        "precipitation_mm": 0.0,
+        "wind_kph": 10
+      },
+      "events": [
+        {
+          "mode": "mock",
+          "event_type": "fashion_event",
+          "title": "Paris Fashion Week - Grand Palais Circuit",
+          "venue": "Grand Palais / Avenue Montaigne",
+          "description": "A premium fashion week evening with strong luxury and tourist traffic around central Paris.",
+          "audience_hint": ["luxury_shoppers", "tourists", "high_income_visitors"],
+          "raw_tags": ["fashion", "luxury", "premium", "tourism"],
+          "start_local": "2026-09-30T18:00:00+02:00"
+        },
+        {
+          "mode": "mock",
+          "event_type": "major_concert",
+          "title": "The Weeknd at Accor Arena",
+          "venue": "Accor Arena",
+          "description": "A large-scale arena concert with a young, urban, and mass-market evening audience.",
+          "audience_hint": ["young_adults", "mass_market", "tourists"],
+          "raw_tags": ["concert", "arena", "music", "nightlife"],
+          "start_local": "2026-09-30T20:00:00+02:00"
+        },
+        {
+          "mode": "mock",
+          "event_type": "sports_event",
+          "title": "PSG vs OM at Parc des Princes",
+          "venue": "Parc des Princes",
+          "description": "A high-tension football match with strong fan attendance and transport pressure before kickoff.",
+          "audience_hint": ["sports_fans", "young_adults", "urban_active"],
+          "raw_tags": ["football", "sports", "fans", "stadium"],
+          "start_local": "2026-09-30T21:00:00+02:00"
+        }
+      ],
+      "mobility": {
+        "mode": "mock",
+        "network_status": "station_peak",
+        "severity": "medium",
+        "affected_zone_ids": ["gare_du_nord", "gare_de_lyon", "gare_montparnasse", "gare_saint_lazare"]
+      }
+    }
+  },
+  {
+    "id": "luxury_gala_rainy_evening",
+    "name": "Luxury Gala on a Rainy Evening",
+    "datetime": "2026-11-12T20:00:00+01:00",
+    "city": "Paris",
+    "calendar": {
+      "day_type": "weekday",
+      "school_holiday": false
+    },
+    "inputs": {
+      "weather": {
+        "mode": "mock",
+        "raw_condition": "rain",
+        "temperature_c": 11,
+        "precipitation_mm": 3.6,
+        "wind_kph": 14
+      },
+      "events": [
+        {
+          "mode": "mock",
+          "event_type": "fashion_event",
+          "title": "Luxury Gala Dinner at Palais Garnier",
+          "venue": "Palais Garnier",
+          "description": "A premium evening gala with affluent guests, luxury shoppers, executives, and tourists.",
+          "audience_hint": ["high_income_visitors", "luxury_shoppers", "executives"],
+          "raw_tags": ["gala", "luxury", "premium", "evening"],
+          "start_local": "2026-11-12T20:00:00+01:00"
+        }
+      ],
+      "mobility": {
+        "mode": "mock",
+        "network_status": "dense_central",
+        "severity": "medium",
+        "affected_zone_ids": ["opera", "champs_elysees", "boulevard_haussmann", "avenue_montaigne"]
+      }
+    }
+  },
+  {
+    "id": "football_night_parc_des_princes",
+    "name": "Football Night at Parc des Princes",
+    "datetime": "2026-10-04T20:45:00+02:00",
+    "city": "Paris",
+    "calendar": {
+      "day_type": "weekend",
+      "school_holiday": false
+    },
+    "inputs": {
+      "weather": {
+        "mode": "mock",
+        "raw_condition": "clear",
+        "temperature_c": 18,
+        "precipitation_mm": 0.0,
+        "wind_kph": 7
+      },
+      "events": [
+        {
+          "mode": "mock",
+          "event_type": "sports_event",
+          "title": "PSG vs Marseille at Parc des Princes",
+          "venue": "Parc des Princes",
+          "description": "A major football match with heavy evening footfall, energetic fans, and strong sports relevance.",
+          "audience_hint": ["sports_fans", "young_adults", "urban_active"],
+          "raw_tags": ["football", "stadium", "sports", "fans"],
+          "start_local": "2026-10-04T20:45:00+02:00"
+        }
+      ],
+      "mobility": {
+        "mode": "mock",
+        "network_status": "localized_peak",
+        "severity": "medium",
+        "affected_zone_ids": ["parc_des_princes", "chatelet", "la_villette"]
+      }
+    }
+  }
+]

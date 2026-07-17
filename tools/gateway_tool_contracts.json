@@ -1,0 +1,109 @@
+{
+  "get_weather": {
+    "input": {
+      "city": "Paris",
+      "datetime": "2026-09-30T17:00:00+02:00"
+    },
+    "output": {
+      "city": "Paris",
+      "datetime": "2026-09-30T17:00:00+02:00",
+      "provider": "mock_scenarios",
+      "provider_mode": "mock",
+      "raw_condition": "clear",
+      "temperature_c": 24,
+      "precipitation_mm": 0.0,
+      "wind_kph": 9
+    },
+    "semi_real_output_example": {
+      "city": "Paris",
+      "datetime": "2026-09-30T17:00:00+02:00",
+      "provider": "open_meteo",
+      "provider_mode": "historical_analog",
+      "raw_condition": "clear",
+      "temperature_c": 21.3,
+      "precipitation_mm": 0.0,
+      "wind_kph": 11.2
+    }
+  },
+  "get_events": {
+    "input": {
+      "city": "Paris",
+      "datetime": "2026-09-30T17:00:00+02:00"
+    },
+    "output": {
+      "city": "Paris",
+      "datetime": "2026-09-30T17:00:00+02:00",
+      "provider_mode": "mock",
+      "events": [
+        {
+          "provider": "mock_scenarios",
+          "event_type": "fashion_event",
+          "display_name": "Fashion Week Event",
+          "zone_ids": [
+            "avenue_montaigne",
+            "saint_germain_des_pres",
+            "champs_elysees",
+            "opera"
+          ],
+          "impact_level": "high",
+          "start_local": "17:00"
+        }
+      ]
+    },
+    "semi_real_output_example": {
+      "city": "Paris",
+      "datetime": "2026-09-30T17:00:00+02:00",
+      "events": [
+        {
+          "provider": "paris_open_data",
+          "event_type": "fashion_event",
+          "display_name": "Festival des Canotiers 2026",
+          "zone_ids": [],
+          "impact_level": "high",
+          "start_local": "2026-07-12T14:00:00+00:00",
+          "source_url": "https://www.paris.fr/evenements/...",
+          "address_name": "Paris",
+          "address_city": "Paris",
+          "qfap_tags": "Mode"
+        }
+      ]
+    }
+  },
+  "get_mobility": {
+    "input": {
+      "city": "Paris",
+      "datetime": "2026-09-30T17:00:00+02:00"
+    },
+    "output": {
+      "city": "Paris",
+      "datetime": "2026-09-30T17:00:00+02:00",
+      "provider": "mock_scenarios",
+      "provider_mode": "mock",
+      "network_status": "dense_central",
+      "severity": "medium",
+      "affected_zone_ids": [
+        "opera",
+        "champs_elysees",
+        "boulevard_haussmann",
+        "avenue_montaigne"
+      ]
+    },
+    "semi_real_output_example": {
+      "city": "Paris",
+      "datetime": "2026-09-30T17:00:00+02:00",
+      "provider": "hour_of_week_forecast",
+      "provider_mode": "forecast",
+      "network_status": "dense_central",
+      "severity": "medium",
+      "affected_zone_ids": [
+        "opera",
+        "champs_elysees",
+        "boulevard_haussmann",
+        "chatelet",
+        "forum_des_halles"
+      ],
+      "prediction_confidence": 0.74,
+      "prediction_basis": "weekday_evening_peak_average"
+    }
+  }
+}

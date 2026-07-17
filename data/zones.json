@@ -1,0 +1,282 @@
+[
+  {
+    "id": "gare_du_nord",
+    "name": "Gare du Nord",
+    "category": "transport_hub",
+    "audience": ["commuters", "tourists", "international_travelers"],
+    "traffic_level": "very_high",
+    "premium_index": 0.65,
+    "weather_sensitivity": "low",
+    "audience_by_time": {
+      "morning": ["commuters"],
+      "afternoon": ["commuters", "tourists"],
+      "evening": ["commuters", "international_travelers"]
+    }
+  },
+  {
+    "id": "gare_de_lyon",
+    "name": "Gare de Lyon",
+    "category": "transport_hub",
+    "audience": ["commuters", "domestic_travelers", "families"],
+    "traffic_level": "very_high",
+    "premium_index": 0.62,
+    "weather_sensitivity": "low",
+    "audience_by_time": {
+      "morning": ["commuters"],
+      "afternoon": ["domestic_travelers", "families"],
+      "evening": ["commuters", "domestic_travelers"]
+    }
+  },
+  {
+    "id": "gare_montparnasse",
+    "name": "Gare Montparnasse",
+    "category": "transport_hub",
+    "audience": ["commuters", "business_travelers"],
+    "traffic_level": "high",
+    "premium_index": 0.58,
+    "weather_sensitivity": "low",
+    "audience_by_time": {
+      "morning": ["commuters", "business_travelers"],
+      "afternoon": ["business_travelers"],
+      "evening": ["commuters"]
+    }
+  },
+  {
+    "id": "gare_saint_lazare",
+    "name": "Gare Saint-Lazare",
+    "category": "transport_hub",
+    "audience": ["commuters", "shoppers"],
+    "traffic_level": "very_high",
+    "premium_index": 0.6,
+    "weather_sensitivity": "low",
+    "audience_by_time": {
+      "morning": ["commuters"],
+      "afternoon": ["shoppers", "commuters"],
+      "evening": ["commuters"]
+    }
+  },
+  {
+    "id": "bercy_village",
+    "name": "Bercy Village",
+    "category": "commercial",
+    "audience": ["families", "young_adults", "shoppers"],
+    "traffic_level": "high",
+    "premium_index": 0.68,
+    "weather_sensitivity": "medium",
+    "audience_by_time": {
+      "morning": ["shoppers"],
+      "afternoon": ["families", "shoppers"],
+      "evening": ["young_adults", "shoppers"]
+    }
+  },
+  {
+    "id": "la_villette",
+    "name": "La Villette",
+    "category": "family_leisure",
+    "audience": ["families", "young_adults", "culture_seekers"],
+    "traffic_level": "high",
+    "premium_index": 0.66,
+    "weather_sensitivity": "medium",
+    "audience_by_time": {
+      "morning": ["families", "culture_seekers"],
+      "afternoon": ["families", "young_adults"],
+      "evening": ["young_adults", "culture_seekers"]
+    }
+  },
+  {
+    "id": "champs_elysees",
+    "name": "Champs-Elysees",
+    "category": "tourism",
+    "audience": ["tourists", "luxury_shoppers", "young_adults"],
+    "traffic_level": "very_high",
+    "premium_index": 0.95,
+    "weather_sensitivity": "medium",
+    "audience_by_time": {
+      "morning": ["tourists"],
+      "afternoon": ["tourists", "luxury_shoppers"],
+      "evening": ["young_adults", "tourists"]
+    }
+  },
+  {
+    "id": "montmartre",
+    "name": "Montmartre",
+    "category": "tourism",
+    "audience": ["tourists", "young_adults", "couples"],
+    "traffic_level": "high",
+    "premium_index": 0.75,
+    "weather_sensitivity": "high",
+    "audience_by_time": {
+      "morning": ["tourists"],
+      "afternoon": ["tourists", "young_adults"],
+      "evening": ["young_adults", "couples"]
+    }
+  },
+  {
+    "id": "la_defense",
+    "name": "La Defense",
+    "category": "business_district",
+    "audience": ["office_workers", "executives", "business_travelers"],
+    "traffic_level": "very_high",
+    "premium_index": 0.85,
+    "weather_sensitivity": "low",
+    "audience_by_time": {
+      "morning": ["office_workers", "executives"],
+      "afternoon": ["office_workers", "business_travelers"],
+      "evening": ["office_workers"]
+    }
+  },
+  {
+    "id": "opera",
+    "name": "Opera",
+    "category": "business_district",
+    "audience": ["office_workers", "tourists", "shoppers"],
+    "traffic_level": "high",
+    "premium_index": 0.8,
+    "weather_sensitivity": "medium",
+    "audience_by_time": {
+      "morning": ["office_workers"],
+      "afternoon": ["shoppers", "tourists"],
+      "evening": ["tourists", "shoppers"]
+    }
+  },
+  {
+    "id": "accor_arena",
+    "name": "Accor Arena",
+    "category": "event_venue",
+    "audience": ["concert_goers", "sports_fans", "young_adults"],
+    "traffic_level": "medium",
+    "premium_index": 0.78,
+    "weather_sensitivity": "low",
+    "audience_by_time": {
+      "morning": ["commuters"],
+      "afternoon": ["young_adults"],
+      "evening": ["concert_goers", "sports_fans"]
+    }
+  },
+  {
+    "id": "parc_des_princes",
+    "name": "Parc des Princes",
+    "category": "event_venue",
+    "audience": ["sports_fans", "young_adults", "tourists"],
+    "traffic_level": "medium",
+    "premium_index": 0.76,
+    "weather_sensitivity": "medium",
+    "audience_by_time": {
+      "morning": ["commuters"],
+      "afternoon": ["sports_fans"],
+      "evening": ["sports_fans", "young_adults"]
+    }
+  },
+  {
+    "id": "stade_de_france",
+    "name": "Stade de France",
+    "category": "event_venue",
+    "audience": ["sports_fans", "concert_goers", "suburban_visitors"],
+    "traffic_level": "medium",
+    "premium_index": 0.74,
+    "weather_sensitivity": "medium",
+    "audience_by_time": {
+      "morning": ["commuters"],
+      "afternoon": ["suburban_visitors"],
+      "evening": ["sports_fans", "concert_goers"]
+    }
+  },
+  {
+    "id": "boulevard_haussmann",
+    "name": "Boulevard Haussmann",
+    "category": "commercial",
+    "audience": ["shoppers", "tourists", "luxury_shoppers"],
+    "traffic_level": "high",
+    "premium_index": 0.87,
+    "weather_sensitivity": "medium",
+    "audience_by_time": {
+      "morning": ["shoppers"],
+      "afternoon": ["shoppers", "luxury_shoppers"],
+      "evening": ["tourists", "shoppers"]
+    }
+  },
+  {
+    "id": "forum_des_halles",
+    "name": "Forum des Halles",
+    "category": "commercial",
+    "audience": ["young_adults", "shoppers", "commuters"],
+    "traffic_level": "very_high",
+    "premium_index": 0.72,
+    "weather_sensitivity": "low",
+    "audience_by_time": {
+      "morning": ["commuters"],
+      "afternoon": ["young_adults", "shoppers"],
+      "evening": ["young_adults", "commuters"]
+    }
+  },
+  {
+    "id": "avenue_montaigne",
+    "name": "Avenue Montaigne",
+    "category": "premium",
+    "audience": ["luxury_shoppers", "tourists", "high_income_visitors"],
+    "traffic_level": "medium",
+    "premium_index": 0.98,
+    "weather_sensitivity": "medium",
+    "audience_by_time": {
+      "morning": ["luxury_shoppers"],
+      "afternoon": ["luxury_shoppers", "tourists"],
+      "evening": ["high_income_visitors", "tourists"]
+    }
+  },
+  {
+    "id": "saint_germain_des_pres",
+    "name": "Saint-Germain-des-Pres",
+    "category": "premium",
+    "audience": ["high_income_visitors", "culture_seekers", "tourists"],
+    "traffic_level": "medium",
+    "premium_index": 0.9,
+    "weather_sensitivity": "medium",
+    "audience_by_time": {
+      "morning": ["culture_seekers"],
+      "afternoon": ["high_income_visitors", "tourists"],
+      "evening": ["tourists", "couples"]
+    }
+  },
+  {
+    "id": "vincennes",
+    "name": "Vincennes",
+    "category": "family_leisure",
+    "audience": ["families", "weekend_visitors", "sports_fans"],
+    "traffic_level": "medium",
+    "premium_index": 0.55,
+    "weather_sensitivity": "high",
+    "audience_by_time": {
+      "morning": ["sports_fans", "families"],
+      "afternoon": ["families", "weekend_visitors"],
+      "evening": ["weekend_visitors"]
+    }
+  },
+  {
+    "id": "chatelet",
+    "name": "Chatelet",
+    "category": "urban_hub",
+    "audience": ["commuters", "young_adults", "tourists"],
+    "traffic_level": "very_high",
+    "premium_index": 0.7,
+    "weather_sensitivity": "low",
+    "audience_by_time": {
+      "morning": ["commuters"],
+      "afternoon": ["young_adults", "tourists"],
+      "evening": ["young_adults", "commuters"]
+    }
+  },
+  {
+    "id": "republique",
+    "name": "Republique",
+    "category": "urban_hub",
+    "audience": ["young_adults", "commuters", "city_residents"],
+    "traffic_level": "high",
+    "premium_index": 0.63,
+    "weather_sensitivity": "low",
+    "audience_by_time": {
+      "morning": ["commuters"],
+      "afternoon": ["city_residents", "young_adults"],
+      "evening": ["young_adults", "city_residents"]
+    }
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "audience_match": 0.3,
+  "weather_fit": 0.15,
+  "events_fit": 0.15,
+  "mobility_fit": 0.15,
+  "time_slot_fit": 0.1,
+  "zone_attractiveness": 0.1,
+  "risk_penalty": -0.05
+}

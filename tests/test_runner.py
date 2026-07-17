@@ -1,0 +1,182 @@
+from __future__ import annotations
+
+import os
+import unittest
+
+from urban_campaign_intelligence.gateway_tools import MobilityForecastProvider
+from urban_campaign_intelligence.runner import format_summary, run_scenario
+
+
+class RunnerTestCase(unittest.TestCase):
+    def setUp(self) -> None:
+        self.previous_weather_provider = os.environ.get("WEATHER_PROVIDER")
+        self.previous_events_provider = os.environ.get("EVENTS_PROVIDER")
+        self.previous_mobility_provider = os.environ.get("MOBILITY_PROVIDER")
+        self.previous_events_agent_mode = os.environ.get("EVENTS_AGENT_MODE")
+        self.previous_review_agent_mode = os.environ.get("REVIEW_AGENT_MODE")
+        self.previous_review_agent_model = os.environ.get("REVIEW_AGENT_OPENROUTER_MODEL")
+        self.previous_executive_summary_mode = os.environ.get("EXECUTIVE_SUMMARY_MODE")
+        self.previous_executive_summary_model = os.environ.get("EXECUTIVE_SUMMARY_OPENROUTER_MODEL")
+        self.previous_openrouter_key = os.environ.get("AGENTCAMPAIGN_OPENROUTER_API_KEY")
+        self.previous_openrouter_model = os.environ.get("AGENTCAMPAIGN_OPENROUTER_MODEL")
+        os.environ["WEATHER_PROVIDER"] = "mock"
+        os.environ["EVENTS_PROVIDER"] = "mock"
+        os.environ["MOBILITY_PROVIDER"] = "mock"
+        os.environ["EVENTS_AGENT_MODE"] = "heuristic"
+        os.environ["REVIEW_AGENT_MODE"] = "heuristic"
+        os.environ["EXECUTIVE_SUMMARY_MODE"] = "deterministic"
+        os.environ.pop("REVIEW_AGENT_OPENROUTER_MODEL", None)
+        os.environ.pop("EXECUTIVE_SUMMARY_OPENROUTER_MODEL", None)
+        os.environ.pop("AGENTCAMPAIGN_OPENROUTER_API_KEY", None)
+        os.environ.pop("AGENTCAMPAIGN_OPENROUTER_MODEL", None)
+
+    def tearDown(self) -> None:
+        if self.previous_weather_provider is None:
+            os.environ.pop("WEATHER_PROVIDER", None)
+        else:
+            os.environ["WEATHER_PROVIDER"] = self.previous_weather_provider
+        if self.previous_events_provider is None:
+            os.environ.pop("EVENTS_PROVIDER", None)
+        else:
+            os.environ["EVENTS_PROVIDER"] = self.previous_events_provider
+        if self.previous_mobility_provider is None:
+            os.environ.pop("MOBILITY_PROVIDER", None)
+        else:
+            os.environ["MOBILITY_PROVIDER"] = self.previous_mobility_provider
+        if self.previous_events_agent_mode is None:
+            os.environ.pop("EVENTS_AGENT_MODE", None)
+        else:
+            os.environ["EVENTS_AGENT_MODE"] = self.previous_events_agent_mode
+        if self.previous_review_agent_mode is None:
+            os.environ.pop("REVIEW_AGENT_MODE", None)
+        else:
+            os.environ["REVIEW_AGENT_MODE"] = self.previous_review_agent_mode
+        if self.previous_review_agent_model is None:
+            os.environ.pop("REVIEW_AGENT_OPENROUTER_MODEL", None)
+        else:
+            os.environ["REVIEW_AGENT_OPENROUTER_MODEL"] = self.previous_review_agent_model
+        if self.previous_executive_summary_mode is None:
+            os.environ.pop("EXECUTIVE_SUMMARY_MODE", None)
+        else:
+            os.environ["EXECUTIVE_SUMMARY_MODE"] = self.previous_executive_summary_mode
+        if self.previous_executive_summary_model is None:
+            os.environ.pop("EXECUTIVE_SUMMARY_OPENROUTER_MODEL", None)
+        else:
+            os.environ["EXECUTIVE_SUMMARY_OPENROUTER_MODEL"] = self.previous_executive_summary_model
+        if self.previous_openrouter_key is None:
+            os.environ.pop("AGENTCAMPAIGN_OPENROUTER_API_KEY", None)
+        else:
+            os.environ["AGENTCAMPAIGN_OPENROUTER_API_KEY"] = self.previous_openrouter_key
+        if self.previous_openrouter_model is None:
+            os.environ.pop("AGENTCAMPAIGN_OPENROUTER_MODEL", None)
+        else:
+            os.environ["AGENTCAMPAIGN_OPENROUTER_MODEL"] = self.previous_openrouter_model
+
+    def test_fashion_week_returns_expected_sections(self) -> None:
+        result = run_scenario("fashion_week")
+
+        self.assertIn("city_context", result)
+        self.assertIn("allocation_plan", result)
+        self.assertIn("review", result)
+        self.assertIn("executive_summary", result)
+        self.assertIn("execution_log", result)
+        self.assertTrue(result["allocation_plan"]["ranked_matches"])
+        self.assertTrue(result["allocation_plan"]["recommended_matches"])
+        self.assertEqual(result["execution_log"][0]["step"], "pre_hook")
+        self.assertTrue(any(entry.get("tool") == "get_weather" for entry in result["execution_log"]))
+
+    def test_transport_strike_adds_warning(self) -> None:
+        result = run_scenario("transport_strike")
+        warnings = result["review"]["warnings"]
+        self.assertTrue(any("confidence" in warning.lower() or "disruption" in warning.lower() for warning in warnings))
+
+    def test_mock_provider_mode_is_exposed_in_log(self) -> None:
+        result = run_scenario("concert_bercy")
+        weather_tool_entries = [entry for entry in result["execution_log"] if entry.get("tool") == "get_weather"]
+        self.assertEqual(weather_tool_entries[0]["details"]["provider_mode"], "mock")
+        events_tool_entries = [entry for entry in result["execution_log"] if entry.get("tool") == "get_events"]
+        self.assertEqual(events_tool_entries[0]["details"]["provider_mode"], "mock")
+        mobility_tool_entries = [entry for entry in result["execution_log"] if entry.get("tool") == "get_mobility"]
+        self.assertEqual(mobility_tool_entries[0]["details"]["provider_mode"], "mock")
+
+    def test_events_agent_llm_mode_falls_back_to_heuristic_without_key(self) -> None:
+        os.environ["EVENTS_AGENT_MODE"] = "llm"
+        result = run_scenario("concert_bercy")
+        events_agent_entries = [entry for entry in result["execution_log"] if entry.get("agent") == "events_agent"]
+        self.assertNotIn("fallback_count", events_agent_entries[0]["details"])
+
+    def test_review_agent_llm_mode_falls_back_to_heuristic_without_key(self) -> None:
+        os.environ["REVIEW_AGENT_MODE"] = "llm"
+        result = run_scenario("concert_bercy")
+        review_entries = [entry for entry in result["execution_log"] if entry.get("agent") == "review_agent"]
+        self.assertEqual(review_entries[0]["details"]["mode"], "heuristic")
+
+    def test_summary_contains_key_sections(self) -> None:
+        result = run_scenario("fashion_week")
+        summary = format_summary(result)
+        self.assertIn("Scenario: fashion_week", summary)
+        self.assertIn("Top recommendations:", summary)
+        self.assertIn("Executive summary:", summary)
+        self.assertIn("Warnings:", summary)
+
+    def test_recommended_matches_are_more_diversified_than_raw_ranking(self) -> None:
+        result = run_scenario("fashion_week")
+        raw_top_advertisers = [match["advertiser_name"] for match in result["allocation_plan"]["ranked_matches"][:3]]
+        recommended_top_advertisers = [match["advertiser_name"] for match in result["allocation_plan"]["recommended_matches"][:3]]
+        self.assertEqual(len(set(raw_top_advertisers)), 1)
+        self.assertGreater(len(set(recommended_top_advertisers)), 1)
+
+    def test_multi_events_build_zone_level_event_influence(self) -> None:
+        result = run_scenario("multi_events_paris")
+        event_influence = result["city_context"]["event_influence_by_zone"]
+        self.assertIn("avenue_montaigne", event_influence)
+        self.assertIn("accor_arena", event_influence)
+        self.assertIn("parc_des_princes", event_influence)
+        self.assertGreater(event_influence["avenue_montaigne"]["score"], event_influence.get("gare_du_nord", {"score": 0.0})["score"])
+
+    def test_multi_events_do_not_force_fashion_brand_on_station_zone(self) -> None:
+        result = run_scenario("multi_events_paris")
+        gare_du_nord_match = result["allocation_plan"]["by_zone"]["gare_du_nord"]
+        self.assertNotEqual(gare_du_nord_match["advertiser_name"], "Chanel")
+
+    def test_fashion_week_keeps_luxury_brand_on_premium_zone(self) -> None:
+        result = run_scenario("fashion_week")
+        avenue_montaigne_match = result["allocation_plan"]["by_zone"]["avenue_montaigne"]
+        self.assertEqual(avenue_montaigne_match["advertiser_name"], "Chanel")
+
+    def test_football_night_favors_nike_on_parc_des_princes(self) -> None:
+        result = run_scenario("football_night_parc_des_princes")
+        parc_des_princes_match = result["allocation_plan"]["by_zone"]["parc_des_princes"]
+        self.assertEqual(parc_des_princes_match["advertiser_name"], "Nike")
+
+    def test_school_holiday_departure_assigns_travel_or_family_brand_to_station_hubs(self) -> None:
+        result = run_scenario("school_holiday_departure")
+        gare_de_lyon_match = result["allocation_plan"]["by_zone"]["gare_de_lyon"]
+        gare_du_nord_match = result["allocation_plan"]["by_zone"]["gare_du_nord"]
+        self.assertIn(gare_de_lyon_match["advertiser_name"], {"OUIGO", "Parc Asterix"})
+        self.assertIn(gare_du_nord_match["advertiser_name"], {"OUIGO", "Parc Asterix"})
+
+    def test_heatwave_saturday_favors_coca_cola_on_leisure_zone(self) -> None:
+        result = run_scenario("heatwave_saturday")
+        la_villette_match = result["allocation_plan"]["by_zone"]["la_villette"]
+        self.assertEqual(la_villette_match["advertiser_name"], "Coca-Cola")
+
+    def test_executive_summary_llm_mode_falls_back_to_deterministic_without_key(self) -> None:
+        os.environ["EXECUTIVE_SUMMARY_MODE"] = "llm"
+        result = run_scenario("concert_bercy")
+        self.assertEqual(result["executive_summary"]["mode"], "deterministic")
+
+    def test_mobility_forecast_provider_detects_station_peak(self) -> None:
+        provider = MobilityForecastProvider()
+        summary = provider._forecast_pattern(weekday=2, hour=8)
+        self.assertEqual(summary["network_status"], "station_peak")
+        self.assertEqual(summary["severity"], "medium")
+
+    def test_mobility_forecast_provider_detects_weekend_dense_central(self) -> None:
+        provider = MobilityForecastProvider()
+        summary = provider._forecast_pattern(weekday=5, hour=15)
+        self.assertEqual(summary["network_status"], "dense_central")
+
+
+if __name__ == "__main__":
+    unittest.main()
