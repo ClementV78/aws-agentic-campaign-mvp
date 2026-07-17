@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 720" role="img" aria-label="Multi-Agent Orchestration (Target) — local claims, precedent recall, global arbitration, bounded critique (architecture diagram)">
+  <style>
+    svg {
+      font-family: ui-monospace, 'JetBrains Mono', SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+      --bg: #020617;
+      --grid: #1e293b;
+      --text: #ffffff;
+      --text-muted: #94a3b8;
+      --text-dim: #475569;
+      --text-faint: #7d8da1;
+      --panel: rgba(15, 23, 42, 0.5);
+      --panel-border: #1e293b;
+      --lane-fill: rgba(15, 23, 42, 0.22);
+      --lane-stroke: #334155;
+      --arrow: #64748b;
+      --arrow-emphasis: #34d399;
+      --mask: #0f172a;
+      --frontend-fill:    rgba(8, 51, 68, 0.4);
+      --frontend-stroke:  #22d3ee;
+      --backend-fill:     rgba(6, 78, 59, 0.4);
+      --backend-stroke:   #34d399;
+      --database-fill:    rgba(76, 29, 149, 0.4);
+      --database-stroke:  #a78bfa;
+      --cloud-fill:       rgba(120, 53, 15, 0.3);
+      --cloud-stroke:     #fbbf24;
+      --security-fill:    rgba(136, 19, 55, 0.4);
+      --security-stroke:  #fb7185;
+      --messagebus-fill:  rgba(251, 146, 60, 0.3);
+      --messagebus-stroke:#fb923c;
+      --external-fill:    rgba(30, 41, 59, 0.5);
+      --external-stroke:  #94a3b8;
+      --toolbar-bg:       rgba(15, 23, 42, 0.8);
+      --toolbar-border:   #334155;
+      --toolbar-text:     #e2e8f0;
+      --toolbar-hover:    rgba(15, 23, 42, 0.95);
+      --toolbar-menu-bg:  #0f172a;
+    }
+    @media (prefers-color-scheme: light) {
+      svg {
+      --bg: #f8fafc;
+      --grid: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      --text-faint: #64748b;
+      --panel: #ffffff;
+      --panel-border: #e2e8f0;
+      --lane-fill: rgba(248, 250, 252, 0.65);
+      --lane-stroke: #cbd5e1;
+      --arrow: #94a3b8;
+      --arrow-emphasis: #059669;
+      --mask: #ffffff;
+      --frontend-fill:    rgba(34, 211, 238, 0.15);
+      --frontend-stroke:  #0891b2;
+      --backend-fill:     rgba(52, 211, 153, 0.18);
+      --backend-stroke:   #059669;
+      --database-fill:    rgba(167, 139, 250, 0.2);
+      --database-stroke:  #7c3aed;
+      --cloud-fill:       rgba(251, 191, 36, 0.18);
+      --cloud-stroke:     #d97706;
+      --security-fill:    rgba(251, 113, 133, 0.15);
+      --security-stroke:  #e11d48;
+      --messagebus-fill:  rgba(251, 146, 60, 0.15);
+      --messagebus-stroke:#ea580c;
+      --external-fill:    rgba(148, 163, 184, 0.18);
+      --external-stroke:  #64748b;
+      --toolbar-bg:       rgba(255, 255, 255, 0.92);
+      --toolbar-border:   #cbd5e1;
+      --toolbar-text:     #334155;
+      --toolbar-hover:    #ffffff;
+      --toolbar-menu-bg:  #ffffff;
+      }
+    }
+    .c-grid       { stroke: var(--grid); fill: none; }
+    .c-mask       { fill: var(--mask); stroke: none; }
+    .c-frontend   { fill: var(--frontend-fill);   stroke: var(--frontend-stroke); }
+    .c-backend    { fill: var(--backend-fill);    stroke: var(--backend-stroke); }
+    .c-database   { fill: var(--database-fill);   stroke: var(--database-stroke); }
+    .c-cloud      { fill: var(--cloud-fill);      stroke: var(--cloud-stroke); }
+    .c-security   { fill: var(--security-fill);   stroke: var(--security-stroke); }
+    .c-messagebus { fill: var(--messagebus-fill); stroke: var(--messagebus-stroke); }
+    .c-external   { fill: var(--external-fill);   stroke: var(--external-stroke); }
+    .t-primary { fill: var(--text); }
+    .t-muted   { fill: var(--text-muted); }
+    .t-dim     { fill: var(--text-dim); }
+    .t-frontend   { fill: var(--frontend-stroke); }
+    .t-backend    { fill: var(--backend-stroke); }
+    .t-database   { fill: var(--database-stroke); }
+    .t-cloud      { fill: var(--cloud-stroke); }
+    .t-security   { fill: var(--security-stroke); }
+    .t-messagebus { fill: var(--messagebus-stroke); }
+    .t-external   { fill: var(--external-stroke); }
+    .a-default   { stroke: var(--arrow); fill: none; }
+    .a-emphasis  { stroke: var(--arrow-emphasis); fill: none; }
+    .a-security  { stroke: var(--security-stroke); fill: none; stroke-dasharray: 5,5; }
+    .a-dashed    { stroke: var(--database-stroke); fill: none; stroke-dasharray: 4,4; }
+    .m-default   { fill: var(--arrow); }
+    .m-emphasis  { fill: var(--arrow-emphasis); }
+    .m-security  { fill: var(--security-stroke); }
+    .m-dashed    { fill: var(--database-stroke); }
+    .c-security-group { fill: transparent; stroke: var(--security-stroke); stroke-dasharray: 4,4; }
+    .c-region         { fill: rgba(251, 191, 36, 0.05); stroke: var(--cloud-stroke); stroke-dasharray: 8,4; }
+    .c-lane           { fill: var(--lane-fill); stroke: var(--lane-stroke); stroke-dasharray: 6,6; }
+  </style>
+  <rect width="100%" height="100%" fill="var(--bg)" rx="8"/>
+
+        <!-- Definitions -->
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-default" />
+          </marker>
+          <marker id="arrowhead-emphasis" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-emphasis" />
+          </marker>
+          <marker id="arrowhead-security" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-security" />
+          </marker>
+          <marker id="arrowhead-dashed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-dashed" />
+          </marker>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" class="c-grid" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+
+        <!-- Background Grid -->
+        <rect width="100%" height="100%" fill="url(#grid)" />
+
+        <!-- Boundaries (behind everything) -->
+        <rect x="10" y="10" width="490" height="305" rx="12" class="c-region" stroke-width="1"/>
+        <text x="18" y="28" class="t-cloud" font-size="9" font-weight="600">Context (deterministic + one small LLM)</text>
+
+        <rect x="530" y="160" width="290" height="130" rx="12" class="c-region" stroke-width="1"/>
+        <text x="538" y="178" class="t-cloud" font-size="9" font-weight="600">Local claims - loop over advertisers, parallel</text>
+
+        <rect x="790" y="10" width="260" height="420" rx="8" class="c-security-group" stroke-width="1"/>
+        <text x="798" y="28" class="t-security" font-size="9" font-weight="600">Memory and global arbitration</text>
+
+        <!-- Connection paths (before components for correct z-order) -->
+        <path d="M 220 67.5 L 242 67.5 Q 250 67.5 250 75.5 L 250 114.5 Q 250 122.5 258 122.5 L 280 122.5" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 220 155 L 242 155 Q 250 155 250 147 L 250 130.5 Q 250 122.5 258 122.5 L 280 122.5" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 220 242.5 L 242 242.5 Q 250 242.5 250 234.5 L 250 130.5 Q 250 122.5 258 122.5 L 280 122.5" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 375 155 L 375 235" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 470 265 L 507 265 Q 515 265 515 257 L 515 238 Q 515 230 523 230 L 560 230" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 790 230 L 797.5 230 Q 805 230 805 237.5 L 805 362.5 Q 805 370 812.5 370 L 820 370" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 920 100 L 920 170" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 920 170 L 920 100" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 920 100 L 920 330" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 1020 370 L 1110 370" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 1205 410 L 1205 410 L 920 410 L 920 410" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 1205 410 L 1205 500" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+
+        <!-- Components -->
+        <rect x="40" y="40" width="180" height="55" rx="6" class="c-mask"/>
+        <rect x="40" y="40" width="180" height="55" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="130" y="65.5" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Weather tool</text>
+        <text x="130" y="81.5" class="t-muted" font-size="9" text-anchor="middle">Open-Meteo + mock</text>
+
+        <rect x="40" y="125" width="180" height="60" rx="6" class="c-mask"/>
+        <rect x="40" y="125" width="180" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="130" y="153" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Events Agent</text>
+        <text x="130" y="169" class="t-muted" font-size="9" text-anchor="middle">LLM classification</text>
+        <text x="130" y="177" class="t-backend" font-size="7" text-anchor="middle">small</text>
+
+        <rect x="40" y="215" width="180" height="55" rx="6" class="c-mask"/>
+        <rect x="40" y="215" width="180" height="55" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="130" y="240.5" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Mobility tool</text>
+        <text x="130" y="256.5" class="t-muted" font-size="9" text-anchor="middle">hour-of-week forecast</text>
+
+        <rect x="280" y="90" width="190" height="65" rx="6" class="c-mask"/>
+        <rect x="280" y="90" width="190" height="65" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="375" y="120.5" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">CityContext Builder</text>
+        <text x="375" y="136.5" class="t-muted" font-size="9" text-anchor="middle">deterministic</text>
+
+        <rect x="280" y="235" width="190" height="60" rx="6" class="c-mask"/>
+        <rect x="280" y="235" width="190" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="375" y="263" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Scoring tool</text>
+        <text x="375" y="279" class="t-muted" font-size="9" text-anchor="middle">scoring.py, deterministic</text>
+
+        <rect x="560" y="190" width="230" height="80" rx="6" class="c-mask"/>
+        <rect x="560" y="190" width="230" height="80" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="675" y="228" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Advertiser Agent</text>
+        <text x="675" y="244" class="t-muted" font-size="9" text-anchor="middle">one role, fresh instance each</text>
+        <text x="675" y="262" class="t-backend" font-size="7" text-anchor="middle">xN from advertisers.json</text>
+
+        <rect x="820" y="40" width="200" height="60" rx="6" class="c-mask"/>
+        <rect x="820" y="40" width="200" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="920" y="68" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Precedent Agent</text>
+        <text x="920" y="84" class="t-muted" font-size="9" text-anchor="middle">fuzzy match + citations</text>
+        <text x="920" y="92" class="t-backend" font-size="7" text-anchor="middle">small</text>
+
+        <rect x="820" y="170" width="200" height="60" rx="6" class="c-mask"/>
+        <rect x="820" y="170" width="200" height="60" rx="6" class="c-database" stroke-width="1.5"/>
+        <text x="920" y="198" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">AgentCore Memory</text>
+        <text x="920" y="214" class="t-muted" font-size="9" text-anchor="middle">EPISODIC history</text>
+
+        <rect x="820" y="330" width="200" height="80" rx="6" class="c-mask"/>
+        <rect x="820" y="330" width="200" height="80" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="920" y="368" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Campaign Allocator Agent</text>
+        <text x="920" y="384" class="t-muted" font-size="9" text-anchor="middle">global arbitration</text>
+        <text x="920" y="402" class="t-backend" font-size="7" text-anchor="middle">strong</text>
+
+        <rect x="1110" y="330" width="190" height="80" rx="6" class="c-mask"/>
+        <rect x="1110" y="330" width="190" height="80" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="1205" y="368" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Review Agent</text>
+        <text x="1205" y="384" class="t-muted" font-size="9" text-anchor="middle">bounded critique loop</text>
+        <text x="1205" y="402" class="t-backend" font-size="7" text-anchor="middle">max 1 retry</text>
+
+        <rect x="1110" y="500" width="190" height="60" rx="6" class="c-mask"/>
+        <rect x="1110" y="500" width="190" height="60" rx="6" class="c-external" stroke-width="1.5"/>
+        <text x="1205" y="528" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Client / Harness</text>
+        <text x="1205" y="544" class="t-muted" font-size="9" text-anchor="middle">final recommendation</text>
+
+        <!-- Connection labels -->
+
+
+
+
+        <rect x="493.2" y="227.5" width="43.6" height="14" rx="3" class="c-mask"/>
+        <text x="515" y="237.5" class="t-muted" font-size="8" text-anchor="middle">score()</text>
+        <rect x="740" y="280" width="130" height="14" rx="3" class="c-mask"/>
+        <text x="805" y="290" class="t-backend" font-size="8" text-anchor="middle">claims (1 per advertiser)</text>
+        <rect x="900.6" y="100" width="38.8" height="14" rx="3" class="c-mask"/>
+        <text x="920" y="110" class="t-muted" font-size="8" text-anchor="middle">search</text>
+        <rect x="985.8" y="150" width="48.4" height="14" rx="3" class="c-mask"/>
+        <text x="1010" y="160" class="t-messagebus" font-size="8" text-anchor="middle">episodes</text>
+        <rect x="874.2" y="260" width="91.6" height="14" rx="3" class="c-mask"/>
+        <text x="920" y="270" class="t-backend" font-size="8" text-anchor="middle">brief + citations</text>
+        <rect x="1024" y="336" width="82" height="14" rx="3" class="c-mask"/>
+        <text x="1065" y="346" class="t-backend" font-size="8" text-anchor="middle">allocation plan</text>
+        <rect x="1009.5" y="414" width="106" height="14" rx="3" class="c-mask"/>
+        <text x="1062.5" y="424" class="t-messagebus" font-size="8" text-anchor="middle">reject (max 1 retry)</text>
+        <rect x="1166.4" y="414" width="77.2" height="14" rx="3" class="c-mask"/>
+        <text x="1205" y="424" class="t-backend" font-size="8" text-anchor="middle">recommendation</text>
+
+        <!-- Legend -->
+        <text x="40" y="691" class="t-primary" font-size="9" font-weight="600">Legend</text>
+        <rect x="40" y="696" width="14" height="9" rx="2" class="c-cloud" stroke-width="1"/>
+        <text x="60" y="704" class="t-muted" font-size="8">Cloud</text>
+        <rect x="123" y="696" width="14" height="9" rx="2" class="c-backend" stroke-width="1"/>
+        <text x="143" y="704" class="t-muted" font-size="8">Backend</text>
+        <rect x="216" y="696" width="14" height="9" rx="2" class="c-database" stroke-width="1"/>
+        <text x="236" y="704" class="t-muted" font-size="8">Database</text>
+        <rect x="314" y="696" width="14" height="9" rx="2" class="c-external" stroke-width="1"/>
+        <text x="334" y="704" class="t-muted" font-size="8">External</text>
+      </svg>

@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Target AWS Architecture",
+    "subtitle": "AgentCore Runtime + Gateway + Bedrock + Memory, behind a SigV4 endpoint",
+    "output": "target-aws-architecture.html",
+    "viewBox": [1180, 960]
+  },
+  "components": [
+    { "id": "client", "type": "external", "label": "Demo client", "sublabel": "SigV4 (AWS_IAM)", "pos": [40, 40] },
+    { "id": "harness", "type": "external", "label": "Scenario harness", "sublabel": "replay + evaluation", "pos": [40, 560], "size": [180, 60] },
+    { "id": "apigw", "type": "cloud", "label": "API Gateway", "sublabel": "HTTP entrypoint", "pos": [40, 220] },
+
+    { "id": "runtime", "type": "backend", "label": "AgentCore Runtime", "sublabel": "main.py entrypoint", "pos": [300, 220], "size": [180, 70] },
+    { "id": "graph", "type": "backend", "label": "Strands Agent Graph", "sublabel": "rebuilt per run", "pos": [300, 380], "size": [180, 70] },
+    { "id": "bedrock", "type": "cloud", "label": "Amazon Bedrock", "sublabel": "multi-LLM by agent role", "pos": [300, 540], "size": [180, 60] },
+    { "id": "logs", "type": "cloud", "label": "CloudWatch Logs", "sublabel": "traces + warnings", "pos": [300, 660], "size": [180, 60] },
+
+    { "id": "gateway", "type": "backend", "label": "AgentCore Gateway", "sublabel": "MCP endpoint, AWS_IAM auth", "pos": [620, 220], "size": [180, 70] },
+    { "id": "s3", "type": "database", "label": "S3", "sublabel": "data, outputs, replay evidence", "pos": [620, 400], "size": [180, 60] },
+    { "id": "memory", "type": "database", "label": "AgentCore Memory", "sublabel": "EPISODIC allocation history", "pos": [620, 540], "size": [180, 60] },
+
+    { "id": "lambda_weather", "type": "cloud", "label": "Lambda: get_weather", "sublabel": "Open-Meteo + mock fallback", "pos": [920, 80], "size": [200, 60] },
+    { "id": "lambda_events", "type": "cloud", "label": "Lambda: get_events", "sublabel": "Paris Open Data + mock", "pos": [920, 170], "size": [200, 60] },
+    { "id": "lambda_mobility", "type": "cloud", "label": "Lambda: get_mobility", "sublabel": "hour-of-week forecast", "pos": [920, 260], "size": [200, 60] },
+    { "id": "lambda_zones", "type": "cloud", "label": "Lambda: get_zones", "sublabel": "reads S3", "pos": [920, 350], "size": [200, 60] },
+    { "id": "lambda_advertisers", "type": "cloud", "label": "Lambda: get_advertisers", "sublabel": "reads S3", "pos": [920, 440], "size": [200, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "AWS account - AgentCore project", "wraps": ["runtime", "graph", "bedrock", "logs", "gateway", "s3", "memory", "lambda_weather", "lambda_events", "lambda_mobility", "lambda_zones", "lambda_advertisers"] },
+    { "kind": "security-group", "label": "AgentCore Gateway targets (type: lambda)", "wraps": ["lambda_weather", "lambda_events", "lambda_mobility", "lambda_zones", "lambda_advertisers"] }
+  ],
+  "connections": [
+    { "from": "client", "to": "apigw", "label": "HTTPS + SigV4", "variant": "security", "labelDy": 24 },
+    { "from": "harness", "to": "apigw", "label": "same endpoint", "variant": "dashed", "fromSide": "top", "toSide": "left" },
+    { "from": "apigw", "to": "runtime", "label": "invoke", "variant": "emphasis" },
+    { "from": "runtime", "to": "graph", "variant": "default" },
+    { "from": "graph", "to": "bedrock", "label": "model calls", "variant": "default", "labelDy": 24 },
+    { "from": "graph", "to": "logs", "label": "traces", "variant": "dashed", "fromSide": "left", "toSide": "top" },
+    { "from": "graph", "to": "gateway", "label": "MCP tool calls", "variant": "emphasis", "fromSide": "right", "toSide": "bottom" },
+    { "from": "graph", "to": "memory", "label": "precedents", "variant": "default", "fromSide": "bottom", "toSide": "left", "route": "orthogonal-v", "labelDy": 30 },
+    { "from": "gateway", "to": "lambda_weather", "label": "invoke", "variant": "default", "route": "orthogonal-h" },
+    { "from": "gateway", "to": "lambda_events", "label": "invoke", "variant": "default", "route": "orthogonal-h" },
+    { "from": "gateway", "to": "lambda_mobility", "variant": "default", "route": "orthogonal-h" },
+    { "from": "gateway", "to": "lambda_zones", "variant": "default", "route": "orthogonal-h" },
+    { "from": "gateway", "to": "lambda_advertisers", "label": "invoke", "variant": "default", "route": "orthogonal-h" },
+    { "from": "lambda_zones", "to": "s3", "label": "read", "variant": "dashed", "fromSide": "left", "toSide": "right" },
+    { "from": "lambda_advertisers", "to": "s3", "variant": "dashed", "fromSide": "left", "toSide": "bottom" }
+  ],
+  "cards": []
+}

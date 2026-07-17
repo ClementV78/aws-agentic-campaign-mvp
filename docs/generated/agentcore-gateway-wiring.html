@@ -1,0 +1,1298 @@
+  <style>
+    /* ==========================================================
+       THEME VARIABLES — switch by toggling [data-theme] on <html>
+       ========================================================== */
+    :root,
+    [data-theme="dark"] {
+      --bg: #020617;
+      --grid: #1e293b;
+      --text: #ffffff;
+      --text-muted: #94a3b8;
+      --text-dim: #475569;
+      /* UI chrome (menu hints, footer) needs more contrast than SVG .t-dim accents */
+      --text-faint: #7d8da1;
+
+      --panel: rgba(15, 23, 42, 0.5);
+      --panel-border: #1e293b;
+      --lane-fill: rgba(15, 23, 42, 0.22);
+      --lane-stroke: #334155;
+
+      --arrow: #64748b;
+      --arrow-emphasis: #34d399;
+
+      /* Opaque mask color used behind semi-transparent component fills
+         so the arrows drawn underneath are properly hidden. */
+      --mask: #0f172a;
+
+      --frontend-fill:    rgba(8, 51, 68, 0.4);
+      --frontend-stroke:  #22d3ee;
+      --backend-fill:     rgba(6, 78, 59, 0.4);
+      --backend-stroke:   #34d399;
+      --database-fill:    rgba(76, 29, 149, 0.4);
+      --database-stroke:  #a78bfa;
+      --cloud-fill:       rgba(120, 53, 15, 0.3);
+      --cloud-stroke:     #fbbf24;
+      --security-fill:    rgba(136, 19, 55, 0.4);
+      --security-stroke:  #fb7185;
+      --messagebus-fill:  rgba(251, 146, 60, 0.3);
+      --messagebus-stroke:#fb923c;
+      --external-fill:    rgba(30, 41, 59, 0.5);
+      --external-stroke:  #94a3b8;
+
+      --toolbar-bg:       rgba(15, 23, 42, 0.8);
+      --toolbar-border:   #334155;
+      --toolbar-text:     #e2e8f0;
+      --toolbar-hover:    rgba(15, 23, 42, 0.95);
+      --toolbar-menu-bg:  #0f172a;
+    }
+
+    [data-theme="light"] {
+      --bg: #f8fafc;
+      --grid: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      --text-faint: #64748b;
+
+      --panel: #ffffff;
+      --panel-border: #e2e8f0;
+      --lane-fill: rgba(248, 250, 252, 0.65);
+      --lane-stroke: #cbd5e1;
+
+      --arrow: #94a3b8;
+      --arrow-emphasis: #059669;
+
+      --mask: #ffffff;
+
+      --frontend-fill:    rgba(34, 211, 238, 0.15);
+      --frontend-stroke:  #0891b2;
+      --backend-fill:     rgba(52, 211, 153, 0.18);
+      --backend-stroke:   #059669;
+      --database-fill:    rgba(167, 139, 250, 0.2);
+      --database-stroke:  #7c3aed;
+      --cloud-fill:       rgba(251, 191, 36, 0.18);
+      --cloud-stroke:     #d97706;
+      --security-fill:    rgba(251, 113, 133, 0.15);
+      --security-stroke:  #e11d48;
+      --messagebus-fill:  rgba(251, 146, 60, 0.15);
+      --messagebus-stroke:#ea580c;
+      --external-fill:    rgba(148, 163, 184, 0.18);
+      --external-stroke:  #64748b;
+
+      --toolbar-bg:       rgba(255, 255, 255, 0.92);
+      --toolbar-border:   #cbd5e1;
+      --toolbar-text:     #334155;
+      --toolbar-hover:    #ffffff;
+      --toolbar-menu-bg:  #ffffff;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', 'Liberation Mono', 'Noto Sans Mono CJK SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', monospace;
+      background: var(--bg);
+      min-height: 100vh;
+      padding: 2rem;
+      color: var(--text);
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; }
+
+    .header { margin-bottom: 2rem; }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .pulse-dot {
+      width: 12px;
+      height: 12px;
+      background: var(--frontend-stroke);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      margin-left: 1.75rem;
+    }
+
+    .diagram-container {
+      background: var(--panel);
+      border-radius: 1rem;
+      border: 1px solid var(--panel-border);
+      padding: 1.5rem;
+      overflow-x: auto;
+    }
+
+    svg {
+      width: 100%;
+      min-width: min(900px, 100%);
+      display: block;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .card {
+      background: var(--panel);
+      border-radius: 0.75rem;
+      border: 1px solid var(--panel-border);
+      padding: 1.25rem;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .card-dot.cyan     { background: var(--frontend-stroke); }
+    .card-dot.emerald  { background: var(--backend-stroke); }
+    .card-dot.violet   { background: var(--database-stroke); }
+    .card-dot.amber    { background: var(--cloud-stroke); }
+    .card-dot.rose     { background: var(--security-stroke); }
+    .card-dot.orange   { background: var(--messagebus-stroke); }
+    .card-dot.slate    { background: var(--external-stroke); }
+
+    .card h3 { font-size: 0.875rem; font-weight: 600; color: var(--text); }
+
+    .card ul {
+      list-style: none;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+    }
+
+    .card li { margin-bottom: 0.375rem; }
+
+    .footer {
+      text-align: center;
+      margin-top: 1.5rem;
+      color: var(--text-faint);
+      font-size: 0.75rem;
+    }
+
+    /* ==========================================================
+       Print stylesheet — hide interactive controls, force light,
+       drop the grid so the diagram doesn't waste ink, use landscape
+       so wide diagrams fit, pack summary cards into 2 columns to
+       avoid an orphan card on a trailing page.
+       ========================================================== */
+    @page { size: landscape; margin: 1.5cm; }
+
+    @media print {
+      /* Force the FULL light palette — including component fills/strokes and
+         lane/arrow colors — so printing from dark theme doesn't put neon
+         strokes and translucent dark fills on white paper. */
+      :root, [data-theme="dark"], [data-theme="light"] {
+        --bg: #ffffff;
+        --grid: transparent;
+        --panel: #ffffff;
+        --panel-border: #e2e8f0;
+        --text: #0f172a;
+        --text-muted: #475569;
+        --text-dim: #94a3b8;
+        --text-faint: #64748b;
+        --mask: #ffffff;
+        --lane-fill: rgba(248, 250, 252, 0.65);
+        --lane-stroke: #cbd5e1;
+        --arrow: #94a3b8;
+        --arrow-emphasis: #059669;
+        --frontend-fill:    rgba(34, 211, 238, 0.15);
+        --frontend-stroke:  #0891b2;
+        --backend-fill:     rgba(52, 211, 153, 0.18);
+        --backend-stroke:   #059669;
+        --database-fill:    rgba(167, 139, 250, 0.2);
+        --database-stroke:  #7c3aed;
+        --cloud-fill:       rgba(251, 191, 36, 0.18);
+        --cloud-stroke:     #d97706;
+        --security-fill:    rgba(251, 113, 133, 0.15);
+        --security-stroke:  #e11d48;
+        --messagebus-fill:  rgba(251, 146, 60, 0.15);
+        --messagebus-stroke:#ea580c;
+        --external-fill:    rgba(148, 163, 184, 0.18);
+        --external-stroke:  #64748b;
+      }
+      body { background: #ffffff !important; padding: 0; }
+      .container { max-width: none; }
+      .toolbar, .archify-toast, .no-print { display: none !important; }
+      .diagram-container, .card { box-shadow: none; border-color: #e2e8f0; }
+      .cards { grid-template-columns: 1fr 1fr; }
+      /* Ensure elements break sensibly across pages */
+      .card { break-inside: avoid; page-break-inside: avoid; }
+      .diagram-container { break-inside: avoid; page-break-inside: avoid; }
+      h1, .subtitle { color: #0f172a; }
+    }
+
+    /* ==========================================================
+       TOOLBAR (theme toggle + export menu)
+       ========================================================== */
+    .toolbar {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      display: flex;
+      gap: 0.5rem;
+      z-index: 100;
+    }
+    .toolbar button {
+      background: var(--toolbar-bg);
+      color: var(--toolbar-text);
+      border: 1px solid var(--toolbar-border);
+      padding: 0.5rem 0.875rem;
+      border-radius: 0.5rem;
+      font-family: inherit;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: background 0.15s, border-color 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+    }
+    .toolbar button:hover {
+      background: var(--toolbar-hover);
+      border-color: var(--arrow);
+    }
+    .toolbar button:focus-visible {
+      outline: 2px solid var(--frontend-stroke);
+      outline-offset: 2px;
+    }
+    .toolbar .export-wrap { position: relative; }
+    .toolbar .export-menu {
+      position: absolute;
+      top: calc(100% + 0.375rem);
+      right: 0;
+      background: var(--toolbar-menu-bg);
+      border: 1px solid var(--toolbar-border);
+      border-radius: 0.5rem;
+      padding: 0.375rem;
+      min-width: 160px;
+      display: none;
+      flex-direction: column;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    }
+    .toolbar .export-menu.open { display: flex; }
+    .toolbar .export-menu button {
+      background: transparent;
+      border: 0;
+      justify-content: space-between;
+      width: 100%;
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+    }
+    .toolbar .export-menu button:hover {
+      background: var(--toolbar-hover);
+    }
+    .toolbar .export-menu .hint {
+      color: var(--text-faint);
+      font-size: 0.625rem;
+    }
+    .toolbar .export-menu hr {
+      border: 0;
+      border-top: 1px solid var(--toolbar-border);
+      margin: 0.25rem 0.375rem;
+      opacity: 0.5;
+    }
+
+    /* Toast — brief feedback for actions like "copied" */
+    .archify-toast {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(-8px);
+      background: var(--toolbar-menu-bg);
+      color: var(--text);
+      border: 1px solid var(--toolbar-border);
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-family: inherit;
+      font-size: 0.75rem;
+      opacity: 0;
+      transition: opacity 0.2s, transform 0.2s;
+      z-index: 200;
+      pointer-events: none;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    }
+    .archify-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 720px) {
+      body { padding: 1rem; }
+      .toolbar {
+        position: static;
+        justify-content: flex-end;
+        margin-bottom: 1rem;
+      }
+      .header { margin-bottom: 1.25rem; }
+      .header-row {
+        gap: 0.75rem;
+        align-items: flex-start;
+      }
+      h1 {
+        font-size: 1.25rem;
+        line-height: 1.25;
+      }
+      .subtitle {
+        margin-left: 0;
+        font-size: 0.8125rem;
+        line-height: 1.55;
+      }
+      .diagram-container {
+        padding: 0.75rem;
+        border-radius: 0.75rem;
+      }
+      .cards {
+        grid-template-columns: 1fr;
+        margin-top: 1rem;
+      }
+    }
+
+    /* ==========================================================
+       SVG SEMANTIC CLASSES — use these instead of inline fill/stroke
+       ========================================================== */
+    .c-grid       { stroke: var(--grid); fill: none; }
+    .c-mask       { fill: var(--mask); stroke: none; }
+
+    .c-frontend   { fill: var(--frontend-fill);   stroke: var(--frontend-stroke); }
+    .c-backend    { fill: var(--backend-fill);    stroke: var(--backend-stroke); }
+    .c-database   { fill: var(--database-fill);   stroke: var(--database-stroke); }
+    .c-cloud      { fill: var(--cloud-fill);      stroke: var(--cloud-stroke); }
+    .c-security   { fill: var(--security-fill);   stroke: var(--security-stroke); }
+    .c-messagebus { fill: var(--messagebus-fill); stroke: var(--messagebus-stroke); }
+    .c-external   { fill: var(--external-fill);   stroke: var(--external-stroke); }
+
+    /* Text helpers */
+    .t-primary { fill: var(--text); }
+    .t-muted   { fill: var(--text-muted); }
+    .t-dim     { fill: var(--text-dim); }
+    .t-frontend   { fill: var(--frontend-stroke); }
+    .t-backend    { fill: var(--backend-stroke); }
+    .t-database   { fill: var(--database-stroke); }
+    .t-cloud      { fill: var(--cloud-stroke); }
+    .t-security   { fill: var(--security-stroke); }
+    .t-messagebus { fill: var(--messagebus-stroke); }
+    .t-external   { fill: var(--external-stroke); }
+
+    /* Arrows */
+    .a-default   { stroke: var(--arrow); fill: none; }
+    .a-emphasis  { stroke: var(--arrow-emphasis); fill: none; }
+    .a-security  { stroke: var(--security-stroke); fill: none; stroke-dasharray: 5,5; }
+    .a-dashed    { stroke: var(--database-stroke); fill: none; stroke-dasharray: 4,4; }
+
+    /* Arrowhead markers reference these */
+    .m-default   { fill: var(--arrow); }
+    .m-emphasis  { fill: var(--arrow-emphasis); }
+    .m-security  { fill: var(--security-stroke); }
+    .m-dashed    { fill: var(--database-stroke); }
+
+    /* Dashed boundary variants */
+    .c-security-group { fill: transparent; stroke: var(--security-stroke); stroke-dasharray: 4,4; }
+    .c-region         { fill: rgba(251, 191, 36, 0.05); stroke: var(--cloud-stroke); stroke-dasharray: 8,4; }
+    .c-lane           { fill: var(--lane-fill); stroke: var(--lane-stroke); stroke-dasharray: 6,6; }
+  </style>
+<style>
+  /* --- ajouts pour le document explicatif (au-dessus du style archify) --- */
+  .doc-section { max-width: 1200px; margin: 0 auto 3rem auto; }
+  .doc-section h2 {
+    font-size: 1.15rem;
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .doc-section h2 .step-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    background: var(--backend-fill);
+    border: 1px solid var(--backend-stroke);
+    color: var(--backend-stroke);
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+  .doc-section p.lead {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    max-width: 900px;
+    line-height: 1.55;
+  }
+  .doc-section p.lead code, .doc-section li code, .doc-section td code {
+    background: var(--lane-fill);
+    border: 1px solid var(--panel-border);
+    border-radius: 4px;
+    padding: 0.05rem 0.35rem;
+    font-size: 0.85em;
+  }
+  .callout {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-left: 3px solid var(--cloud-stroke);
+    border-radius: 0.6rem;
+    padding: 1rem 1.25rem;
+    margin: 1.25rem 0;
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+  .callout.blocker { border-left-color: var(--security-stroke); }
+  .callout.ok { border-left-color: var(--backend-stroke); }
+  .callout ul { margin: 0.4rem 0 0 1.1rem; }
+  table.mapping {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    margin: 1rem 0;
+  }
+  table.mapping th, table.mapping td {
+    text-align: left;
+    padding: 0.5rem 0.7rem;
+    border-bottom: 1px solid var(--panel-border);
+    vertical-align: top;
+  }
+  table.mapping th {
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0 0 0;
+    font-size: 0.85rem;
+  }
+  .toc a { color: var(--backend-stroke); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  hr.sep { border: none; border-top: 1px solid var(--panel-border); margin: 2.5rem 0; }
+</style>
+
+<div class="container">
+  <div class="header">
+    <div class="header-row">
+      <div class="pulse-dot"></div>
+      <h1>Câblage AgentCore Gateway — Urban Campaign Intelligence</h1>
+    </div>
+    <div class="subtitle">Comment le Gateway va exposer les tools métier au Supervisor Agent, et ce qu'il reste à faire pour y arriver</div>
+    <ul class="toc">
+      <li><a href="#etat">1. Où on en est</a></li>
+      <li><a href="#archi">2. Architecture cible</a></li>
+      <li><a href="#sequence">3. Déroulé d'une requête</a></li>
+      <li><a href="#plan">4. Plan de câblage</a></li>
+      <li><a href="#risques">5. Points de vigilance</a></li>
+      <li><a href="#multiagents">6. Architecture multi-agents cible</a></li>
+    </ul>
+  </div>
+
+  <div class="doc-section" id="etat">
+    <h2><span class="step-badge">0</span>Où on en est aujourd'hui</h2>
+    <p class="lead">
+      Le moteur métier déterministe (<code>src/urban_campaign_intelligence/</code>) tourne en local et produit déjà des recommandations
+      complètes à partir de <code>data/scenarios.json</code>. Le portage AWS existe sous forme de squelette
+      <code>agentcore-project/UrbanCampaignIntelligencePoc/</code>, généré par l'AgentCore CLI, mais :
+    </p>
+    <div class="callout blocker">
+      <strong>Ce qui bloque concrètement aujourd'hui</strong>
+      <ul>
+        <li><code>agentcore.json</code> → <code>agentCoreGateways: []</code> — aucun Gateway ni target n'existe encore</li>
+        <li><code>aws-targets.json</code> est vide — aucun compte/région configuré, donc <code>deploy.sh</code> refuse de lancer un vrai <code>agentcore deploy</code></li>
+        <li><code>app/.../main.py</code> appelle encore le serveur MCP de démo (<code>mcp.exa.ai</code>) et expose l'outil jouet <code>add_numbers</code>, sans lien avec le moteur métier</li>
+      </ul>
+    </div>
+    <p class="lead">
+      L'objectif de ce document est de détailler comment combler cet écart : exposer <code>get_weather</code>, <code>get_events</code>,
+      <code>get_mobility</code>, <code>get_zones</code> et <code>get_advertisers</code> via un vrai <strong>AgentCore Gateway</strong>,
+      et brancher le Runtime dessus.
+    </p>
+  </div>
+
+  <hr class="sep">
+
+  <div class="doc-section" id="archi">
+    <h2><span class="step-badge">1</span>Architecture cible</h2>
+    <p class="lead">
+      Le Gateway se place entre le <strong>Supervisor Agent</strong> (l'Agent Strands défini dans <code>main.py</code>, exécuté par
+      l'AgentCore Runtime) et 5 fonctions Lambda — une par tool. Chaque Lambda encapsule un provider déjà écrit dans
+      <code>src/urban_campaign_intelligence/gateway_tools.py</code> (mock, Open-Meteo, Paris Open Data, ou le forecast mobilité).
+      Le Gateway ne fait que router les appels MCP vers ces Lambdas ; il ne contient aucune logique métier.
+      Le scoring déterministe (<code>scoring.py</code>, <code>city_context.py</code>, <code>review.py</code>) reste entièrement
+      côté Runtime, jamais exposé comme tool Gateway.
+    </p>
+    <div class="diagram-container">
+      <svg viewBox="0 0 1180 940" role="img" aria-label="AgentCore Gateway - Architecture cible — Runtime Strands + Gateway MCP + Lambda tools + Bedrock (architecture diagram)">
+        <!-- Definitions -->
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-default" />
+          </marker>
+          <marker id="arrowhead-emphasis" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-emphasis" />
+          </marker>
+          <marker id="arrowhead-security" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-security" />
+          </marker>
+          <marker id="arrowhead-dashed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-dashed" />
+          </marker>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" class="c-grid" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+
+        <!-- Background Grid -->
+        <rect width="100%" height="100%" fill="url(#grid)" />
+
+        <!-- Boundaries (behind everything) -->
+        <rect x="270" y="50" width="880" height="690" rx="12" class="c-region" stroke-width="1"/>
+        <text x="278" y="68" class="t-cloud" font-size="9" font-weight="600">AWS account - AgentCore project</text>
+
+        <rect x="890" y="50" width="260" height="470" rx="8" class="c-security-group" stroke-width="1"/>
+        <text x="898" y="68" class="t-security" font-size="9" font-weight="600">AgentCore Gateway targets (type: lambda)</text>
+
+        <!-- Connection paths (before components for correct z-order) -->
+        <path d="M 100 100 L 100 220" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+        <path d="M 130 560 L 93 560 Q 85 560 85 552 L 85 258 Q 85 250 77 250 L 40 250" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 160 250 L 227.5 250 Q 230 250 230 252.5 L 230 252.5 Q 230 255 232.5 255 L 300 255" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 390 290 L 390 380" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 390 450 L 390 540" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 300 415 L 337 415 Q 345 415 345 423 L 345 652 Q 345 660 353 660 L 390 660" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 480 415 L 542 415 Q 550 415 550 407 L 550 263 Q 550 255 558 255 L 620 255" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 710 290 L 710 380" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 800 255 L 852 255 Q 860 255 860 247 L 860 118 Q 860 110 868 110 L 920 110" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 800 255 L 852 255 Q 860 255 860 247 L 860 208 Q 860 200 868 200 L 920 200" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 800 255 L 852 255 Q 860 255 860 263 L 860 282 Q 860 290 868 290 L 920 290" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 800 255 L 852 255 Q 860 255 860 263 L 860 372 Q 860 380 868 380 L 920 380" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 800 255 L 852 255 Q 860 255 860 263 L 860 462 Q 860 470 868 470 L 920 470" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 920 380 L 868 380 Q 860 380 860 388 L 860 402 Q 860 410 852 410 L 800 410" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 920 470 L 823 470 Q 815 470 815 462 L 815 448 Q 815 440 807 440 L 710 440" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+
+        <!-- Components -->
+        <rect x="40" y="40" width="120" height="60" rx="6" class="c-mask"/>
+        <rect x="40" y="40" width="120" height="60" rx="6" class="c-external" stroke-width="1.5"/>
+        <text x="100" y="68" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Demo client</text>
+        <text x="100" y="84" class="t-muted" font-size="9" text-anchor="middle">SigV4 (AWS_IAM)</text>
+
+        <rect x="40" y="560" width="180" height="60" rx="6" class="c-mask"/>
+        <rect x="40" y="560" width="180" height="60" rx="6" class="c-external" stroke-width="1.5"/>
+        <text x="130" y="588" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Scenario harness</text>
+        <text x="130" y="604" class="t-muted" font-size="9" text-anchor="middle">replay + evaluation</text>
+
+        <rect x="40" y="220" width="120" height="60" rx="6" class="c-mask"/>
+        <rect x="40" y="220" width="120" height="60" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="100" y="248" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">API Gateway</text>
+        <text x="100" y="264" class="t-muted" font-size="9" text-anchor="middle">HTTP entrypoint</text>
+
+        <rect x="300" y="220" width="180" height="70" rx="6" class="c-mask"/>
+        <rect x="300" y="220" width="180" height="70" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="390" y="253" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">AgentCore Runtime</text>
+        <text x="390" y="269" class="t-muted" font-size="9" text-anchor="middle">main.py - Strands Agent</text>
+
+        <rect x="300" y="380" width="180" height="70" rx="6" class="c-mask"/>
+        <rect x="300" y="380" width="180" height="70" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="390" y="413" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Supervisor Agent</text>
+        <text x="390" y="429" class="t-muted" font-size="9" text-anchor="middle">orchestration + scoring</text>
+
+        <rect x="300" y="540" width="180" height="60" rx="6" class="c-mask"/>
+        <rect x="300" y="540" width="180" height="60" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="390" y="568" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Amazon Bedrock</text>
+        <text x="390" y="584" class="t-muted" font-size="9" text-anchor="middle">multi-LLM per agent role</text>
+
+        <rect x="300" y="660" width="180" height="60" rx="6" class="c-mask"/>
+        <rect x="300" y="660" width="180" height="60" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="390" y="688" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">CloudWatch Logs</text>
+        <text x="390" y="704" class="t-muted" font-size="9" text-anchor="middle">traces + warnings</text>
+
+        <rect x="620" y="220" width="180" height="70" rx="6" class="c-mask"/>
+        <rect x="620" y="220" width="180" height="70" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="710" y="253" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">AgentCore Gateway</text>
+        <text x="710" y="269" class="t-muted" font-size="9" text-anchor="middle">MCP endpoint, AWS_IAM auth</text>
+
+        <rect x="620" y="380" width="180" height="60" rx="6" class="c-mask"/>
+        <rect x="620" y="380" width="180" height="60" rx="6" class="c-database" stroke-width="1.5"/>
+        <text x="710" y="408" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">S3</text>
+        <text x="710" y="424" class="t-muted" font-size="9" text-anchor="middle">zones/advertisers data, outputs</text>
+
+        <rect x="920" y="80" width="200" height="60" rx="6" class="c-mask"/>
+        <rect x="920" y="80" width="200" height="60" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="1020" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Lambda: get_weather</text>
+        <text x="1020" y="124" class="t-muted" font-size="9" text-anchor="middle">Open-Meteo + mock fallback</text>
+
+        <rect x="920" y="170" width="200" height="60" rx="6" class="c-mask"/>
+        <rect x="920" y="170" width="200" height="60" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="1020" y="198" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Lambda: get_events</text>
+        <text x="1020" y="214" class="t-muted" font-size="9" text-anchor="middle">Paris Open Data + mock</text>
+
+        <rect x="920" y="260" width="200" height="60" rx="6" class="c-mask"/>
+        <rect x="920" y="260" width="200" height="60" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="1020" y="288" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Lambda: get_mobility</text>
+        <text x="1020" y="304" class="t-muted" font-size="9" text-anchor="middle">hour-of-week forecast</text>
+
+        <rect x="920" y="350" width="200" height="60" rx="6" class="c-mask"/>
+        <rect x="920" y="350" width="200" height="60" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="1020" y="378" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Lambda: get_zones</text>
+        <text x="1020" y="394" class="t-muted" font-size="9" text-anchor="middle">reads S3</text>
+
+        <rect x="920" y="440" width="200" height="60" rx="6" class="c-mask"/>
+        <rect x="920" y="440" width="200" height="60" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="1020" y="468" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Lambda: get_advertisers</text>
+        <text x="1020" y="484" class="t-muted" font-size="9" text-anchor="middle">reads S3</text>
+
+        <!-- Connection labels -->
+        <rect x="63.8" y="104" width="72.4" height="14" rx="3" class="c-mask"/>
+        <text x="100" y="114" class="t-security" font-size="8" text-anchor="middle">HTTPS + SigV4</text>
+        <rect x="48.8" y="385" width="72.4" height="14" rx="3" class="c-mask"/>
+        <text x="85" y="395" class="t-messagebus" font-size="8" text-anchor="middle">same endpoint</text>
+        <rect x="210.6" y="232.5" width="38.8" height="14" rx="3" class="c-mask"/>
+        <text x="230" y="242.5" class="t-backend" font-size="8" text-anchor="middle">invoke</text>
+
+        <rect x="358.6" y="454" width="62.8" height="14" rx="3" class="c-mask"/>
+        <text x="390" y="464" class="t-muted" font-size="8" text-anchor="middle">model calls</text>
+        <rect x="325.6" y="517.5" width="38.8" height="14" rx="3" class="c-mask"/>
+        <text x="345" y="527.5" class="t-messagebus" font-size="8" text-anchor="middle">traces</text>
+        <rect x="511.4" y="315" width="77.2" height="14" rx="3" class="c-mask"/>
+        <text x="550" y="325" class="t-backend" font-size="8" text-anchor="middle">MCP tool calls</text>
+        <rect x="676.2" y="294" width="67.6" height="14" rx="3" class="c-mask"/>
+        <text x="710" y="304" class="t-messagebus" font-size="8" text-anchor="middle">gateway logs</text>
+        <rect x="840.6" y="162.5" width="38.8" height="14" rx="3" class="c-mask"/>
+        <text x="860" y="172.5" class="t-muted" font-size="8" text-anchor="middle">invoke</text>
+        <rect x="840.6" y="207.5" width="38.8" height="14" rx="3" class="c-mask"/>
+        <text x="860" y="217.5" class="t-muted" font-size="8" text-anchor="middle">invoke</text>
+
+
+        <rect x="840.6" y="342.5" width="38.8" height="14" rx="3" class="c-mask"/>
+        <text x="860" y="352.5" class="t-muted" font-size="8" text-anchor="middle">invoke</text>
+        <rect x="845" y="375" width="30" height="14" rx="3" class="c-mask"/>
+        <text x="860" y="385" class="t-messagebus" font-size="8" text-anchor="middle">read</text>
+
+
+        <!-- Legend -->
+        <text x="40" y="911" class="t-primary" font-size="9" font-weight="600">Legend</text>
+        <rect x="40" y="916" width="14" height="9" rx="2" class="c-external" stroke-width="1"/>
+        <text x="60" y="924" class="t-muted" font-size="8">External</text>
+        <rect x="138" y="916" width="14" height="9" rx="2" class="c-cloud" stroke-width="1"/>
+        <text x="158" y="924" class="t-muted" font-size="8">Cloud</text>
+        <rect x="221" y="916" width="14" height="9" rx="2" class="c-backend" stroke-width="1"/>
+        <text x="241" y="924" class="t-muted" font-size="8">Backend</text>
+        <rect x="314" y="916" width="14" height="9" rx="2" class="c-database" stroke-width="1"/>
+        <text x="334" y="924" class="t-muted" font-size="8">Database</text>
+      </svg>
+    </div>
+    <table class="mapping">
+      <tr><th>Composant</th><th>Rôle</th></tr>
+      <tr><td><code>API Gateway</code></td><td>point d'entrée HTTP public, auth <code>AWS_IAM</code> / SigV4 (déjà cadré dans <code>ARCHITECTURE.md</code>)</td></tr>
+      <tr><td><code>AgentCore Runtime</code></td><td>exécute <code>main.py</code>, une instance <code>Agent</code> Strands par <code>session_id</code></td></tr>
+      <tr><td><code>Supervisor Agent</code></td><td>orchestre les appels tools + déclenche le scoring déterministe en process</td></tr>
+      <tr><td><code>AgentCore Gateway</code></td><td>expose <code>get_weather / get_events / get_mobility / get_zones / get_advertisers</code> en MCP</td></tr>
+      <tr><td>5 × Lambda</td><td>targets du Gateway, type <code>lambda</code> — un wrapper mince par provider existant</td></tr>
+      <tr><td><code>Amazon Bedrock</code></td><td>modèles utilisés pour l'interprétation contextuelle, l'arbitrage et la review, jamais pour le scoring</td></tr>
+      <tr><td><code>S3</code></td><td>données statiques (<code>zones.json</code>, <code>advertisers.json</code>) + traces de replay pour le harness</td></tr>
+    </table>
+  </div>
+
+  <hr class="sep">
+
+  <div class="doc-section" id="sequence">
+    <h2><span class="step-badge">2</span>Déroulé d'une requête</h2>
+    <p class="lead">
+      Exemple concret sur le scénario <code>concert_bercy</code> : le Supervisor n'appelle jamais les providers Python
+      directement — il passe systématiquement par le Gateway en MCP. Les agents de contexte (Weather/Events/Mobility)
+      interprètent les données brutes renvoyées par les Lambdas, puis le <strong>scoring reste local et déterministe</strong>
+      dans le Runtime avant que Bedrock n'intervienne à nouveau pour la review et l'explication finale.
+    </p>
+    <div class="diagram-container">
+      <svg viewBox="0 0 1000 900" role="img" aria-label="Requete de recommandation - via AgentCore Gateway — scenario concert_bercy, du client au scoring deterministe (sequence diagram)">
+        <!-- Definitions -->
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-default" />
+          </marker>
+          <marker id="arrowhead-emphasis" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-emphasis" />
+          </marker>
+          <marker id="arrowhead-security" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-security" />
+          </marker>
+          <marker id="arrowhead-dashed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-dashed" />
+          </marker>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" class="c-grid" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+
+        <!-- Background Grid -->
+        <rect width="100%" height="100%" fill="url(#grid)" />
+
+        <!-- Time Segments -->
+        <rect x="48" y="160" width="904" height="100" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="62" y="178" class="t-dim" font-size="9" font-weight="600">01 / AUTH + ENTREE</text>
+
+        <rect x="48" y="260" width="904" height="300" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="62" y="278" class="t-dim" font-size="9" font-weight="600">02 / COLLECTE CONTEXTE</text>
+
+        <rect x="48" y="560" width="904" height="160" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="62" y="578" class="t-dim" font-size="9" font-weight="600">03 / SCORING + REVIEW</text>
+
+        <rect x="48" y="720" width="904" height="80" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="62" y="738" class="t-dim" font-size="9" font-weight="600">04 / REPONSE</text>
+
+        <!-- Lifelines -->
+        <path d="M 62 142 L 62 835" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 170 142 L 170 835" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 278 142 L 278 835" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 386 142 L 386 835" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 494 142 L 494 835" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 602 142 L 602 835" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 710 142 L 710 835" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+
+        <!-- Messages -->
+        <path d="M 69 190 L 163 190" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <rect x="63.199999999999996" y="170" width="105.60000000000001" height="16" rx="3" class="c-mask"/>
+        <text x="116" y="180" class="t-security" font-size="9" text-anchor="middle">POST /invoke SigV4</text>
+
+        <path d="M 177 230 L 271 230" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <rect x="176.4" y="210" width="95.2" height="16" rx="3" class="c-mask"/>
+        <text x="224" y="220" class="t-backend" font-size="9" text-anchor="middle">payload scenario</text>
+
+        <path d="M 285 280 L 379 280" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <rect x="253.2" y="260" width="157.6" height="16" rx="3" class="c-mask"/>
+        <text x="332" y="270" class="t-backend" font-size="9" text-anchor="middle">get_or_create_agent(session)</text>
+
+        <path d="M 393 330 L 487 330" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <rect x="389.8" y="310" width="100.4" height="16" rx="3" class="c-mask"/>
+        <text x="440" y="320" class="t-backend" font-size="9" text-anchor="middle">tool: get_weather</text>
+
+        <path d="M 501 360 L 595 360" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <rect x="495.2" y="340" width="105.60000000000001" height="16" rx="3" class="c-mask"/>
+        <text x="548" y="350" class="t-backend" font-size="9" text-anchor="middle">invoke get_weather</text>
+
+        <path d="M 595 390 L 501 390" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <rect x="513.4" y="370" width="69.2" height="16" rx="3" class="c-mask"/>
+        <text x="548" y="380" class="t-muted" font-size="9" text-anchor="middle">raw weather</text>
+
+        <path d="M 487 420 L 393 420" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <rect x="405.4" y="400" width="69.2" height="16" rx="3" class="c-mask"/>
+        <text x="440" y="410" class="t-muted" font-size="9" text-anchor="middle">tool result</text>
+
+        <path d="M 393 450 L 487 450" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <rect x="392.4" y="430" width="95.2" height="16" rx="3" class="c-mask"/>
+        <text x="440" y="440" class="t-backend" font-size="9" text-anchor="middle">tool: get_events</text>
+
+        <path d="M 501 480 L 595 480" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <rect x="497.8" y="460" width="100.4" height="16" rx="3" class="c-mask"/>
+        <text x="548" y="470" class="t-backend" font-size="9" text-anchor="middle">invoke get_events</text>
+
+        <path d="M 595 520 L 393 520" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <rect x="462" y="500" width="64" height="16" rx="3" class="c-mask"/>
+        <text x="494" y="510" class="t-muted" font-size="9" text-anchor="middle">raw events</text>
+
+        <path d="M 393 550 L 487 550" class="a-dashed" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <rect x="387.2" y="530" width="105.60000000000001" height="16" rx="3" class="c-mask"/>
+        <text x="440" y="540" class="t-messagebus" font-size="9" text-anchor="middle">tool: get_mobility</text>
+
+        <path d="M 393 590 L 703 590" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <rect x="412" y="570" width="272" height="16" rx="3" class="c-mask"/>
+        <text x="548" y="580" class="t-backend" font-size="9" text-anchor="middle">interpret signals (Weather/Events/Mobility Agents)</text>
+
+        <path d="M 703 620 L 393 620" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <rect x="503" y="600" width="90" height="16" rx="3" class="c-mask"/>
+        <text x="548" y="610" class="t-muted" font-size="9" text-anchor="middle">context impacts</text>
+
+        <path d="M 393 665 L 703 665" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <rect x="445.8" y="645" width="204.4" height="16" rx="3" class="c-mask"/>
+        <text x="548" y="655" class="t-backend" font-size="9" text-anchor="middle">Review Agent: coherence + explication</text>
+        <text x="405" y="683" class="t-dim" font-size="7">avant: CityContext + scoring deterministe, calcule en-process dans le Runtime</text>
+
+        <path d="M 703 700 L 393 700" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <rect x="487.4" y="680" width="121.2" height="16" rx="3" class="c-mask"/>
+        <text x="548" y="690" class="t-muted" font-size="9" text-anchor="middle">confidence + warnings</text>
+
+        <path d="M 379 755 L 285 755" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <rect x="261" y="735" width="142" height="16" rx="3" class="c-mask"/>
+        <text x="332" y="745" class="t-muted" font-size="9" text-anchor="middle">allocation plan + summary</text>
+
+        <path d="M 271 780 L 177 780" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <rect x="168.6" y="760" width="110.8" height="16" rx="3" class="c-mask"/>
+        <text x="224" y="770" class="t-muted" font-size="9" text-anchor="middle">stream_async events</text>
+
+        <path d="M 163 805 L 69 805" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <rect x="50.19999999999999" y="785" width="131.60000000000002" height="16" rx="3" class="c-mask"/>
+        <text x="116" y="795" class="t-muted" font-size="9" text-anchor="middle">200 JSON recommendation</text>
+
+        <!-- Activations -->
+        <rect x="273" y="210" width="10" height="590" rx="3" class="c-mask"/>
+        <rect x="273" y="210" width="10" height="590" rx="3" class="c-backend" stroke-width="1"/>
+        <rect x="381" y="260" width="10" height="510" rx="3" class="c-mask"/>
+        <rect x="381" y="260" width="10" height="510" rx="3" class="c-backend" stroke-width="1"/>
+        <rect x="489" y="310" width="10" height="260" rx="3" class="c-mask"/>
+        <rect x="489" y="310" width="10" height="260" rx="3" class="c-backend" stroke-width="1"/>
+
+        <!-- Participants -->
+        <rect x="19" y="72" width="86" height="54" rx="6" class="c-mask"/>
+        <rect x="19" y="72" width="86" height="54" rx="6" class="c-external" stroke-width="1.5"/>
+        <text x="62" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Client</text>
+        <text x="62" y="111" class="t-muted" font-size="7" text-anchor="middle">demo/harness</text>
+
+        <rect x="127" y="72" width="86" height="54" rx="6" class="c-mask"/>
+        <rect x="127" y="72" width="86" height="54" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="170" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">API GW</text>
+        <text x="170" y="111" class="t-muted" font-size="7" text-anchor="middle">AWS_IAM</text>
+
+        <rect x="235" y="72" width="86" height="54" rx="6" class="c-mask"/>
+        <rect x="235" y="72" width="86" height="54" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="278" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Runtime</text>
+        <text x="278" y="111" class="t-muted" font-size="7" text-anchor="middle">main.py</text>
+
+        <rect x="343" y="72" width="86" height="54" rx="6" class="c-mask"/>
+        <rect x="343" y="72" width="86" height="54" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="386" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Supervisor</text>
+        <text x="386" y="111" class="t-muted" font-size="7" text-anchor="middle">Strands Agent</text>
+
+        <rect x="451" y="72" width="86" height="54" rx="6" class="c-mask"/>
+        <rect x="451" y="72" width="86" height="54" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="494" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Gateway</text>
+        <text x="494" y="111" class="t-muted" font-size="7" text-anchor="middle">MCP</text>
+
+        <rect x="559" y="72" width="86" height="54" rx="6" class="c-mask"/>
+        <rect x="559" y="72" width="86" height="54" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="602" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Lambda tools</text>
+        <text x="602" y="111" class="t-muted" font-size="7" text-anchor="middle">weather/events/mobility</text>
+
+        <rect x="667" y="72" width="86" height="54" rx="6" class="c-mask"/>
+        <rect x="667" y="72" width="86" height="54" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="710" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Bedrock</text>
+        <text x="710" y="111" class="t-muted" font-size="7" text-anchor="middle">LLM</text>
+
+        <!-- Legend -->
+        <text x="150" y="826" class="t-primary" font-size="10" font-weight="600">Legend</text>
+        <path d="M 150 846 L 184 846" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <text x="193" y="849" class="t-muted" font-size="8">request</text>
+        <path d="M 270 846 L 304 846" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <text x="313" y="849" class="t-muted" font-size="8">return</text>
+        <path d="M 385 846 L 419 846" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <text x="428" y="849" class="t-muted" font-size="8">security</text>
+        <path d="M 530 846 L 564 846" class="a-dashed" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <text x="573" y="849" class="t-muted" font-size="8">async trace</text>
+      </svg>
+    </div>
+  </div>
+
+  <hr class="sep">
+
+  <div class="doc-section" id="plan">
+    <h2><span class="step-badge">3</span>Plan de câblage, étape par étape</h2>
+    <p class="lead">
+      Quatre chantiers séquentiels : d'abord emballer les tools existants en Lambda, puis déclarer le Gateway dans
+      <code>agentcore.json</code>, puis rebrancher <code>main.py</code> dessus, et enfin déployer. Les contrats de tools
+      (<code>tools/gateway_tool_contracts.json</code>) ne changent pas — c'est justement leur rôle : survivre à la
+      transition mock → Gateway sans casser les agents qui les consomment.
+    </p>
+    <div class="diagram-container">
+      <svg viewBox="0 0 720 652" role="img" aria-label="Cablage AgentCore Gateway - plan d&#39;execution — de l&#39;etat actuel au Gateway branche (workflow diagram)">
+        <!-- Definitions -->
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-default" />
+          </marker>
+          <marker id="arrowhead-emphasis" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-emphasis" />
+          </marker>
+          <marker id="arrowhead-security" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-security" />
+          </marker>
+          <marker id="arrowhead-dashed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-dashed" />
+          </marker>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" class="c-grid" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+
+        <!-- Background Grid -->
+        <rect width="100%" height="100%" fill="url(#grid)" />
+
+        <!-- Swimlanes -->
+        <rect x="40" y="52" width="640" height="104" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="54" y="74" class="t-dim" font-size="10" font-weight="600">01 / 1. Tools (Lambda)</text>
+
+        <rect x="40" y="176" width="640" height="104" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="54" y="198" class="t-dim" font-size="10" font-weight="600">02 / 2. Config AgentCore</text>
+
+        <rect x="40" y="300" width="640" height="104" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="54" y="322" class="t-dim" font-size="10" font-weight="600">03 / 3. Runtime (main.py)</text>
+
+        <rect x="40" y="424" width="640" height="104" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="54" y="446" class="t-dim" font-size="10" font-weight="600">04 / 4. Deploiement</text>
+
+        <!-- Edge paths -->
+        <path d="M 134 119 L 254 119" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path d="M 346 119 L 454 119" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path d="M 454 119 L 454 166 L 134 166 L 134 243" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path d="M 134 243 L 254 243" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path d="M 346 243 L 454 243" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path d="M 454 243 L 454 290 L 134 290 L 134 367" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path d="M 134 367 L 254 367" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path d="M 346 367 L 454 367" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path d="M 454 367 L 454 414 L 134 414 L 134 491" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path d="M 134 491 L 254 491" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path d="M 346 491 L 454 491" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+
+        <!-- Nodes -->
+        <rect x="42" y="93" width="92" height="52" rx="6" class="c-mask"/>
+        <rect x="42" y="93" width="92" height="52" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="88" y="114" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Wrap tools</text>
+        <text x="88" y="131" class="t-muted" font-size="8" text-anchor="middle">5 handlers Lambda</text>
+
+        <rect x="254" y="93" width="92" height="52" rx="6" class="c-mask"/>
+        <rect x="254" y="93" width="92" height="52" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="300" y="114" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Contrats</text>
+        <text x="300" y="131" class="t-muted" font-size="8" text-anchor="middle">gateway_tool_contracts.json</text>
+
+        <rect x="454" y="85" width="92" height="68" rx="6" class="c-mask"/>
+        <rect x="454" y="85" width="92" height="68" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="500" y="106" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Tool defs</text>
+        <text x="500" y="123" class="t-muted" font-size="8" text-anchor="middle">schema in/out</text>
+        <text x="500" y="141" class="t-backend" font-size="7" text-anchor="middle">par tool</text>
+
+        <rect x="42" y="217" width="92" height="52" rx="6" class="c-mask"/>
+        <rect x="42" y="217" width="92" height="52" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="88" y="238" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Targets lambda</text>
+        <text x="88" y="255" class="t-muted" font-size="8" text-anchor="middle">agentCoreGateways[].targets</text>
+
+        <rect x="254" y="217" width="92" height="52" rx="6" class="c-mask"/>
+        <rect x="254" y="217" width="92" height="52" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="300" y="238" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Gateway MCP</text>
+        <text x="300" y="255" class="t-muted" font-size="8" text-anchor="middle">authorizer AWS_IAM</text>
+
+        <rect x="454" y="209" width="92" height="68" rx="6" class="c-mask"/>
+        <rect x="454" y="209" width="92" height="68" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="500" y="230" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Cible AWS</text>
+        <text x="500" y="247" class="t-muted" font-size="8" text-anchor="middle">aws-targets.json</text>
+        <text x="500" y="265" class="t-cloud" font-size="7" text-anchor="middle">bloquant</text>
+
+        <rect x="42" y="341" width="92" height="52" rx="6" class="c-mask"/>
+        <rect x="42" y="341" width="92" height="52" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="88" y="362" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">URL Gateway</text>
+        <text x="88" y="379" class="t-muted" font-size="8" text-anchor="middle">remplace exa.ai (demo)</text>
+
+        <rect x="254" y="341" width="92" height="52" rx="6" class="c-mask"/>
+        <rect x="254" y="341" width="92" height="52" rx="6" class="c-security" stroke-width="1.5"/>
+        <text x="300" y="362" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Auth SigV4</text>
+        <text x="300" y="379" class="t-muted" font-size="8" text-anchor="middle">IAM au lieu de bearer</text>
+
+        <rect x="454" y="333" width="92" height="68" rx="6" class="c-mask"/>
+        <rect x="454" y="333" width="92" height="68" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="500" y="354" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Moteur src/</text>
+        <text x="500" y="371" class="t-muted" font-size="8" text-anchor="middle">scoring + review</text>
+        <text x="500" y="389" class="t-backend" font-size="7" text-anchor="middle">remplace add_numbers</text>
+
+        <rect x="42" y="465" width="92" height="52" rx="6" class="c-mask"/>
+        <rect x="42" y="465" width="92" height="52" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="88" y="486" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Validate</text>
+        <text x="88" y="503" class="t-muted" font-size="8" text-anchor="middle">agentcore validate</text>
+
+        <rect x="254" y="465" width="92" height="52" rx="6" class="c-mask"/>
+        <rect x="254" y="465" width="92" height="52" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="300" y="486" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Deploy</text>
+        <text x="300" y="503" class="t-muted" font-size="8" text-anchor="middle">CDK synth + deploy</text>
+
+        <rect x="454" y="465" width="92" height="52" rx="6" class="c-mask"/>
+        <rect x="454" y="465" width="92" height="52" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="500" y="486" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Invoke</text>
+        <text x="500" y="503" class="t-muted" font-size="8" text-anchor="middle">smoke test signe</text>
+
+        <!-- Edge labels -->
+
+
+        <rect x="243.4" y="146" width="101.2" height="14" rx="3" class="c-mask"/>
+        <text x="294" y="156" class="t-muted" font-size="8" text-anchor="middle">definit les targets</text>
+
+
+        <rect x="260.2" y="270" width="67.6" height="14" rx="3" class="c-mask"/>
+        <text x="294" y="280" class="t-muted" font-size="8" text-anchor="middle">config prete</text>
+
+
+        <rect x="260.2" y="394" width="67.6" height="14" rx="3" class="c-mask"/>
+        <text x="294" y="404" class="t-muted" font-size="8" text-anchor="middle">runtime pret</text>
+
+
+
+        <!-- Legend -->
+        <text x="175" y="552" class="t-primary" font-size="10" font-weight="600">Legend</text>
+        <rect x="175" y="564" width="14" height="9" rx="2" class="c-frontend" stroke-width="1"/>
+        <text x="195" y="572" class="t-muted" font-size="7">User UI</text>
+        <rect x="260" y="564" width="14" height="9" rx="2" class="c-backend" stroke-width="1"/>
+        <text x="280" y="572" class="t-muted" font-size="7">Agent logic</text>
+        <rect x="370" y="564" width="14" height="9" rx="2" class="c-security" stroke-width="1"/>
+        <text x="390" y="572" class="t-muted" font-size="7">Policy</text>
+        <rect x="455" y="564" width="14" height="9" rx="2" class="c-messagebus" stroke-width="1"/>
+        <text x="475" y="572" class="t-muted" font-size="7">Tool action</text>
+        <rect x="565" y="564" width="14" height="9" rx="2" class="c-database" stroke-width="1"/>
+        <text x="585" y="572" class="t-muted" font-size="7">Context / trace</text>
+      </svg>
+    </div>
+  </div>
+  <hr class="sep">
+
+  <div class="doc-section" id="risques">
+    <h2><span class="step-badge">4</span>Points de vigilance</h2>
+    <div class="callout blocker">
+      <strong>Deux prérequis bloquants avant tout déploiement réel</strong>
+      <ul>
+        <li>Remplir <code>agentcore/aws-targets.json</code> (compte + région) — sans ça <code>agentcore deploy</code> ne part pas</li>
+        <li>Ajouter les 5 <code>AgentCoreGatewayTarget</code> (<code>targetType: "lambda"</code>) + la <code>AgentCoreGateway</code> dans <code>agentcore.json</code>, avec <code>authorizerType: "AWS_IAM"</code> pour rester cohérent avec l'endpoint sécurisé visé</li>
+      </ul>
+    </div>
+    <div class="callout ok">
+      <strong>Anti-pattern à éviter pendant le portage</strong>
+      <ul>
+        <li>Ne pas ré-encoder la logique de scoring dans des prompts LLM au passage sur AWS — <code>ARCHITECTURE.md</code> l'appelle explicitement comme le principal risque de régression de portabilité</li>
+        <li>Ne pas transformer un tool Gateway en "agent" : un tool récupère/normalise une donnée brute, il n'interprète rien</li>
+      </ul>
+    </div>
+    <p class="lead">
+      Séquence de migration recommandée (issue de <code>ARCHITECTURE.md</code>) : préserver les contrats existants →
+      déplacer les providers derrière des tools Gateway → déplacer les agents LLM vers des modèles Bedrock →
+      déplacer l'orchestration du superviseur vers AgentCore → garder le scoring déterministe hors de la couche LLM
+      à chaque étape.
+    </p>
+  </div>
+
+  <hr class="sep">
+
+  <div class="doc-section" id="multiagents">
+    <h2><span class="step-badge">6</span>Architecture multi-agents cible</h2>
+    <p class="lead">
+      La boîte unique "Supervisor Agent" du schéma d'architecture plus haut cache une vraie décision de conception.
+      Le principe retenu : chaque agent n'existe que s'il fait un travail qu'une fonction déterministe ne peut pas
+      structurellement faire — pas de multi-agents pour la forme. Quatre rôles LLM tiennent ce critère, le reste
+      (contexte météo/mobilité, scoring, allocation brute) reste du code déterministe classique.
+    </p>
+    <div class="diagram-container">
+      <svg viewBox="0 0 1500 720" role="img" aria-label="Architecture multi-agents cible - Urban Campaign Intelligence — revendications locales, precedent, arbitrage global, revue (architecture diagram)">
+        <!-- Definitions -->
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-default" />
+          </marker>
+          <marker id="arrowhead-emphasis" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-emphasis" />
+          </marker>
+          <marker id="arrowhead-security" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-security" />
+          </marker>
+          <marker id="arrowhead-dashed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-dashed" />
+          </marker>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" class="c-grid" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+
+        <!-- Background Grid -->
+        <rect width="100%" height="100%" fill="url(#grid)" />
+
+        <!-- Boundaries (behind everything) -->
+        <rect x="10" y="10" width="490" height="305" rx="12" class="c-region" stroke-width="1"/>
+        <text x="18" y="28" class="t-cloud" font-size="9" font-weight="600">Contexte (deterministe + 1 LLM leger)</text>
+
+        <rect x="530" y="160" width="290" height="130" rx="12" class="c-region" stroke-width="1"/>
+        <text x="538" y="178" class="t-cloud" font-size="9" font-weight="600">Revendications locales - boucle sur les annonceurs</text>
+
+        <rect x="790" y="10" width="260" height="420" rx="8" class="c-security-group" stroke-width="1"/>
+        <text x="798" y="28" class="t-security" font-size="9" font-weight="600">Memoire et arbitrage global</text>
+
+        <!-- Connection paths (before components for correct z-order) -->
+        <path d="M 220 67.5 L 242 67.5 Q 250 67.5 250 75.5 L 250 114.5 Q 250 122.5 258 122.5 L 280 122.5" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 220 155 L 242 155 Q 250 155 250 147 L 250 130.5 Q 250 122.5 258 122.5 L 280 122.5" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 220 242.5 L 242 242.5 Q 250 242.5 250 234.5 L 250 130.5 Q 250 122.5 258 122.5 L 280 122.5" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 375 155 L 375 235" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 470 265 L 507 265 Q 515 265 515 257 L 515 238 Q 515 230 523 230 L 560 230" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 790 230 L 797.5 230 Q 805 230 805 237.5 L 805 362.5 Q 805 370 812.5 370 L 820 370" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 920 100 L 920 170" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 920 170 L 920 100" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 920 100 L 920 330" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 1020 370 L 1110 370" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 1205 410 L 1205 410 L 920 410 L 920 410" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 1205 410 L 1205 500" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+
+        <!-- Components -->
+        <rect x="40" y="40" width="180" height="55" rx="6" class="c-mask"/>
+        <rect x="40" y="40" width="180" height="55" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="130" y="65.5" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Weather tool</text>
+        <text x="130" y="81.5" class="t-muted" font-size="9" text-anchor="middle">Open-Meteo + mock</text>
+
+        <rect x="40" y="125" width="180" height="60" rx="6" class="c-mask"/>
+        <rect x="40" y="125" width="180" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="130" y="153" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Events Agent</text>
+        <text x="130" y="169" class="t-muted" font-size="9" text-anchor="middle">classification LLM</text>
+        <text x="130" y="177" class="t-backend" font-size="7" text-anchor="middle">leger</text>
+
+        <rect x="40" y="215" width="180" height="55" rx="6" class="c-mask"/>
+        <rect x="40" y="215" width="180" height="55" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="130" y="240.5" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Mobility tool</text>
+        <text x="130" y="256.5" class="t-muted" font-size="9" text-anchor="middle">hour-of-week forecast</text>
+
+        <rect x="280" y="90" width="190" height="65" rx="6" class="c-mask"/>
+        <rect x="280" y="90" width="190" height="65" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="375" y="120.5" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">CityContext Builder</text>
+        <text x="375" y="136.5" class="t-muted" font-size="9" text-anchor="middle">deterministe</text>
+
+        <rect x="280" y="235" width="190" height="60" rx="6" class="c-mask"/>
+        <rect x="280" y="235" width="190" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="375" y="263" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Scoring tool</text>
+        <text x="375" y="279" class="t-muted" font-size="9" text-anchor="middle">scoring.py, deterministe</text>
+
+        <rect x="560" y="190" width="230" height="80" rx="6" class="c-mask"/>
+        <rect x="560" y="190" width="230" height="80" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="675" y="228" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Advertiser Agent</text>
+        <text x="675" y="244" class="t-muted" font-size="9" text-anchor="middle">1 role, instance neuve par annonceur</text>
+        <text x="675" y="262" class="t-backend" font-size="7" text-anchor="middle">xN depuis advertisers.json</text>
+
+        <rect x="820" y="40" width="200" height="60" rx="6" class="c-mask"/>
+        <rect x="820" y="40" width="200" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="920" y="68" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Precedent Agent</text>
+        <text x="920" y="84" class="t-muted" font-size="9" text-anchor="middle">matching flou + citations</text>
+        <text x="920" y="92" class="t-backend" font-size="7" text-anchor="middle">leger</text>
+
+        <rect x="820" y="170" width="200" height="60" rx="6" class="c-mask"/>
+        <rect x="820" y="170" width="200" height="60" rx="6" class="c-database" stroke-width="1.5"/>
+        <text x="920" y="198" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">AgentCore Memory</text>
+        <text x="920" y="214" class="t-muted" font-size="9" text-anchor="middle">EPISODIC - historique</text>
+
+        <rect x="820" y="330" width="200" height="80" rx="6" class="c-mask"/>
+        <rect x="820" y="330" width="200" height="80" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="920" y="368" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Campaign Allocator Agent</text>
+        <text x="920" y="384" class="t-muted" font-size="9" text-anchor="middle">arbitrage global</text>
+        <text x="920" y="402" class="t-backend" font-size="7" text-anchor="middle">fort</text>
+
+        <rect x="1110" y="330" width="190" height="80" rx="6" class="c-mask"/>
+        <rect x="1110" y="330" width="190" height="80" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="1205" y="368" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Review Agent</text>
+        <text x="1205" y="384" class="t-muted" font-size="9" text-anchor="middle">boucle critique</text>
+        <text x="1205" y="402" class="t-backend" font-size="7" text-anchor="middle">1 retry max</text>
+
+        <rect x="1110" y="500" width="190" height="60" rx="6" class="c-mask"/>
+        <rect x="1110" y="500" width="190" height="60" rx="6" class="c-external" stroke-width="1.5"/>
+        <text x="1205" y="528" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Client / Harness</text>
+        <text x="1205" y="544" class="t-muted" font-size="9" text-anchor="middle">reponse finale</text>
+
+        <!-- Connection labels -->
+
+
+
+
+        <rect x="493.2" y="227.5" width="43.6" height="14" rx="3" class="c-mask"/>
+        <text x="515" y="237.5" class="t-muted" font-size="8" text-anchor="middle">score()</text>
+        <rect x="742.4" y="280" width="125.19999999999999" height="14" rx="3" class="c-mask"/>
+        <text x="805" y="290" class="t-backend" font-size="8" text-anchor="middle">claims (1 par annonceur)</text>
+        <rect x="900.6" y="100" width="38.8" height="14" rx="3" class="c-mask"/>
+        <text x="920" y="110" class="t-muted" font-size="8" text-anchor="middle">search</text>
+        <rect x="985.8" y="150" width="48.4" height="14" rx="3" class="c-mask"/>
+        <text x="1010" y="160" class="t-messagebus" font-size="8" text-anchor="middle">episodes</text>
+        <rect x="874.2" y="260" width="91.6" height="14" rx="3" class="c-mask"/>
+        <text x="920" y="270" class="t-backend" font-size="8" text-anchor="middle">brief + citations</text>
+        <rect x="1024" y="336" width="82" height="14" rx="3" class="c-mask"/>
+        <text x="1065" y="346" class="t-backend" font-size="8" text-anchor="middle">allocation plan</text>
+        <rect x="1009.5" y="414" width="106" height="14" rx="3" class="c-mask"/>
+        <text x="1062.5" y="424" class="t-messagebus" font-size="8" text-anchor="middle">reject (max 1 retry)</text>
+        <rect x="1166.4" y="414" width="77.2" height="14" rx="3" class="c-mask"/>
+        <text x="1205" y="424" class="t-backend" font-size="8" text-anchor="middle">recommandation</text>
+
+        <!-- Legend -->
+        <text x="40" y="691" class="t-primary" font-size="9" font-weight="600">Legend</text>
+        <rect x="40" y="696" width="14" height="9" rx="2" class="c-cloud" stroke-width="1"/>
+        <text x="60" y="704" class="t-muted" font-size="8">Cloud</text>
+        <rect x="123" y="696" width="14" height="9" rx="2" class="c-backend" stroke-width="1"/>
+        <text x="143" y="704" class="t-muted" font-size="8">Backend</text>
+        <rect x="216" y="696" width="14" height="9" rx="2" class="c-database" stroke-width="1"/>
+        <text x="236" y="704" class="t-muted" font-size="8">Database</text>
+        <rect x="314" y="696" width="14" height="9" rx="2" class="c-external" stroke-width="1"/>
+        <text x="334" y="704" class="t-muted" font-size="8">External</text>
+      </svg>
+    </div>
+    <table class="mapping">
+      <tr><th>Rôle</th><th>Pourquoi un agent (pas une fonction)</th><th>Modèle</th></tr>
+      <tr><td><code>Advertiser Agent</code> (×N, dynamique)</td><td>revendication locale par annonceur, justifiée à partir du tool de scoring déterministe (<code>zone × advertiser</code>) — <strong>un seul rôle/prompt</strong>, instancié en boucle sur <code>get_advertisers()</code>, pas un agent par nom d'annonceur codé en dur</td><td>petit/moyen</td></tr>
+      <tr><td><code>Precedent Agent</code></td><td>matching flou entre le scénario courant et des épisodes passés structurellement différents — une formule à poids fixes ratisse moins large qu'un LLM ici ; doit citer les champs matchés (<code>event_type</code>, <code>zone_ids</code>...) et s'abstenir sous le seuil de confiance</td><td>léger</td></tr>
+      <tr><td><code>Campaign Allocator Agent</code></td><td>un seul point d'arbitrage global sur toutes les revendications à la fois — évite qu'une décision locale soit défaite après coup par un contrôle global séparé</td><td>fort</td></tr>
+      <tr><td><code>Review Agent</code></td><td>boucle critique bornée (1 retry max) : rejette et renvoie l'allocation à l'Allocator avec un motif, pas une simple validation passive</td><td>fort/moyen</td></tr>
+    </table>
+    <div class="callout ok">
+      <strong>Ce qui reste volontairement hors agent</strong>
+      <ul>
+        <li><code>CityContext Builder</code> et <code>Scoring tool</code> restent des fonctions déterministes (mêmes fichiers que le moteur local : <code>city_context.py</code>, <code>scoring.py</code>)</li>
+        <li><code>Weather</code> et <code>Mobility</code> restent des tools Gateway — données déjà structurées, aucune interprétation à faire</li>
+        <li>Le comptage d'historique brut (qui a gagné/perdu récemment) reste une requête déterministe sur la Memory, pas un jugement LLM — seul le <em>matching flou</em> entre scénarios justifie un agent</li>
+      </ul>
+    </div>
+
+    <p class="lead">
+      <strong>Évolutivité :</strong> figer un agent par nom d'annonceur casserait le principe déjà respecté par
+      <code>scoring.py</code>, où <code>_score_advertiser_match(zone, advertiser, city_context)</code> prend n'importe
+      quel dict <code>advertiser</code> en paramètre — aucun nom en dur dans le code. L'Advertiser Agent doit suivre la
+      même règle : <strong>un seul rôle générique</strong>, instancié dynamiquement une fois par entrée de
+      <code>advertisers.json</code> à l'exécution. Ajouter un 6ᵉ annonceur devient un changement de donnée, pas de code.
+    </p>
+
+    <div class="callout blocker">
+      <strong>Piège d'isolation à ne pas reproduire</strong>
+      <p style="margin-top:0.4rem;">
+        Le Supervisor Agent de <code>main.py</code> a déjà une fabrique d'instances par clé :
+      </p>
+      <pre style="background:var(--lane-fill);border:1px solid var(--panel-border);border-radius:6px;padding:0.75rem 1rem;font-size:0.78rem;overflow-x:auto;margin:0.5rem 0;">def agent_factory():
+    cache = OrderedDict()
+    def get_or_create_agent(session_id):
+        ...
+    return get_or_create_agent</pre>
+      <p style="margin:0.4rem 0;">
+        Ce cache existe pour garder la <strong>continuité</strong> d'une session à l'autre — c'est voulu pour le
+        Supervisor. Appliquer le même pattern aux Advertiser Agents serait une erreur : ça ferait fuiter le contexte
+        d'un annonceur vers le suivant dans la boucle (Strands accumule l'historique sur une instance réutilisée), et
+        pire, ferait fuiter le contexte d'un scénario vers le scénario suivant si la clé de cache ne change pas entre deux runs.
+      </p>
+      <ul>
+        <li>une instance <code>Agent</code> neuve à chaque annonceur dans la boucle, jamais réutilisée entre deux annonceurs</li>
+        <li>aucun cache par <code>advertiser_id</code> entre deux scénarios — le Graph entier est reconstruit à chaque run</li>
+        <li>pas d'API de "reset" à retenir d'appeler : créer une nouvelle instance est léger en Strands, donc le pattern le plus sûr est de jeter l'instance après usage plutôt que d'essayer de la vider</li>
+      </ul>
+    </div>
+  </div>
+</div>

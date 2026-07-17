@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 960" role="img" aria-label="Target AWS Architecture — AgentCore Runtime + Gateway + Bedrock + Memory, behind a SigV4 endpoint (architecture diagram)">
+  <style>
+    svg {
+      font-family: ui-monospace, 'JetBrains Mono', SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+      --bg: #020617;
+      --grid: #1e293b;
+      --text: #ffffff;
+      --text-muted: #94a3b8;
+      --text-dim: #475569;
+      --text-faint: #7d8da1;
+      --panel: rgba(15, 23, 42, 0.5);
+      --panel-border: #1e293b;
+      --lane-fill: rgba(15, 23, 42, 0.22);
+      --lane-stroke: #334155;
+      --arrow: #64748b;
+      --arrow-emphasis: #34d399;
+      --mask: #0f172a;
+      --frontend-fill:    rgba(8, 51, 68, 0.4);
+      --frontend-stroke:  #22d3ee;
+      --backend-fill:     rgba(6, 78, 59, 0.4);
+      --backend-stroke:   #34d399;
+      --database-fill:    rgba(76, 29, 149, 0.4);
+      --database-stroke:  #a78bfa;
+      --cloud-fill:       rgba(120, 53, 15, 0.3);
+      --cloud-stroke:     #fbbf24;
+      --security-fill:    rgba(136, 19, 55, 0.4);
+      --security-stroke:  #fb7185;
+      --messagebus-fill:  rgba(251, 146, 60, 0.3);
+      --messagebus-stroke:#fb923c;
+      --external-fill:    rgba(30, 41, 59, 0.5);
+      --external-stroke:  #94a3b8;
+      --toolbar-bg:       rgba(15, 23, 42, 0.8);
+      --toolbar-border:   #334155;
+      --toolbar-text:     #e2e8f0;
+      --toolbar-hover:    rgba(15, 23, 42, 0.95);
+      --toolbar-menu-bg:  #0f172a;
+    }
+    @media (prefers-color-scheme: light) {
+      svg {
+      --bg: #f8fafc;
+      --grid: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      --text-faint: #64748b;
+      --panel: #ffffff;
+      --panel-border: #e2e8f0;
+      --lane-fill: rgba(248, 250, 252, 0.65);
+      --lane-stroke: #cbd5e1;
+      --arrow: #94a3b8;
+      --arrow-emphasis: #059669;
+      --mask: #ffffff;
+      --frontend-fill:    rgba(34, 211, 238, 0.15);
+      --frontend-stroke:  #0891b2;
+      --backend-fill:     rgba(52, 211, 153, 0.18);
+      --backend-stroke:   #059669;
+      --database-fill:    rgba(167, 139, 250, 0.2);
+      --database-stroke:  #7c3aed;
+      --cloud-fill:       rgba(251, 191, 36, 0.18);
+      --cloud-stroke:     #d97706;
+      --security-fill:    rgba(251, 113, 133, 0.15);
+      --security-stroke:  #e11d48;
+      --messagebus-fill:  rgba(251, 146, 60, 0.15);
+      --messagebus-stroke:#ea580c;
+      --external-fill:    rgba(148, 163, 184, 0.18);
+      --external-stroke:  #64748b;
+      --toolbar-bg:       rgba(255, 255, 255, 0.92);
+      --toolbar-border:   #cbd5e1;
+      --toolbar-text:     #334155;
+      --toolbar-hover:    #ffffff;
+      --toolbar-menu-bg:  #ffffff;
+      }
+    }
+    .c-grid       { stroke: var(--grid); fill: none; }
+    .c-mask       { fill: var(--mask); stroke: none; }
+    .c-frontend   { fill: var(--frontend-fill);   stroke: var(--frontend-stroke); }
+    .c-backend    { fill: var(--backend-fill);    stroke: var(--backend-stroke); }
+    .c-database   { fill: var(--database-fill);   stroke: var(--database-stroke); }
+    .c-cloud      { fill: var(--cloud-fill);      stroke: var(--cloud-stroke); }
+    .c-security   { fill: var(--security-fill);   stroke: var(--security-stroke); }
+    .c-messagebus { fill: var(--messagebus-fill); stroke: var(--messagebus-stroke); }
+    .c-external   { fill: var(--external-fill);   stroke: var(--external-stroke); }
+    .t-primary { fill: var(--text); }
+    .t-muted   { fill: var(--text-muted); }
+    .t-dim     { fill: var(--text-dim); }
+    .t-frontend   { fill: var(--frontend-stroke); }
+    .t-backend    { fill: var(--backend-stroke); }
+    .t-database   { fill: var(--database-stroke); }
+    .t-cloud      { fill: var(--cloud-stroke); }
+    .t-security   { fill: var(--security-stroke); }
+    .t-messagebus { fill: var(--messagebus-stroke); }
+    .t-external   { fill: var(--external-stroke); }
+    .a-default   { stroke: var(--arrow); fill: none; }
+    .a-emphasis  { stroke: var(--arrow-emphasis); fill: none; }
+    .a-security  { stroke: var(--security-stroke); fill: none; stroke-dasharray: 5,5; }
+    .a-dashed    { stroke: var(--database-stroke); fill: none; stroke-dasharray: 4,4; }
+    .m-default   { fill: var(--arrow); }
+    .m-emphasis  { fill: var(--arrow-emphasis); }
+    .m-security  { fill: var(--security-stroke); }
+    .m-dashed    { fill: var(--database-stroke); }
+    .c-security-group { fill: transparent; stroke: var(--security-stroke); stroke-dasharray: 4,4; }
+    .c-region         { fill: rgba(251, 191, 36, 0.05); stroke: var(--cloud-stroke); stroke-dasharray: 8,4; }
+    .c-lane           { fill: var(--lane-fill); stroke: var(--lane-stroke); stroke-dasharray: 6,6; }
+  </style>
+  <rect width="100%" height="100%" fill="var(--bg)" rx="8"/>
+
+        <!-- Definitions -->
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-default" />
+          </marker>
+          <marker id="arrowhead-emphasis" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-emphasis" />
+          </marker>
+          <marker id="arrowhead-security" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-security" />
+          </marker>
+          <marker id="arrowhead-dashed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-dashed" />
+          </marker>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" class="c-grid" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+
+        <!-- Background Grid -->
+        <rect width="100%" height="100%" fill="url(#grid)" />
+
+        <!-- Boundaries (behind everything) -->
+        <rect x="270" y="50" width="880" height="690" rx="12" class="c-region" stroke-width="1"/>
+        <text x="278" y="68" class="t-cloud" font-size="9" font-weight="600">AWS account - AgentCore project</text>
+
+        <rect x="890" y="50" width="260" height="470" rx="8" class="c-security-group" stroke-width="1"/>
+        <text x="898" y="68" class="t-security" font-size="9" font-weight="600">AgentCore Gateway targets (type: lambda)</text>
+
+        <!-- Connection paths (before components for correct z-order) -->
+        <path d="M 100 100 L 100 220" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+        <path d="M 130 560 L 93 560 Q 85 560 85 552 L 85 258 Q 85 250 77 250 L 40 250" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 160 250 L 227.5 250 Q 230 250 230 252.5 L 230 252.5 Q 230 255 232.5 255 L 300 255" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 390 290 L 390 380" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 390 450 L 390 540" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 300 415 L 337 415 Q 345 415 345 423 L 345 652 Q 345 660 353 660 L 390 660" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 480 415 L 587 415 Q 595 415 595 407 L 595 298 Q 595 290 603 290 L 710 290" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 390 450 L 390 502 Q 390 510 398 510 L 612 510 Q 620 510 620 518 L 620 570" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 800 255 L 852 255 Q 860 255 860 247 L 860 118 Q 860 110 868 110 L 920 110" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 800 255 L 852 255 Q 860 255 860 247 L 860 208 Q 860 200 868 200 L 920 200" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 800 255 L 852 255 Q 860 255 860 263 L 860 282 Q 860 290 868 290 L 920 290" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 800 255 L 852 255 Q 860 255 860 263 L 860 372 Q 860 380 868 380 L 920 380" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 800 255 L 852 255 Q 860 255 860 263 L 860 462 Q 860 470 868 470 L 920 470" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 920 380 L 868 380 Q 860 380 860 388 L 860 422 Q 860 430 852 430 L 800 430" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 920 470 L 820 470 Q 815 470 815 465 L 815 465 Q 815 460 810 460 L 710 460" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+
+        <!-- Components -->
+        <rect x="40" y="40" width="120" height="60" rx="6" class="c-mask"/>
+        <rect x="40" y="40" width="120" height="60" rx="6" class="c-external" stroke-width="1.5"/>
+        <text x="100" y="68" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Demo client</text>
+        <text x="100" y="84" class="t-muted" font-size="9" text-anchor="middle">SigV4 (AWS_IAM)</text>
+
+        <rect x="40" y="560" width="180" height="60" rx="6" class="c-mask"/>
+        <rect x="40" y="560" width="180" height="60" rx="6" class="c-external" stroke-width="1.5"/>
+        <text x="130" y="588" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Scenario harness</text>
+        <text x="130" y="604" class="t-muted" font-size="9" text-anchor="middle">replay + evaluation</text>
+
+        <rect x="40" y="220" width="120" height="60" rx="6" class="c-mask"/>
+        <rect x="40" y="220" width="120" height="60" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="100" y="248" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">API Gateway</text>
+        <text x="100" y="264" class="t-muted" font-size="9" text-anchor="middle">HTTP entrypoint</text>
+
+        <rect x="300" y="220" width="180" height="70" rx="6" class="c-mask"/>
+        <rect x="300" y="220" width="180" height="70" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="390" y="253" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">AgentCore Runtime</text>
+        <text x="390" y="269" class="t-muted" font-size="9" text-anchor="middle">main.py entrypoint</text>
+
+        <rect x="300" y="380" width="180" height="70" rx="6" class="c-mask"/>
+        <rect x="300" y="380" width="180" height="70" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="390" y="413" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Strands Agent Graph</text>
+        <text x="390" y="429" class="t-muted" font-size="9" text-anchor="middle">rebuilt per run</text>
+
+        <rect x="300" y="540" width="180" height="60" rx="6" class="c-mask"/>
+        <rect x="300" y="540" width="180" height="60" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="390" y="568" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Amazon Bedrock</text>
+        <text x="390" y="584" class="t-muted" font-size="9" text-anchor="middle">multi-LLM by agent role</text>
+
+        <rect x="300" y="660" width="180" height="60" rx="6" class="c-mask"/>
+        <rect x="300" y="660" width="180" height="60" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="390" y="688" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">CloudWatch Logs</text>
+        <text x="390" y="704" class="t-muted" font-size="9" text-anchor="middle">traces + warnings</text>
+
+        <rect x="620" y="220" width="180" height="70" rx="6" class="c-mask"/>
+        <rect x="620" y="220" width="180" height="70" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="710" y="253" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">AgentCore Gateway</text>
+        <text x="710" y="269" class="t-muted" font-size="9" text-anchor="middle">MCP endpoint, AWS_IAM auth</text>
+
+        <rect x="620" y="400" width="180" height="60" rx="6" class="c-mask"/>
+        <rect x="620" y="400" width="180" height="60" rx="6" class="c-database" stroke-width="1.5"/>
+        <text x="710" y="428" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">S3</text>
+        <text x="710" y="444" class="t-muted" font-size="9" text-anchor="middle">data, outputs, replay evidence</text>
+
+        <rect x="620" y="540" width="180" height="60" rx="6" class="c-mask"/>
+        <rect x="620" y="540" width="180" height="60" rx="6" class="c-database" stroke-width="1.5"/>
+        <text x="710" y="568" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">AgentCore Memory</text>
+        <text x="710" y="584" class="t-muted" font-size="9" text-anchor="middle">EPISODIC allocation history</text>
+
+        <rect x="920" y="80" width="200" height="60" rx="6" class="c-mask"/>
+        <rect x="920" y="80" width="200" height="60" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="1020" y="108" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Lambda: get_weather</text>
+        <text x="1020" y="124" class="t-muted" font-size="9" text-anchor="middle">Open-Meteo + mock fallback</text>
+
+        <rect x="920" y="170" width="200" height="60" rx="6" class="c-mask"/>
+        <rect x="920" y="170" width="200" height="60" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="1020" y="198" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Lambda: get_events</text>
+        <text x="1020" y="214" class="t-muted" font-size="9" text-anchor="middle">Paris Open Data + mock</text>
+
+        <rect x="920" y="260" width="200" height="60" rx="6" class="c-mask"/>
+        <rect x="920" y="260" width="200" height="60" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="1020" y="288" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Lambda: get_mobility</text>
+        <text x="1020" y="304" class="t-muted" font-size="9" text-anchor="middle">hour-of-week forecast</text>
+
+        <rect x="920" y="350" width="200" height="60" rx="6" class="c-mask"/>
+        <rect x="920" y="350" width="200" height="60" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="1020" y="378" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Lambda: get_zones</text>
+        <text x="1020" y="394" class="t-muted" font-size="9" text-anchor="middle">reads S3</text>
+
+        <rect x="920" y="440" width="200" height="60" rx="6" class="c-mask"/>
+        <rect x="920" y="440" width="200" height="60" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="1020" y="468" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Lambda: get_advertisers</text>
+        <text x="1020" y="484" class="t-muted" font-size="9" text-anchor="middle">reads S3</text>
+
+        <!-- Connection labels -->
+        <rect x="63.8" y="104" width="72.4" height="14" rx="3" class="c-mask"/>
+        <text x="100" y="114" class="t-security" font-size="8" text-anchor="middle">HTTPS + SigV4</text>
+        <rect x="48.8" y="385" width="72.4" height="14" rx="3" class="c-mask"/>
+        <text x="85" y="395" class="t-messagebus" font-size="8" text-anchor="middle">same endpoint</text>
+        <rect x="210.6" y="232.5" width="38.8" height="14" rx="3" class="c-mask"/>
+        <text x="230" y="242.5" class="t-backend" font-size="8" text-anchor="middle">invoke</text>
+
+        <rect x="358.6" y="454" width="62.8" height="14" rx="3" class="c-mask"/>
+        <text x="390" y="464" class="t-muted" font-size="8" text-anchor="middle">model calls</text>
+        <rect x="325.6" y="517.5" width="38.8" height="14" rx="3" class="c-mask"/>
+        <text x="345" y="527.5" class="t-messagebus" font-size="8" text-anchor="middle">traces</text>
+        <rect x="556.4" y="332.5" width="77.2" height="14" rx="3" class="c-mask"/>
+        <text x="595" y="342.5" class="t-backend" font-size="8" text-anchor="middle">MCP tool calls</text>
+        <rect x="476" y="520" width="58" height="14" rx="3" class="c-mask"/>
+        <text x="505" y="530" class="t-muted" font-size="8" text-anchor="middle">precedents</text>
+        <rect x="840.6" y="162.5" width="38.8" height="14" rx="3" class="c-mask"/>
+        <text x="860" y="172.5" class="t-muted" font-size="8" text-anchor="middle">invoke</text>
+        <rect x="840.6" y="207.5" width="38.8" height="14" rx="3" class="c-mask"/>
+        <text x="860" y="217.5" class="t-muted" font-size="8" text-anchor="middle">invoke</text>
+
+
+        <rect x="840.6" y="342.5" width="38.8" height="14" rx="3" class="c-mask"/>
+        <text x="860" y="352.5" class="t-muted" font-size="8" text-anchor="middle">invoke</text>
+        <rect x="845" y="385" width="30" height="14" rx="3" class="c-mask"/>
+        <text x="860" y="395" class="t-messagebus" font-size="8" text-anchor="middle">read</text>
+
+
+        <!-- Legend -->
+        <text x="40" y="931" class="t-primary" font-size="9" font-weight="600">Legend</text>
+        <rect x="40" y="936" width="14" height="9" rx="2" class="c-external" stroke-width="1"/>
+        <text x="60" y="944" class="t-muted" font-size="8">External</text>
+        <rect x="138" y="936" width="14" height="9" rx="2" class="c-cloud" stroke-width="1"/>
+        <text x="158" y="944" class="t-muted" font-size="8">Cloud</text>
+        <rect x="221" y="936" width="14" height="9" rx="2" class="c-backend" stroke-width="1"/>
+        <text x="241" y="944" class="t-muted" font-size="8">Backend</text>
+        <rect x="314" y="936" width="14" height="9" rx="2" class="c-database" stroke-width="1"/>
+        <text x="334" y="944" class="t-muted" font-size="8">Database</text>
+      </svg>

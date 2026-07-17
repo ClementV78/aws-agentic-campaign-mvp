@@ -1,0 +1,48 @@
+# OS / editor noise
+.DS_Store
+.idea/
+.vscode/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+!deploy.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.python-version
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.venv/
+venv/
+dist/
+build/
+.eggs/
+*.egg-info/
+
+# Generic temporary files
+tmp/
+out/
+*.log
+
+# Generated demo and deployment outputs
+outputs/demo/
+outputs/deploy/
+outputs/*.json
+
+# AgentCore local internals and staging
+agentcore-project/UrbanCampaignIntelligencePoc/agentcore/.cache/
+agentcore-project/UrbanCampaignIntelligencePoc/agentcore/.cli/logs/
+
+# CDK / Node build artifacts inside the generated AgentCore project
+agentcore-project/UrbanCampaignIntelligencePoc/agentcore/cdk/node_modules/
+agentcore-project/UrbanCampaignIntelligencePoc/agentcore/cdk/dist/
+agentcore-project/UrbanCampaignIntelligencePoc/agentcore/cdk/cdk.out/

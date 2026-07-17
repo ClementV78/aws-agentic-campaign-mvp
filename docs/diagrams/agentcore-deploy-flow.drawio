@@ -1,0 +1,142 @@
+<mxfile host="drawio" version="26.0.0">
+  <diagram name="agentcore deploy flow">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="2" value="AgentCore Project Flow&#xa;What lives in agentcore/ and what cdk.ts does" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f2fffd;strokeColor=#43d3c2;fontFamily=Helvetica;fontSize=24;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="220" y="20" width="1360" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="3" value="Mental model:&#xa;agentcore.json = what to deploy&#xa;aws-targets.json = where to deploy&#xa;cdk.ts = read config, synthesize one stack per target" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff4db;strokeColor=#f0b44c;fontFamily=Helvetica;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="470" y="115" width="860" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="10" value="1. Project Inputs" style="swimlane;startSize=30;rounded=1;arcSize=14;dashed=1;whiteSpace=wrap;html=1;fillColor=#f7faff;strokeColor=#8fb8ff;fontFamily=Helvetica;fontSize=15;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="240" width="430" height="720" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="11" value="agentcore/agentcore.json&#xa;Declarative project spec&#xa;&#xa;Top-level arrays such as:&#xa;- runtimes&#xa;- agentCoreGateways&#xa;- memories&#xa;- credentials&#xa;- knowledgeBases&#xa;- harnesses&#xa;- payments" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#8fb8ff;fontFamily=Helvetica;fontSize=13;" vertex="1" parent="10">
+          <mxGeometry x="55" y="70" width="320" height="180" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="12" value="agentcore/aws-targets.json&#xa;Deployment targets&#xa;&#xa;Each target provides:&#xa;- name&#xa;- account&#xa;- region" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#8fb8ff;fontFamily=Helvetica;fontSize=13;" vertex="1" parent="10">
+          <mxGeometry x="85" y="300" width="260" height="130" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="13" value="agentcore/.cli/deployed-state.json&#xa;Optional deployed state&#xa;&#xa;Used as lookup for already-created credential/provider ARNs" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#8fb8ff;fontFamily=Helvetica;fontSize=13;" vertex="1" parent="10">
+          <mxGeometry x="70" y="485" width="290" height="120" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="14" value="app/ and project root files&#xa;&#xa;Optional extra inputs used by cdk.ts:&#xa;- harness.json for each harness entry&#xa;- connector config JSON for knowledge bases" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#8fb8ff;fontFamily=Helvetica;fontSize=13;" vertex="1" parent="10">
+          <mxGeometry x="55" y="660" width="320" height="130" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="20" value="2. cdk.ts Behavior" style="swimlane;startSize=30;rounded=1;arcSize=14;dashed=1;whiteSpace=wrap;html=1;fillColor=#f8fff9;strokeColor=#8ee3a3;fontFamily=Helvetica;fontSize=15;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="240" width="540" height="720" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="21" value="ConfigIO.readProjectSpec()&#xa;Reads agentcore.json into spec" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#8ee3a3;fontFamily=Helvetica;fontSize=13;" vertex="1" parent="20">
+          <mxGeometry x="120" y="70" width="300" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="22" value="ConfigIO.readAWSDeploymentTargets()&#xa;Reads aws-targets.json into targets[]" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#8ee3a3;fontFamily=Helvetica;fontSize=13;" vertex="1" parent="20">
+          <mxGeometry x="120" y="170" width="300" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="23" value="Optional enrichments&#xa;- extract MCP gateway fields&#xa;- read deployed credential ARNs&#xa;- read harness.json per harness&#xa;- read connector config JSON for KBs" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#8ee3a3;fontFamily=Helvetica;fontSize=13;" vertex="1" parent="20">
+          <mxGeometry x="95" y="275" width="350" height="115" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="24" value="Guard clause&#xa;&#xa;If targets.length == 0&#xa;=&gt; throw error&#xa;No deployment targets configured" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#fff3f5;strokeColor=#ff7e98;fontFamily=Helvetica;fontSize=13;fontStyle=1;" vertex="1" parent="20">
+          <mxGeometry x="130" y="435" width="280" height="110" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="25" value="For each target&#xa;&#xa;1. build env {account, region}&#xa;2. compute stack name&#xa;3. instantiate AgentCoreStack(...)&#xa;4. app.synth()" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#8ee3a3;fontFamily=Helvetica;fontSize=13;fontStyle=1;" vertex="1" parent="20">
+          <mxGeometry x="120" y="590" width="300" height="125" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="26" value="Important: cdk.ts does not decide the business architecture.&#xa;It translates the declarative JSON project into CDK stacks." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eefaf0;strokeColor=#8ee3a3;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="20">
+          <mxGeometry x="80" y="760" width="380" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="30" value="3. AWS / CDK Result" style="swimlane;startSize=30;rounded=1;arcSize=14;dashed=1;whiteSpace=wrap;html=1;fillColor=#fff1e8;strokeColor=#f58534;fontFamily=Helvetica;fontSize=15;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1160" y="240" width="560" height="720" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="31" value="One CloudFormation / CDK stack per target&#xa;Stack name pattern: AgentCore-&lt;project&gt;-&lt;target&gt;" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#f58534;fontFamily=Helvetica;fontSize=13;" vertex="1" parent="30">
+          <mxGeometry x="120" y="70" width="320" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="32" value="Inside the stack, AgentCoreStack receives:&#xa;- spec&#xa;- optional MCP/gateway config&#xa;- optional credential ARNs&#xa;- optional harness config&#xa;- optional payment config&#xa;- env + tags" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#f58534;fontFamily=Helvetica;fontSize=13;" vertex="1" parent="30">
+          <mxGeometry x="100" y="205" width="360" height="135" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="33" value="That stack can then create the resources described by spec:&#xa;- AgentCore runtime&#xa;- Gateway&#xa;- credentials&#xa;- harnesses&#xa;- knowledge-base related resources&#xa;- payment resources&#xa;- related IAM/tagged resources" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#f58534;fontFamily=Helvetica;fontSize=13;" vertex="1" parent="30">
+          <mxGeometry x="100" y="390" width="360" height="155" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="34" value="What agentcore deploy really means here:&#xa;&#xa;read local JSON config&#xa;=&gt; build CDK app&#xa;=&gt; synthesize stack(s)&#xa;=&gt; deploy to each configured target" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#f58534;fontFamily=Helvetica;fontSize=13;fontStyle=1;" vertex="1" parent="30">
+          <mxGeometry x="120" y="590" width="320" height="125" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="40" value="Current repo state" style="swimlane;startSize=26;rounded=1;arcSize=14;dashed=0;whiteSpace=wrap;html=1;fillColor=#fff3f5;strokeColor=#ff7e98;fontFamily=Helvetica;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="520" y="990" width="760" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="41" value="agentcore.json: only runtimes[] is currently populated" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#ff7e98;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="40">
+          <mxGeometry x="25" y="35" width="300" height="36" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="42" value="aws-targets.json: currently []" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#ff7e98;fontFamily=Helvetica;fontSize=12;fontStyle=1;" vertex="1" parent="40">
+          <mxGeometry x="355" y="35" width="180" height="36" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="43" value="Consequence: deploy.sh skips live agentcore deploy before reaching cdk.ts synthesis" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#ff7e98;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="40">
+          <mxGeometry x="555" y="35" width="180" height="36" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="100" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;strokeColor=#8fb8ff;" edge="1" parent="1" source="11" target="21">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="101" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;strokeColor=#8fb8ff;" edge="1" parent="1" source="12" target="22">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="102" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;strokeColor=#8fb8ff;" edge="1" parent="1" source="13" target="23">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="103" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;strokeColor=#8fb8ff;" edge="1" parent="1" source="14" target="23">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="104" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;strokeColor=#8ee3a3;" edge="1" parent="1" source="21" target="23">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="105" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;strokeColor=#8ee3a3;" edge="1" parent="1" source="22" target="24">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="106" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;strokeColor=#8ee3a3;" edge="1" parent="1" source="23" target="25">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="107" value="if targets exist" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;endArrow=classic;endFill=1;strokeColor=#8ee3a3;" edge="1" parent="1" source="24" target="25">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="108" value="instantiate stack(s)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;endArrow=classic;endFill=1;strokeColor=#f58534;" edge="1" parent="1" source="25" target="31">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="109" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;strokeColor=#f58534;" edge="1" parent="1" source="31" target="32">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="110" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;strokeColor=#f58534;" edge="1" parent="1" source="32" target="33">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="111" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;endFill=1;strokeColor=#f58534;" edge="1" parent="1" source="33" target="34">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

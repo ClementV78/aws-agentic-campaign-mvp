@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Multi-Agent Orchestration (Target)",
+    "subtitle": "local claims, precedent recall, global arbitration, bounded critique",
+    "output": "multi-agent-orchestration.html",
+    "viewBox": [1500, 720]
+  },
+  "components": [
+    { "id": "weather", "type": "cloud", "label": "Weather tool", "sublabel": "Open-Meteo + mock", "pos": [40, 40], "size": [180, 55] },
+    { "id": "events_agent", "type": "backend", "label": "Events Agent", "sublabel": "LLM classification", "tag": "small", "pos": [40, 125], "size": [180, 60] },
+    { "id": "mobility", "type": "cloud", "label": "Mobility tool", "sublabel": "hour-of-week forecast", "pos": [40, 215], "size": [180, 55] },
+
+    { "id": "citycontext", "type": "backend", "label": "CityContext Builder", "sublabel": "deterministic", "pos": [280, 90], "size": [190, 65] },
+    { "id": "scoring", "type": "backend", "label": "Scoring tool", "sublabel": "scoring.py, deterministic", "pos": [280, 235], "size": [190, 60] },
+
+    { "id": "adv_agent", "type": "backend", "label": "Advertiser Agent", "sublabel": "one role, fresh instance each", "tag": "xN from advertisers.json", "pos": [560, 190], "size": [230, 80] },
+
+    { "id": "precedent", "type": "backend", "label": "Precedent Agent", "sublabel": "fuzzy match + citations", "tag": "small", "pos": [820, 40], "size": [200, 60] },
+    { "id": "memory", "type": "database", "label": "AgentCore Memory", "sublabel": "EPISODIC history", "pos": [820, 170], "size": [200, 60] },
+    { "id": "allocator", "type": "backend", "label": "Campaign Allocator Agent", "sublabel": "global arbitration", "tag": "strong", "pos": [820, 330], "size": [200, 80] },
+
+    { "id": "review", "type": "backend", "label": "Review Agent", "sublabel": "bounded critique loop", "tag": "max 1 retry", "pos": [1110, 330], "size": [190, 80] },
+    { "id": "client", "type": "external", "label": "Client / Harness", "sublabel": "final recommendation", "pos": [1110, 500], "size": [190, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Context (deterministic + one small LLM)", "wraps": ["weather", "events_agent", "mobility", "citycontext", "scoring"] },
+    { "kind": "region", "label": "Local claims - loop over advertisers, parallel", "wraps": ["adv_agent"] },
+    { "kind": "security-group", "label": "Memory and global arbitration", "wraps": ["precedent", "memory", "allocator"] }
+  ],
+  "connections": [
+    { "from": "weather", "to": "citycontext", "variant": "default" },
+    { "from": "events_agent", "to": "citycontext", "variant": "default" },
+    { "from": "mobility", "to": "citycontext", "variant": "default" },
+    { "from": "citycontext", "to": "scoring", "variant": "default" },
+
+    { "from": "scoring", "to": "adv_agent", "label": "score()", "variant": "default", "route": "orthogonal-h" },
+    { "from": "adv_agent", "to": "allocator", "label": "claims (1 per advertiser)", "variant": "emphasis", "route": "orthogonal-h" },
+
+    { "from": "precedent", "to": "memory", "label": "search", "variant": "default", "labelDy": 20 },
+    { "from": "memory", "to": "precedent", "label": "episodes", "variant": "dashed", "labelDx": 90 },
+    { "from": "precedent", "to": "allocator", "label": "brief + citations", "variant": "emphasis", "fromSide": "bottom", "toSide": "top", "labelDy": 180 },
+
+    { "from": "allocator", "to": "review", "label": "allocation plan", "variant": "emphasis", "labelDy": -14 },
+    { "from": "review", "to": "allocator", "label": "reject (max 1 retry)", "variant": "dashed", "fromSide": "bottom", "toSide": "bottom", "route": "orthogonal-v", "labelDy": 24 },
+    { "from": "review", "to": "client", "label": "recommendation", "variant": "emphasis", "labelDy": 24 }
+  ],
+  "cards": []
+}

@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Recommendation Request Flow",
+    "subtitle": "from signed client call to reviewed allocation plan",
+    "output": "request-flow.html",
+    "viewBox": [1000, 1040]
+  },
+  "participants": [
+    { "id": "client", "type": "external", "label": "Client", "sublabel": "demo/harness" },
+    { "id": "apigw", "type": "cloud", "label": "API GW", "sublabel": "AWS_IAM" },
+    { "id": "runtime", "type": "backend", "label": "Runtime", "sublabel": "main.py" },
+    { "id": "graph", "type": "backend", "label": "Agent Graph", "sublabel": "per run" },
+    { "id": "gateway", "type": "backend", "label": "Gateway", "sublabel": "MCP" },
+    { "id": "lambda", "type": "cloud", "label": "Lambda tools", "sublabel": "context data" },
+    { "id": "memory", "type": "database", "label": "Memory", "sublabel": "EPISODIC" },
+    { "id": "bedrock", "type": "cloud", "label": "Bedrock", "sublabel": "multi-LLM" }
+  ],
+  "segments": [
+    { "from": 160, "to": 250, "label": "01 / AUTH" },
+    { "from": 250, "to": 460, "label": "02 / CONTEXT VIA GATEWAY" },
+    { "from": 460, "to": 770, "label": "03 / CLAIMS + ARBITRATION" },
+    { "from": 770, "to": 950, "label": "04 / REVIEW + RESPONSE" }
+  ],
+  "messages": [
+    { "from": "client", "to": "apigw", "y": 190, "label": "POST /invoke SigV4", "variant": "security" },
+    { "from": "apigw", "to": "runtime", "y": 225, "label": "scenario payload", "variant": "emphasis" },
+
+    { "from": "runtime", "to": "graph", "y": 285, "label": "build Graph (fresh per run)", "variant": "default" },
+    { "from": "graph", "to": "gateway", "y": 320, "label": "tool calls (MCP)", "variant": "emphasis" },
+    { "from": "gateway", "to": "lambda", "y": 355, "label": "invoke tools", "variant": "default" },
+    { "from": "lambda", "to": "gateway", "y": 390, "label": "raw signals", "variant": "return" },
+    { "from": "gateway", "to": "graph", "y": 425, "label": "tool results", "variant": "return" },
+
+    { "from": "graph", "to": "bedrock", "y": 500, "label": "N advertiser claims (parallel, small/medium tier)", "variant": "emphasis", "note": "CityContext + deterministic scoring already computed in-process" },
+    { "from": "bedrock", "to": "graph", "y": 548, "label": "claims", "variant": "return" },
+    { "from": "graph", "to": "memory", "y": 582, "label": "episodic search", "variant": "default" },
+    { "from": "memory", "to": "graph", "y": 614, "label": "matched episodes", "variant": "return" },
+    { "from": "graph", "to": "bedrock", "y": 648, "label": "precedent brief (small tier)", "variant": "default" },
+    { "from": "bedrock", "to": "graph", "y": 680, "label": "brief + citations", "variant": "return" },
+    { "from": "graph", "to": "bedrock", "y": 715, "label": "global arbitration (strong tier)", "variant": "emphasis" },
+    { "from": "bedrock", "to": "graph", "y": 750, "label": "allocation plan", "variant": "return" },
+
+    { "from": "graph", "to": "bedrock", "y": 800, "label": "review critique (max 1 retry)", "variant": "default" },
+    { "from": "bedrock", "to": "graph", "y": 832, "label": "approve or reject", "variant": "return" },
+    { "from": "graph", "to": "runtime", "y": 868, "label": "plan + summary + warnings", "variant": "return" },
+    { "from": "runtime", "to": "apigw", "y": 900, "label": "stream events", "variant": "return" },
+    { "from": "apigw", "to": "client", "y": 932, "label": "200 JSON recommendation", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "runtime", "from": 205, "to": 910, "type": "backend" },
+    { "participant": "graph", "from": 265, "to": 880, "type": "backend" },
+    { "participant": "gateway", "from": 300, "to": 440, "type": "backend" }
+  ],
+  "cards": []
+}
