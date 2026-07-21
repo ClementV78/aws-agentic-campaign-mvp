@@ -5,6 +5,7 @@ import unittest
 
 from urban_campaign_intelligence.app_service import UrbanCampaignApplicationService, run_live_request
 from urban_campaign_intelligence.gateway_tools import MobilityForecastProvider
+from urban_campaign_intelligence.llm_client import BedrockClient, get_llm_client
 from urban_campaign_intelligence.local_agent import CampaignRequest, LocalRequestMapper, UrbanCampaignStrandsAgent
 from urban_campaign_intelligence.runner import format_summary, run_scenario
 
@@ -223,6 +224,36 @@ class RunnerTestCase(unittest.TestCase):
     def test_request_mapper_rejects_payload_without_scenario_or_datetime(self) -> None:
         with self.assertRaises(ValueError):
             LocalRequestMapper.from_dict({"city": "Paris"})
+
+    def test_llm_cascade_falls_back_to_null_client_without_any_provider(self) -> None:
+        for name in ("AGENTCAMPAIGN_LLM_PROVIDER", "AGENTCAMPAIGN_BEDROCK_MODEL_ID",
+                     "AGENTCAMPAIGN_OPENROUTER_API_KEY", "AGENTCAMPAIGN_OPENROUTER_MODEL"):
+            os.environ.pop(name, None)
+        client = get_llm_client()
+        self.assertEqual(client.provider, "none")
+        self.assertFalse(client.is_configured())
+
+    def test_llm_cascade_prefers_openrouter_when_bedrock_is_unconfigured(self) -> None:
+        os.environ.pop("AGENTCAMPAIGN_LLM_PROVIDER", None)
+        os.environ.pop("AGENTCAMPAIGN_BEDROCK_MODEL_ID", None)
+        os.environ["AGENTCAMPAIGN_OPENROUTER_API_KEY"] = "test-key"
+        os.environ["AGENTCAMPAIGN_OPENROUTER_MODEL"] = "test-model"
+        try:
+            client = get_llm_client()
+            self.assertEqual(client.provider, "openrouter")
+        finally:
+            os.environ.pop("AGENTCAMPAIGN_OPENROUTER_API_KEY", None)
+            os.environ.pop("AGENTCAMPAIGN_OPENROUTER_MODEL", None)
+
+    def test_llm_provider_can_be_forced(self) -> None:
+        os.environ["AGENTCAMPAIGN_LLM_PROVIDER"] = "bedrock"
+        try:
+            self.assertEqual(get_llm_client().provider, "bedrock")
+        finally:
+            os.environ.pop("AGENTCAMPAIGN_LLM_PROVIDER", None)
+
+    def test_bedrock_client_is_unconfigured_without_model_id(self) -> None:
+        self.assertFalse(BedrockClient(model=None, region_name="us-east-1").is_configured())
 
     def test_mobility_forecast_provider_detects_station_peak(self) -> None:
         provider = MobilityForecastProvider()

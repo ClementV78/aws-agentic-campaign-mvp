@@ -175,6 +175,11 @@ Source éditable : [multi-agent-orchestration.archify.json](docs/diagrams/multi-
 | `CityContext Builder` | code déterministe | normalise les signaux bruts en `CityContext` |
 | `Scoring Engine` | code déterministe | calcule les scores et garde une explicabilité forte |
 
+À ce jour, seuls `Events Agent`, `Review Agent` et la synthèse exécutive ont un étage LLM
+réel (chacun avec repli heuristique). `Advertiser Agent` et `Campaign Allocator Agent` sont des
+cibles : l'arbitrage est aujourd'hui porté par le scoring déterministe. Le code comporte en outre
+un agent météo et un agent mobilité, non représentés ici car purement normalisateurs.
+
 #### 5.2.2 Règle de conception
 
 Un agent n'est introduit que si la tâche nécessite un jugement probabiliste, un arbitrage ou une
@@ -240,8 +245,12 @@ structurante pour la cible et conditionne la testabilité du système (voir ADR-
 
 Les tools de contexte sont exposés via `AgentCore Gateway`.
 
-Le MVP appelle des **APIs réelles par défaut**. Les mocks ne servent que de fallback offline et de
-mécanisme de résilience pour la démonstration ; ils ne constituent pas le mode nominal.
+**Cible** : appeler des APIs réelles par défaut, les mocks ne servant que de fallback offline et de
+mécanisme de résilience.
+
+**État actuel** : les providers sont en `mock` par défaut (`WEATHER_PROVIDER`, `EVENTS_PROVIDER`) et
+`forecast` pour la mobilité. Le mode live dégrade explicitement et pose un warning quand aucune source
+réelle n'a répondu ; il ne fabrique pas de contexte.
 
 | Tool | Rôle | Backend cible | Fallback |
 | --- | --- | --- | --- |
@@ -250,6 +259,10 @@ mécanisme de résilience pour la démonstration ; ils ne constituent pas le mod
 | `get_mobility` | récupérer un signal de mobilité | forecast dérivé | cache + mock |
 | `get_zones` | lire les zones de démonstration | S3 / JSON | — |
 | `get_advertisers` | lire les annonceurs de démonstration | S3 / JSON | — |
+
+Seuls `get_weather`, `get_events` et `get_mobility` sont contractualisés à ce jour dans
+[tools/gateway_tool_contracts.json](tools/gateway_tool_contracts.json). `get_zones` et
+`get_advertisers` restent des lectures de données directes : leur passage en tools est une cible.
 
 Références :
 
@@ -370,7 +383,7 @@ directement sur l'enveloppe des 10 s. C'est un critère de refus pour tout nouve
 
 Le MVP rend visibles au minimum :
 
-- le `run_id`
+- le fournisseur et le modèle utilisés par étape LLM
 - les tools appelés
 - les succès / échecs / fallbacks de tools
 - les warnings produits
@@ -380,7 +393,8 @@ Le MVP rend visibles au minimum :
 Les traces d'exécution sont centralisées dans **CloudWatch Logs**. La corrélation entre le runtime et
 les appels de tools s'appuie sur le `run_id` propagé de bout en bout.
 
-La traçabilité fine (tokens consommés, hooks déclenchés, permissions effectives, modèle par étape) est
+Le `run_id` n'est pas encore implémenté : aucun identifiant de corrélation n'est propagé à ce jour.
+La traçabilité fine (tokens consommés, hooks déclenchés, permissions effectives, corrélation `run_id`) est
 une **exigence cible** : elle est spécifiée ici mais n'est pas encore implémentée. La rétention des
 logs et l'alerting ne sont pas définis à ce stade et relèvent de
 [docs/RUNBOOK_DEPLOY.md](docs/RUNBOOK_DEPLOY.md).
@@ -399,6 +413,10 @@ Le présent chapitre n'en donne que la synthèse.
 Le moteur local implémente un routage et un pipeline métier déterministe. La boucle agentique Strands
 pilotant les tool calls de bout en bout n'est pas implémentée, et la surface Gateway n'est pas câblée
 sur les tools de contexte.
+
+La couche modèle appelle **Bedrock via l'API Converse** (ADR-007), avec OpenRouter en repli
+transitoire destiné à être retiré. Sans fournisseur configuré, chaque étage LLM dégrade vers son
+heuristique déterministe. Les providers de contexte restent en `mock` par défaut.
 
 ### 12.2 Séquence de matérialisation
 
@@ -425,7 +443,7 @@ Le tableau ci-dessous en est l'index de lecture architecture.
 | Sécurité générique | Guardrails + Policy + Gateway | — |
 | Auth outbound | outbound auth natif Gateway, interceptor si besoin dynamique | — |
 | Contrôles métier | hooks applicatifs légers | — |
-| Modèles Bedrock | différenciation par rôle, `model_id` non figés | — |
+| Fournisseur de modèles | Bedrock via Converse ; OpenRouter transitoire, à retirer | ADR-007 |
 | Persistance mémoire | `AgentCore Memory` seulement si la démo le justifie | — |
 | Périmètre données | 20 zones, 5 annonceurs | ADR-003 |
 | Déploiement MVP | scripts Bash + AWS CLI + AgentCore CLI | ADR-001 |
@@ -449,7 +467,7 @@ deviennent contestées ou réversibles à coût élevé.
 
 | # | Point | Critère de décision | Échéance |
 | --- | --- | --- | --- |
-| PO-1 | `model_id` Bedrock par rôle | mesure latence / coût / qualité sur les deux paliers envisagés | avant câblage de l'agent Strands |
+| PO-1 | `model_id` Bedrock par rôle, et retrait d'OpenRouter | accès modèle activé sur le compte, puis mesure latence / coût / qualité | avant câblage de l'agent Strands |
 | PO-2 | Implémentation outbound auth par tool | selon la nature du backend retenu par tool | au câblage Gateway |
 | PO-3 | Wrapper d'exécution des tools (Lambda ou autre) | coût d'implémentation, non structurant | au câblage Gateway |
 | PO-4 | Introduction ou non d'`AgentCore Memory` | seulement si un scénario inter-run apporte une valeur démonstrative | après le flux nominal |

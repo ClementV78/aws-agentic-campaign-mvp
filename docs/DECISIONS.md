@@ -86,3 +86,28 @@ Reason:
 Note:
 
 - "option 2" is used as shorthand across the repo; this ADR is its definition
+
+## ADR-007 - Bedrock as the model provider, OpenRouter as a transitional fallback
+
+Decision:
+
+- Amazon Bedrock is the target model provider, reached through the Converse API
+- OpenRouter stays only as a transitional local fallback and is to be removed
+- resolution order is Bedrock, then OpenRouter, then deterministic heuristics
+
+Reason:
+
+- the point of the project is an agentic architecture on AWS; a non-AWS model
+  provider on the critical path contradicts it
+- Converse is the provider-agnostic Bedrock API and exposes token usage, which
+  the observability chapter of the DAT requires
+- the default AWS credential chain means the same code runs locally with a
+  profile and inside AgentCore Runtime with the runtime role
+- Bedrock Guardrails attach at the Converse call, matching the security split
+
+Note:
+
+- Bedrock has no response_format flag; structured output is forced with a tool
+  schema through toolConfig
+- boto3 is imported lazily, so the project still runs with no dependency
+  installed and simply degrades to the deterministic path

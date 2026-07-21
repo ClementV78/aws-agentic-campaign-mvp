@@ -1,0 +1,4 @@
+# Runtime dependencies.
+# The project runs without these: every LLM step degrades to a deterministic
+# fallback when no provider is configured. boto3 is required only to reach Bedrock.
+boto3>=1.35.0

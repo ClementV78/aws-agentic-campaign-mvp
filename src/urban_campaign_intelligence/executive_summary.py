@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from urban_campaign_intelligence.llm_client import OpenRouterClient
+from urban_campaign_intelligence.llm_client import get_llm_client
 
 
 def generate_executive_summary(
@@ -47,7 +47,7 @@ def _generate_executive_summary_deterministic(
             f"{city_context['mobility']['global_status']} mobility, and {event_fragment}. "
             f"Overall confidence is {city_context['confidence']} with {review['hallucination_risk']} hallucination risk."
         )
-    summary = {"text": text, "mode": "deterministic", "model": None}
+    summary = {"text": text, "mode": "deterministic", "provider": "none", "model": None}
     log_entry = {
         "agent": "executive_summary_agent",
         "status": "completed",
@@ -62,8 +62,8 @@ def _generate_executive_summary_llm(
     allocation_plan: dict[str, Any],
     review: dict[str, Any],
 ) -> tuple[dict[str, Any], dict[str, Any]] | None:
-    client = OpenRouterClient()
-    model_override = os.getenv("EXECUTIVE_SUMMARY_OPENROUTER_MODEL")
+    client = get_llm_client()
+    model_override = os.getenv("EXECUTIVE_SUMMARY_LLM_MODEL") or os.getenv("EXECUTIVE_SUMMARY_OPENROUTER_MODEL")
     if model_override:
         client = client.with_model(model_override)
     if not client.is_configured():
@@ -91,10 +91,10 @@ def _generate_executive_summary_llm(
     if not isinstance(text, str) or not text.strip():
         return None
 
-    summary = {"text": text.strip(), "mode": "llm", "model": client.model}
+    summary = {"text": text.strip(), "mode": "llm", "provider": getattr(client, "provider", "unknown"), "model": client.model}
     log_entry = {
         "agent": "executive_summary_agent",
         "status": "completed",
-        "details": {"mode": "llm", "model": client.model, "text_length": len(text.strip())},
+        "details": {"mode": "llm", "provider": getattr(client, "provider", "unknown"), "model": client.model, "text_length": len(text.strip())},
     }
     return summary, log_entry

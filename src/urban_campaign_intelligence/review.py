@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from urban_campaign_intelligence.llm_client import OpenRouterClient
+from urban_campaign_intelligence.llm_client import get_llm_client
 
 
 def review_allocation(city_context: dict[str, Any], allocation_plan: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -53,8 +53,8 @@ def _review_allocation_heuristic(city_context: dict[str, Any], allocation_plan: 
 
 
 def _review_allocation_llm(city_context: dict[str, Any], allocation_plan: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]] | None:
-    client = OpenRouterClient()
-    model_override = os.getenv("REVIEW_AGENT_OPENROUTER_MODEL")
+    client = get_llm_client()
+    model_override = os.getenv("REVIEW_AGENT_LLM_MODEL") or os.getenv("REVIEW_AGENT_OPENROUTER_MODEL")
     if model_override:
         client = client.with_model(model_override)
     if not client.is_configured():
@@ -98,6 +98,7 @@ def _review_allocation_llm(city_context: dict[str, Any], allocation_plan: dict[s
             "warning_count": len(review["warnings"]),
             "hallucination_risk": review["hallucination_risk"],
             "mode": "llm",
+            "provider": getattr(client, "provider", "unknown"),
             "model": client.model,
         },
     }

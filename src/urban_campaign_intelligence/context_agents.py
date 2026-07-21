@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from urban_campaign_intelligence.llm_client import OpenRouterClient
+from urban_campaign_intelligence.llm_client import LLMClient, get_llm_client
 
 
 EVENT_MAPPINGS: dict[str, dict[str, Any]] = {
@@ -150,7 +150,7 @@ def run_events_agent(events_payload: dict[str, Any]) -> tuple[dict[str, Any], li
 
 
 def _run_events_agent_llm(events_payload: dict[str, Any]) -> tuple[dict[str, Any], list[dict[str, Any]]] | None:
-    client = OpenRouterClient()
+    client = get_llm_client()
     if not client.is_configured():
         return None
 
@@ -192,6 +192,8 @@ def _run_events_agent_llm(events_payload: dict[str, Any]) -> tuple[dict[str, Any
                 "event_count": len(events),
                 "event_types": [event["type"] for event in events],
                 "mode": "llm",
+                "provider": getattr(client, "provider", "unknown"),
+                "model": client.model,
                 "fallback_count": fallback_count,
             },
         },
@@ -199,7 +201,7 @@ def _run_events_agent_llm(events_payload: dict[str, Any]) -> tuple[dict[str, Any
     )
 
 
-def _classify_event_with_llm(client: OpenRouterClient, raw_event: dict[str, Any]) -> dict[str, Any]:
+def _classify_event_with_llm(client: LLMClient, raw_event: dict[str, Any]) -> dict[str, Any]:
     system_prompt = (
         "You are an event classification component for an urban campaign allocation system. "
         "Return strict JSON only. "

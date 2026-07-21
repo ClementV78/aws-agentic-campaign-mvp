@@ -11,11 +11,15 @@ Il répond à une seule question : *pour chaque brique du code, qui la gouverne 
 | l'architecture cible et les décisions | [../ARCHITECTURE.md](../ARCHITECTURE.md) |
 | l'état d'avancement réel | [STATUS.md](STATUS.md) |
 | le choix « option 2 » | [DECISIONS.md](DECISIONS.md) ADR-006 |
+| le choix du fournisseur de modèles | [DECISIONS.md](DECISIONS.md) ADR-007 |
 
 ## Règle de lecture
 
 Le schéma ci-dessous décrit la **cible**. L'agent y appelle réellement les tools, et les tools y sont
 de vraies surfaces gouvernées. Ce n'est pas encore l'état du code — voir [STATUS.md](STATUS.md).
+
+Le nœud `Bedrock models` correspond à `llm_client.BedrockClient` (API Converse). `OpenRouterClient`
+existe encore comme repli local transitoire et n'est pas représenté : il sort de la cible (ADR-007).
 
 ## Légende
 
