@@ -6,19 +6,24 @@ Documenter quels schémas sont **canoniques** et quels schémas sont conservés 
 
 La cible actuelle du projet est :
 
-- `API Gateway` + `AWS_IAM`
-- `Bedrock AgentCore` (Runtime, Gateway, Memory)
+- `InvokeAgentRuntime` comme entrée principale
+- `Bedrock AgentCore` (`Runtime` + `Gateway`, `Memory` optionnelle)
 - `Amazon Bedrock` multi-LLM
 - `S3` + `CloudWatch Logs`
+- `Policy + Bedrock Guardrails` sur la surface tools via Gateway
 
-Elle n'est plus `Lambda-first`.
+Elle n'est plus `API Gateway-first`, et elle ne fige pas `Lambda` comme unique backend de tools.
 
 ---
 
 ## Schémas canoniques
 
 Générés avec archify (SVG dual-thème, lisibles sur GitHub en light et dark).
-Chaque `.archify.svg` a sa source éditable `.archify.json` à côté.
+Chaque diagramme a :
+
+- une source éditable `.archify.json` — **versionnée**
+- un SVG statique `.archify.svg` pour les inclusions Markdown — **versionné**
+- un rendu interactif `.archify.html` — **non versionné**, régénérable localement depuis le `.json`
 
 | Schéma | Usage |
 |---|---|
@@ -26,26 +31,24 @@ Chaque `.archify.svg` a sa source éditable `.archify.json` à côté.
 | `multi-agent-orchestration.archify.svg` | orchestration multi-agents cible (rôles, claims, arbitrage, review) |
 | `request-flow.archify.svg` | séquence d'une requête de recommandation de bout en bout |
 
-Régénération (source JSON → HTML archify → SVG autonome) : modifier le `.archify.json`,
-re-rendre avec le renderer archify correspondant, puis ré-extraire le SVG dual-thème.
+Régénération : modifier le `.archify.json`, re-rendre le `.archify.html` avec le renderer archify,
+puis ré-extraire / régénérer le `.archify.svg` statique pour les docs Markdown.
 
 ---
 
-## Schémas historiques conservés
+## Schémas historiques — `legacy/`
 
-Conservés pour mémoire ou itérations intermédiaires.
-Ne plus les utiliser comme source principale pour décrire la cible actuelle :
+Conservés pour mémoire ou itérations intermédiaires. **Ne pas les utiliser pour décrire la cible.**
 
-- `aws-target-architecture.*` (drawio/png/svg — remplacé par `target-aws-architecture.archify.svg`)
-- `aws-agentic-workflow.*` (drawio/png/svg — remplacé par `multi-agent-orchestration.archify.svg`)
-- `aws-target-architecture-mvp.*`
-- `aws-target-architecture-simple.*`
-- `aws-target-architecture-layered.*`
-
-Toujours canoniques hors architecture cible :
-
-- `deploy-script-flow.*` — explication du script de déploiement
-- `agentcore-deploy-flow.*` — mécanique `agentcore deploy` / CDK
+| Schéma | Statut |
+| --- | --- |
+| `legacy/aws-target-architecture.*` | remplacé par `target-aws-architecture.archify.svg` |
+| `legacy/aws-target-architecture-mvp.*` | itération intermédiaire |
+| `legacy/aws-target-architecture-simple.*` | itération intermédiaire |
+| `legacy/aws-target-architecture-layered.*` | itération intermédiaire |
+| `legacy/aws-agentic-workflow.*` | remplacé par `multi-agent-orchestration.archify.svg` |
+| `legacy/deploy-script-flow.*` | mécanique du script de déploiement, non régénéré |
+| `legacy/agentcore-deploy-flow.*` | mécanique `agentcore deploy` / CDK, non régénéré |
 
 ---
 
@@ -54,5 +57,5 @@ Toujours canoniques hors architecture cible :
 - cible AWS actuelle → `target-aws-architecture.archify.svg`
 - orchestration multi-agents cible → `multi-agent-orchestration.archify.svg`
 - flux d'une requête → `request-flow.archify.svg`
-- script de déploiement → `deploy-script-flow.*`
-- ne plus référencer les schémas historiques sans préciser explicitement qu'ils sont obsolètes
+- déploiement → texte de [../RUNBOOK_DEPLOY.md](../RUNBOOK_DEPLOY.md) ; les schémas `legacy/` associés ne sont plus tenus à jour
+- ne jamais référencer un schéma `legacy/` sans préciser qu'il est historique

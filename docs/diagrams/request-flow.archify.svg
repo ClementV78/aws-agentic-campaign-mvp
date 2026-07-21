@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1040" role="img" aria-label="Recommendation Request Flow — from signed client call to reviewed allocation plan (sequence diagram)">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 1160" role="img" aria-label="Recommendation Request Flow — primary path through InvokeAgentRuntime, governed tools, deterministic core, then LLM arbitration (sequence diagram)">
   <style>
     svg {
       font-family: ui-monospace, 'JetBrains Mono', SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace;
@@ -103,7 +103,6 @@
     .c-region         { fill: rgba(251, 191, 36, 0.05); stroke: var(--cloud-stroke); stroke-dasharray: 8,4; }
     .c-lane           { fill: var(--lane-fill); stroke: var(--lane-stroke); stroke-dasharray: 6,6; }
   </style>
-  <rect width="100%" height="100%" fill="var(--bg)" rx="8"/>
 
         <!-- Definitions -->
         <defs>
@@ -128,167 +127,186 @@
         <rect width="100%" height="100%" fill="url(#grid)" />
 
         <!-- Time Segments -->
-        <rect x="48" y="160" width="904" height="90" rx="10" class="c-lane" stroke-width="1"/>
-        <text x="62" y="178" class="t-dim" font-size="9" font-weight="600">01 / AUTH</text>
+        <rect x="48" y="170" width="1004" height="80" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="62" y="188" class="t-dim" font-size="9" font-weight="600">01 / ENTRYPOINT</text>
 
-        <rect x="48" y="250" width="904" height="210" rx="10" class="c-lane" stroke-width="1"/>
-        <text x="62" y="268" class="t-dim" font-size="9" font-weight="600">02 / CONTEXT VIA GATEWAY</text>
+        <rect x="48" y="250" width="1004" height="310" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="62" y="268" class="t-dim" font-size="9" font-weight="600">02 / CONTEXT TOOL CALLS</text>
 
-        <rect x="48" y="460" width="904" height="310" rx="10" class="c-lane" stroke-width="1"/>
-        <text x="62" y="478" class="t-dim" font-size="9" font-weight="600">03 / CLAIMS + ARBITRATION</text>
+        <rect x="48" y="560" width="1004" height="175" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="62" y="578" class="t-dim" font-size="9" font-weight="600">03 / DETERMINISTIC CORE</text>
 
-        <rect x="48" y="770" width="904" height="180" rx="10" class="c-lane" stroke-width="1"/>
-        <text x="62" y="788" class="t-dim" font-size="9" font-weight="600">04 / REVIEW + RESPONSE</text>
+        <rect x="48" y="735" width="1004" height="245" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="62" y="753" class="t-dim" font-size="9" font-weight="600">04 / LLM ARBITRATION</text>
+
+        <rect x="48" y="980" width="1004" height="100" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="62" y="998" class="t-dim" font-size="9" font-weight="600">05 / RESPONSE</text>
 
         <!-- Lifelines -->
-        <path d="M 62 142 L 62 975" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 170 142 L 170 975" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 278 142 L 278 975" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 386 142 L 386 975" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 494 142 L 494 975" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 602 142 L 602 975" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 710 142 L 710 975" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 818 142 L 818 975" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 62 142 L 62 1095" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 170 142 L 170 1095" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 278 142 L 278 1095" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 386 142 L 386 1095" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 494 142 L 494 1095" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 602 142 L 602 1095" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 710 142 L 710 1095" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 818 142 L 818 1095" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 926 142 L 926 1095" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
 
         <!-- Messages -->
-        <path d="M 69 190 L 163 190" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
-        <rect x="63.199999999999996" y="170" width="105.60000000000001" height="16" rx="3" class="c-mask"/>
-        <text x="116" y="180" class="t-security" font-size="9" text-anchor="middle">POST /invoke SigV4</text>
+        <path d="M 69 205 L 163 205" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <rect x="39.8" y="185" width="152.4" height="16" rx="3" class="c-mask"/>
+        <text x="116" y="195" class="t-backend" font-size="9" text-anchor="middle">InvokeAgentRuntime(payload)</text>
 
-        <path d="M 177 225 L 271 225" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <rect x="176.4" y="205" width="95.2" height="16" rx="3" class="c-mask"/>
-        <text x="224" y="215" class="t-backend" font-size="9" text-anchor="middle">scenario payload</text>
+        <path d="M 177 238 L 271 238" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <rect x="181.6" y="218" width="84.8" height="16" rx="3" class="c-mask"/>
+        <text x="224" y="228" class="t-backend" font-size="9" text-anchor="middle">init run agent</text>
 
-        <path d="M 285 285 L 379 285" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
-        <rect x="255.8" y="265" width="152.4" height="16" rx="3" class="c-mask"/>
-        <text x="332" y="275" class="t-backend" font-size="9" text-anchor="middle">build Graph (fresh per run)</text>
+        <path d="M 285 300 L 379 300" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <rect x="185.6" y="280" width="292.8" height="16" rx="3" class="c-mask"/>
+        <text x="332" y="290" class="t-backend" font-size="9" text-anchor="middle">request get_weather / get_events / get_mobility / refs</text>
 
-        <path d="M 393 320 L 487 320" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <rect x="392.4" y="300" width="95.2" height="16" rx="3" class="c-mask"/>
-        <text x="440" y="310" class="t-backend" font-size="9" text-anchor="middle">tool calls (MCP)</text>
+        <path d="M 393 336 L 487 336" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <rect x="363.8" y="316" width="152.4" height="16" rx="3" class="c-mask"/>
+        <text x="440" y="326" class="t-security" font-size="9" text-anchor="middle">authorize + inspect request</text>
 
-        <path d="M 501 355 L 595 355" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
-        <rect x="510.8" y="335" width="74.4" height="16" rx="3" class="c-mask"/>
-        <text x="548" y="345" class="t-backend" font-size="9" text-anchor="middle">invoke tools</text>
+        <path d="M 487 370 L 393 370" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <rect x="376.8" y="350" width="126.4" height="16" rx="3" class="c-mask"/>
+        <text x="440" y="360" class="t-muted" font-size="9" text-anchor="middle">allow / block / redact</text>
 
-        <path d="M 595 390 L 501 390" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
-        <rect x="513.4" y="370" width="69.2" height="16" rx="3" class="c-mask"/>
-        <text x="548" y="380" class="t-muted" font-size="9" text-anchor="middle">raw signals</text>
+        <path d="M 393 408 L 595 408" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <rect x="412.6" y="388" width="162.8" height="16" rx="3" class="c-mask"/>
+        <text x="494" y="398" class="t-backend" font-size="9" text-anchor="middle">invoke backend implementation</text>
 
-        <path d="M 487 425 L 393 425" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
-        <rect x="402.8" y="405" width="74.4" height="16" rx="3" class="c-mask"/>
-        <text x="440" y="415" class="t-muted" font-size="9" text-anchor="middle">tool results</text>
+        <path d="M 595 446 L 393 446" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <rect x="459.4" y="426" width="69.2" height="16" rx="3" class="c-mask"/>
+        <text x="494" y="436" class="t-muted" font-size="9" text-anchor="middle">raw signals</text>
 
-        <path d="M 393 500 L 811 500" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <rect x="468.6" y="480" width="266.8" height="16" rx="3" class="c-mask"/>
-        <text x="602" y="490" class="t-backend" font-size="9" text-anchor="middle">N advertiser claims (parallel, small/medium tier)</text>
-        <text x="405" y="518" class="t-dim" font-size="7">CityContext + deterministic scoring already computed in-process</text>
+        <path d="M 393 482 L 487 482" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <rect x="379.4" y="462" width="121.2" height="16" rx="3" class="c-mask"/>
+        <text x="440" y="472" class="t-security" font-size="9" text-anchor="middle">inspect tool response</text>
 
-        <path d="M 811 548 L 393 548" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
-        <rect x="580.4" y="528" width="43.2" height="16" rx="3" class="c-mask"/>
-        <text x="602" y="538" class="t-muted" font-size="9" text-anchor="middle">claims</text>
+        <path d="M 487 516 L 393 516" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <rect x="379.4" y="496" width="121.2" height="16" rx="3" class="c-mask"/>
+        <text x="440" y="506" class="t-muted" font-size="9" text-anchor="middle">allow / redact / warn</text>
 
-        <path d="M 393 582 L 703 582" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
-        <rect x="503" y="562" width="90" height="16" rx="3" class="c-mask"/>
-        <text x="548" y="572" class="t-backend" font-size="9" text-anchor="middle">episodic search</text>
+        <path d="M 379 550 L 285 550" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <rect x="271.4" y="530" width="121.2" height="16" rx="3" class="c-mask"/>
+        <text x="332" y="540" class="t-muted" font-size="9" text-anchor="middle">governed tool results</text>
 
-        <path d="M 703 614 L 393 614" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
-        <rect x="500.4" y="594" width="95.2" height="16" rx="3" class="c-mask"/>
-        <text x="548" y="604" class="t-muted" font-size="9" text-anchor="middle">matched episodes</text>
+        <path d="M 285 610 L 703 610" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <rect x="399.6" y="590" width="188.8" height="16" rx="3" class="c-mask"/>
+        <text x="494" y="600" class="t-backend" font-size="9" text-anchor="middle">build CityContext + compute scores</text>
 
-        <path d="M 393 648 L 811 648" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
-        <rect x="523.2" y="628" width="157.6" height="16" rx="3" class="c-mask"/>
-        <text x="602" y="638" class="t-backend" font-size="9" text-anchor="middle">precedent brief (small tier)</text>
+        <path d="M 703 648 L 285 648" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <rect x="407.4" y="628" width="173.20000000000002" height="16" rx="3" class="c-mask"/>
+        <text x="494" y="638" class="t-muted" font-size="9" text-anchor="middle">ranked candidates + constraints</text>
 
-        <path d="M 811 680 L 393 680" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
-        <rect x="551.8" y="660" width="100.4" height="16" rx="3" class="c-mask"/>
-        <text x="602" y="670" class="t-muted" font-size="9" text-anchor="middle">brief + citations</text>
+        <path d="M 285 688 L 919 688" class="a-dashed" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <rect x="533.6" y="668" width="136.8" height="16" rx="3" class="c-mask"/>
+        <text x="602" y="678" class="t-messagebus" font-size="9" text-anchor="middle">optional episodic search</text>
 
-        <path d="M 393 715 L 811 715" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <rect x="512.8" y="695" width="178.4" height="16" rx="3" class="c-mask"/>
-        <text x="602" y="705" class="t-backend" font-size="9" text-anchor="middle">global arbitration (strong tier)</text>
+        <path d="M 919 720 L 285 720" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <rect x="554.4" y="700" width="95.2" height="16" rx="3" class="c-mask"/>
+        <text x="602" y="710" class="t-muted" font-size="9" text-anchor="middle">matched episodes</text>
 
-        <path d="M 811 750 L 393 750" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
-        <rect x="557" y="730" width="90" height="16" rx="3" class="c-mask"/>
-        <text x="602" y="740" class="t-muted" font-size="9" text-anchor="middle">allocation plan</text>
+        <path d="M 285 780 L 811 780" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <rect x="497.8" y="760" width="100.4" height="16" rx="3" class="c-mask"/>
+        <text x="548" y="770" class="t-backend" font-size="9" text-anchor="middle">advertiser claims</text>
+        <text x="297" y="798" class="t-dim" font-size="7">LLM roles consume deterministic results instead of replacing them</text>
 
-        <path d="M 393 800 L 811 800" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
-        <rect x="520.6" y="780" width="162.8" height="16" rx="3" class="c-mask"/>
-        <text x="602" y="790" class="t-backend" font-size="9" text-anchor="middle">review critique (max 1 retry)</text>
+        <path d="M 811 814 L 285 814" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <rect x="526.4" y="794" width="43.2" height="16" rx="3" class="c-mask"/>
+        <text x="548" y="804" class="t-muted" font-size="9" text-anchor="middle">claims</text>
 
-        <path d="M 811 832 L 393 832" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
-        <rect x="551.8" y="812" width="100.4" height="16" rx="3" class="c-mask"/>
-        <text x="602" y="822" class="t-muted" font-size="9" text-anchor="middle">approve or reject</text>
+        <path d="M 285 850 L 811 850" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <rect x="495.2" y="830" width="105.60000000000001" height="16" rx="3" class="c-mask"/>
+        <text x="548" y="840" class="t-backend" font-size="9" text-anchor="middle">global arbitration</text>
 
-        <path d="M 379 868 L 285 868" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
-        <rect x="261" y="848" width="142" height="16" rx="3" class="c-mask"/>
-        <text x="332" y="858" class="t-muted" font-size="9" text-anchor="middle">plan + summary + warnings</text>
+        <path d="M 811 884 L 285 884" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <rect x="503" y="864" width="90" height="16" rx="3" class="c-mask"/>
+        <text x="548" y="874" class="t-muted" font-size="9" text-anchor="middle">allocation plan</text>
 
-        <path d="M 271 900 L 177 900" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
-        <rect x="184.2" y="880" width="79.60000000000001" height="16" rx="3" class="c-mask"/>
-        <text x="224" y="890" class="t-muted" font-size="9" text-anchor="middle">stream events</text>
+        <path d="M 285 920 L 811 920" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <rect x="477" y="900" width="142" height="16" rx="3" class="c-mask"/>
+        <text x="548" y="910" class="t-backend" font-size="9" text-anchor="middle">review critique (bounded)</text>
 
-        <path d="M 163 932 L 69 932" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
-        <rect x="50.19999999999999" y="912" width="131.60000000000002" height="16" rx="3" class="c-mask"/>
-        <text x="116" y="922" class="t-muted" font-size="9" text-anchor="middle">200 JSON recommendation</text>
+        <path d="M 811 954 L 285 954" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <rect x="500.4" y="934" width="95.2" height="16" rx="3" class="c-mask"/>
+        <text x="548" y="944" class="t-muted" font-size="9" text-anchor="middle">approve / reject</text>
+
+        <path d="M 271 1015 L 177 1015" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <rect x="137.39999999999998" y="995" width="173.20000000000002" height="16" rx="3" class="c-mask"/>
+        <text x="224" y="1005" class="t-muted" font-size="9" text-anchor="middle">final plan + warnings + summary</text>
+
+        <path d="M 163 1050 L 69 1050" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <rect x="60.6" y="1030" width="110.8" height="16" rx="3" class="c-mask"/>
+        <text x="116" y="1040" class="t-muted" font-size="9" text-anchor="middle">JSON recommendation</text>
 
         <!-- Activations -->
-        <rect x="273" y="205" width="10" height="705" rx="3" class="c-mask"/>
-        <rect x="273" y="205" width="10" height="705" rx="3" class="c-backend" stroke-width="1"/>
-        <rect x="381" y="265" width="10" height="615" rx="3" class="c-mask"/>
-        <rect x="381" y="265" width="10" height="615" rx="3" class="c-backend" stroke-width="1"/>
-        <rect x="489" y="300" width="10" height="140" rx="3" class="c-mask"/>
-        <rect x="489" y="300" width="10" height="140" rx="3" class="c-backend" stroke-width="1"/>
+        <rect x="165" y="190" width="10" height="845" rx="3" class="c-mask"/>
+        <rect x="165" y="190" width="10" height="845" rx="3" class="c-backend" stroke-width="1"/>
+        <rect x="273" y="230" width="10" height="792" rx="3" class="c-mask"/>
+        <rect x="273" y="230" width="10" height="792" rx="3" class="c-backend" stroke-width="1"/>
+        <rect x="381" y="290" width="10" height="272" rx="3" class="c-mask"/>
+        <rect x="381" y="290" width="10" height="272" rx="3" class="c-backend" stroke-width="1"/>
+        <rect x="705" y="602" width="10" height="53" rx="3" class="c-mask"/>
+        <rect x="705" y="602" width="10" height="53" rx="3" class="c-backend" stroke-width="1"/>
 
         <!-- Participants -->
         <rect x="19" y="72" width="86" height="54" rx="6" class="c-mask"/>
         <rect x="19" y="72" width="86" height="54" rx="6" class="c-external" stroke-width="1.5"/>
         <text x="62" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Client</text>
-        <text x="62" y="111" class="t-muted" font-size="7" text-anchor="middle">demo/harness</text>
+        <text x="62" y="111" class="t-muted" font-size="7" text-anchor="middle">demo / harness</text>
 
         <rect x="127" y="72" width="86" height="54" rx="6" class="c-mask"/>
         <rect x="127" y="72" width="86" height="54" rx="6" class="c-cloud" stroke-width="1.5"/>
-        <text x="170" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">API GW</text>
-        <text x="170" y="111" class="t-muted" font-size="7" text-anchor="middle">AWS_IAM</text>
+        <text x="170" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Runtime</text>
+        <text x="170" y="111" class="t-muted" font-size="7" text-anchor="middle">AgentCore entrypoint</text>
 
         <rect x="235" y="72" width="86" height="54" rx="6" class="c-mask"/>
         <rect x="235" y="72" width="86" height="54" rx="6" class="c-backend" stroke-width="1.5"/>
-        <text x="278" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Runtime</text>
-        <text x="278" y="111" class="t-muted" font-size="7" text-anchor="middle">main.py</text>
+        <text x="278" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Strands Agent</text>
+        <text x="278" y="111" class="t-muted" font-size="7" text-anchor="middle">orchestrator for this run</text>
 
         <rect x="343" y="72" width="86" height="54" rx="6" class="c-mask"/>
-        <rect x="343" y="72" width="86" height="54" rx="6" class="c-backend" stroke-width="1.5"/>
-        <text x="386" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Agent Graph</text>
-        <text x="386" y="111" class="t-muted" font-size="7" text-anchor="middle">per run</text>
+        <rect x="343" y="72" width="86" height="54" rx="6" class="c-security" stroke-width="1.5"/>
+        <text x="386" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Gateway</text>
+        <text x="386" y="111" class="t-muted" font-size="7" text-anchor="middle">AgentCore tools surface</text>
 
         <rect x="451" y="72" width="86" height="54" rx="6" class="c-mask"/>
-        <rect x="451" y="72" width="86" height="54" rx="6" class="c-backend" stroke-width="1.5"/>
-        <text x="494" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Gateway</text>
-        <text x="494" y="111" class="t-muted" font-size="7" text-anchor="middle">MCP</text>
+        <rect x="451" y="72" width="86" height="54" rx="6" class="c-security" stroke-width="1.5"/>
+        <text x="494" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Policy</text>
+        <text x="494" y="111" class="t-muted" font-size="7" text-anchor="middle">guardrails + interceptors</text>
 
         <rect x="559" y="72" width="86" height="54" rx="6" class="c-mask"/>
         <rect x="559" y="72" width="86" height="54" rx="6" class="c-cloud" stroke-width="1.5"/>
-        <text x="602" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Lambda tools</text>
-        <text x="602" y="111" class="t-muted" font-size="7" text-anchor="middle">context data</text>
+        <text x="602" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Tool Backends</text>
+        <text x="602" y="111" class="t-muted" font-size="7" text-anchor="middle">weather/events/mobility/refs</text>
 
         <rect x="667" y="72" width="86" height="54" rx="6" class="c-mask"/>
-        <rect x="667" y="72" width="86" height="54" rx="6" class="c-database" stroke-width="1.5"/>
-        <text x="710" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Memory</text>
-        <text x="710" y="111" class="t-muted" font-size="7" text-anchor="middle">EPISODIC</text>
+        <rect x="667" y="72" width="86" height="54" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="710" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Core</text>
+        <text x="710" y="111" class="t-muted" font-size="7" text-anchor="middle">CityContext + scoring</text>
 
         <rect x="775" y="72" width="86" height="54" rx="6" class="c-mask"/>
         <rect x="775" y="72" width="86" height="54" rx="6" class="c-cloud" stroke-width="1.5"/>
         <text x="818" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Bedrock</text>
-        <text x="818" y="111" class="t-muted" font-size="7" text-anchor="middle">multi-LLM</text>
+        <text x="818" y="111" class="t-muted" font-size="7" text-anchor="middle">reasoning tiers</text>
+
+        <rect x="883" y="72" width="86" height="54" rx="6" class="c-mask"/>
+        <rect x="883" y="72" width="86" height="54" rx="6" class="c-database" stroke-width="1.5"/>
+        <text x="926" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Memory</text>
+        <text x="926" y="111" class="t-muted" font-size="7" text-anchor="middle">optional episodic recall</text>
 
         <!-- Legend -->
-        <text x="150" y="966" class="t-primary" font-size="10" font-weight="600">Legend</text>
-        <path d="M 150 986 L 184 986" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <text x="193" y="989" class="t-muted" font-size="8">request</text>
-        <path d="M 270 986 L 304 986" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
-        <text x="313" y="989" class="t-muted" font-size="8">return</text>
-        <path d="M 385 986 L 419 986" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
-        <text x="428" y="989" class="t-muted" font-size="8">security</text>
-        <path d="M 530 986 L 564 986" class="a-dashed" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
-        <text x="573" y="989" class="t-muted" font-size="8">async trace</text>
+        <text x="150" y="1086" class="t-primary" font-size="10" font-weight="600">Legend</text>
+        <path d="M 150 1106 L 184 1106" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <text x="193" y="1109" class="t-muted" font-size="8">request</text>
+        <path d="M 270 1106 L 304 1106" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <text x="313" y="1109" class="t-muted" font-size="8">return</text>
+        <path d="M 385 1106 L 419 1106" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <text x="428" y="1109" class="t-muted" font-size="8">security</text>
+        <path d="M 530 1106 L 564 1106" class="a-dashed" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <text x="573" y="1109" class="t-muted" font-size="8">async trace</text>
       </svg>

@@ -61,3 +61,28 @@ Reason:
 - stronger business credibility for the portfolio
 - solves an obvious weakness of single-event reasoning
 - keeps the POC reversible and understandable
+
+## ADR-006 - Runtime architecture ("option 2")
+
+Three options were compared for the AgentCore runtime:
+
+| Option | Principle | Readability | Robustness | Portfolio value | Status |
+|---|---|---|---|---|---|
+| 1. Thin adapter + existing engine | thin runtime delegating almost everything to the existing service | high | high | high | earlier checkpoint, no longer the target |
+| 2. Strands business agent + deterministic core | a real runtime agent orchestrating stable business modules | high | medium to high | very high | **retained target** |
+| 3. Highly declarative AgentCore | delegate more to configuration and managed building blocks | medium | medium | medium | not retained |
+
+Decision:
+
+- retain **option 2**: an AgentCore Runtime hosting a Strands business agent, with scoring
+  and allocation kept deterministic and outside the LLM loop
+
+Reason:
+
+- option 1 makes the runtime a passthrough, which weakens the agentic demonstration
+- option 3 hides the business logic in configuration and reduces explainability
+- option 2 is the only one that is both genuinely agentic and testable on the critical path
+
+Note:
+
+- "option 2" is used as shorthand across the repo; this ADR is its definition

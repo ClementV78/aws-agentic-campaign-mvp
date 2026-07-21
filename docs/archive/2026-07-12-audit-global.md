@@ -48,7 +48,7 @@ Conclusion courte:
 
 - moteur local Python implémenté sous [src/urban_campaign_intelligence](/home/xclem/projetsperso/agentic-campaign/src/urban_campaign_intelligence)
 - 16 tests locaux passent
-- cible AWS centrée sur `AgentCore` documentée dans [ARCHITECTURE.md](/home/xclem/projetsperso/agentic-campaign/ARCHITECTURE.md) et [docs/LOT2_INFRA_MVP.md](/home/xclem/projetsperso/agentic-campaign/docs/LOT2_INFRA_MVP.md)
+- cible AWS centrée sur `AgentCore` documentée dans [ARCHITECTURE.md](/home/xclem/projetsperso/agentic-campaign/ARCHITECTURE.md) et [docs/LOT2_INFRA_MVP.md](2026-07-lot2-infra-analyse.md)
 - `deploy.sh` et `destroy.sh` existent et sont utilisables en `dry-run`
 - le projet AgentCore cible est centralisé sous [agentcore-project/UrbanCampaignIntelligencePoc](/home/xclem/projetsperso/agentic-campaign/agentcore-project/UrbanCampaignIntelligencePoc)
 
@@ -105,7 +105,7 @@ Impact:
 Preuves:
 
 - [docs/STATUS.md](/home/xclem/projetsperso/agentic-campaign/docs/STATUS.md:141)
-- [docs/LOT2_INFRA_MVP.md](/home/xclem/projetsperso/agentic-campaign/docs/LOT2_INFRA_MVP.md:334)
+- [docs/LOT2_INFRA_MVP.md](2026-07-lot2-infra-analyse.md:334)
 - [scripts/deploy.sh](/home/xclem/projetsperso/agentic-campaign/scripts/deploy.sh:19)
 
 Recommandation:
@@ -215,7 +215,7 @@ Preuves:
 
 - [tests/test_runner.py](/home/xclem/projetsperso/agentic-campaign/tests/test_runner.py:1)
 - [docs/STATUS.md](/home/xclem/projetsperso/agentic-campaign/docs/STATUS.md:127)
-- [docs/LOT2_INFRA_MVP.md](/home/xclem/projetsperso/agentic-campaign/docs/LOT2_INFRA_MVP.md:310)
+- [docs/LOT2_INFRA_MVP.md](2026-07-lot2-infra-analyse.md:310)
 
 Recommandation:
 

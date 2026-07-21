@@ -3,48 +3,66 @@
   "diagram_type": "architecture",
   "meta": {
     "title": "Multi-Agent Orchestration (Target)",
-    "subtitle": "local claims, precedent recall, global arbitration, bounded critique",
-    "output": "multi-agent-orchestration.html",
-    "viewBox": [1500, 720]
+    "subtitle": "AgentCore hosts the runtime, Strands decides tool calls, deterministic code keeps business control",
+    "output": "multi-agent-orchestration.archify.html",
+    "viewBox": [1540, 760]
   },
   "components": [
-    { "id": "weather", "type": "cloud", "label": "Weather tool", "sublabel": "Open-Meteo + mock", "pos": [40, 40], "size": [180, 55] },
-    { "id": "events_agent", "type": "backend", "label": "Events Agent", "sublabel": "LLM classification", "tag": "small", "pos": [40, 125], "size": [180, 60] },
-    { "id": "mobility", "type": "cloud", "label": "Mobility tool", "sublabel": "hour-of-week forecast", "pos": [40, 215], "size": [180, 55] },
+    { "id": "client", "type": "external", "label": "Client / Harness", "sublabel": "InvokeAgentRuntime", "pos": [40, 300], "size": [180, 60] },
 
-    { "id": "citycontext", "type": "backend", "label": "CityContext Builder", "sublabel": "deterministic", "pos": [280, 90], "size": [190, 65] },
-    { "id": "scoring", "type": "backend", "label": "Scoring tool", "sublabel": "scoring.py, deterministic", "pos": [280, 235], "size": [190, 60] },
+    { "id": "runtime", "type": "cloud", "label": "AgentCore Runtime", "sublabel": "runtime app + entrypoint", "pos": [300, 300], "size": [190, 65] },
+    { "id": "gateway", "type": "security", "label": "AgentCore Gateway", "sublabel": "governed tools surface", "pos": [300, 110], "size": [190, 65] },
+    { "id": "controls", "type": "security", "label": "Policy + Guardrails + Interceptors", "sublabel": "authz, filtering, tracing", "pos": [300, 480], "size": [230, 70] },
+    { "id": "memory", "type": "database", "label": "AgentCore Memory", "sublabel": "optional episodic recall", "pos": [300, 610], "size": [190, 60] },
 
-    { "id": "adv_agent", "type": "backend", "label": "Advertiser Agent", "sublabel": "one role, fresh instance each", "tag": "xN from advertisers.json", "pos": [560, 190], "size": [230, 80] },
+    { "id": "strands", "type": "backend", "label": "UrbanCampaignStrandsAgent", "sublabel": "orchestrator for one run", "pos": [630, 300], "size": [210, 70] },
+    { "id": "roles", "type": "backend", "label": "Specialized Agent Roles", "sublabel": "Events / Advertiser / Allocator / Review", "tag": "LLM-driven", "pos": [930, 300], "size": [260, 72] },
+    { "id": "bedrock", "type": "cloud", "label": "Amazon Bedrock", "sublabel": "small / medium / strong tiers", "pos": [1270, 300], "size": [210, 68] },
 
-    { "id": "precedent", "type": "backend", "label": "Precedent Agent", "sublabel": "fuzzy match + citations", "tag": "small", "pos": [820, 40], "size": [200, 60] },
-    { "id": "memory", "type": "database", "label": "AgentCore Memory", "sublabel": "EPISODIC history", "pos": [820, 170], "size": [200, 60] },
-    { "id": "allocator", "type": "backend", "label": "Campaign Allocator Agent", "sublabel": "global arbitration", "tag": "strong", "pos": [820, 330], "size": [200, 80] },
-
-    { "id": "review", "type": "backend", "label": "Review Agent", "sublabel": "bounded critique loop", "tag": "max 1 retry", "pos": [1110, 330], "size": [190, 80] },
-    { "id": "client", "type": "external", "label": "Client / Harness", "sublabel": "final recommendation", "pos": [1110, 500], "size": [190, 60] }
+    { "id": "citycontext", "type": "backend", "label": "CityContext Builder", "sublabel": "deterministic normalization", "pos": [630, 110], "size": [210, 68] },
+    { "id": "scoring", "type": "backend", "label": "Deterministic Core", "sublabel": "scoring + allocation constraints", "pos": [930, 110], "size": [230, 68] },
+    { "id": "tools", "type": "cloud", "label": "Tool Backends", "sublabel": "weather / events / mobility / zones / advertisers", "pos": [630, 500], "size": [250, 70] }
   ],
   "boundaries": [
-    { "kind": "region", "label": "Context (deterministic + one small LLM)", "wraps": ["weather", "events_agent", "mobility", "citycontext", "scoring"] },
-    { "kind": "region", "label": "Local claims - loop over advertisers, parallel", "wraps": ["adv_agent"] },
-    { "kind": "security-group", "label": "Memory and global arbitration", "wraps": ["precedent", "memory", "allocator"] }
+    { "kind": "region", "label": "AgentCore", "wraps": ["runtime", "gateway", "controls", "memory"] },
+    { "kind": "region", "label": "Strands", "wraps": ["strands", "roles"] },
+    { "kind": "region", "label": "Custom business code", "wraps": ["citycontext", "scoring"] }
   ],
   "connections": [
-    { "from": "weather", "to": "citycontext", "variant": "default" },
-    { "from": "events_agent", "to": "citycontext", "variant": "default" },
-    { "from": "mobility", "to": "citycontext", "variant": "default" },
-    { "from": "citycontext", "to": "scoring", "variant": "default" },
+    { "from": "client", "to": "runtime", "variant": "emphasis", "route": "orthogonal-h" },
+    { "from": "runtime", "to": "strands", "variant": "default", "route": "orthogonal-h" },
 
-    { "from": "scoring", "to": "adv_agent", "label": "score()", "variant": "default", "route": "orthogonal-h" },
-    { "from": "adv_agent", "to": "allocator", "label": "claims (1 per advertiser)", "variant": "emphasis", "route": "orthogonal-h" },
+    { "from": "strands", "to": "gateway", "label": "tool calls", "variant": "emphasis", "fromSide": "top", "toSide": "right", "route": "orthogonal-v", "labelDx": 72, "labelDy": -2 },
+    { "from": "controls", "to": "gateway", "variant": "security", "fromSide": "top", "toSide": "bottom", "route": "orthogonal-v" },
+    { "from": "gateway", "to": "tools", "variant": "default", "fromSide": "bottom", "toSide": "left", "route": "orthogonal-v" },
+    { "from": "tools", "to": "citycontext", "variant": "default", "fromSide": "top", "toSide": "bottom", "route": "orthogonal-v" },
 
-    { "from": "precedent", "to": "memory", "label": "search", "variant": "default", "labelDy": 20 },
-    { "from": "memory", "to": "precedent", "label": "episodes", "variant": "dashed", "labelDx": 90 },
-    { "from": "precedent", "to": "allocator", "label": "brief + citations", "variant": "emphasis", "fromSide": "bottom", "toSide": "top", "labelDy": 180 },
+    { "from": "citycontext", "to": "scoring", "variant": "default", "route": "orthogonal-h" },
+    { "from": "scoring", "to": "strands", "label": "candidates", "variant": "emphasis", "fromSide": "bottom", "toSide": "top", "route": "orthogonal-v", "labelDx": 70 },
 
-    { "from": "allocator", "to": "review", "label": "allocation plan", "variant": "emphasis", "labelDy": -14 },
-    { "from": "review", "to": "allocator", "label": "reject (max 1 retry)", "variant": "dashed", "fromSide": "bottom", "toSide": "bottom", "route": "orthogonal-v", "labelDy": 24 },
-    { "from": "review", "to": "client", "label": "recommendation", "variant": "emphasis", "labelDy": 24 }
+    { "from": "strands", "to": "roles", "variant": "default", "route": "orthogonal-h" },
+    { "from": "roles", "to": "bedrock", "label": "LLM calls", "variant": "emphasis", "route": "orthogonal-h", "labelDy": -16 },
+    { "from": "bedrock", "to": "roles", "label": "outputs", "variant": "dashed", "route": "orthogonal-h", "labelDy": 18 },
+    { "from": "strands", "to": "memory", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "route": "orthogonal-v" }
   ],
-  "cards": []
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Target rule",
+      "items": [
+        "LLM decides when to call tools",
+        "Gateway carries governance and traces",
+        "CityContext and scoring stay deterministic"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Important nuance",
+      "items": [
+        "Memory is optional",
+        "Tool backend can be Lambda or another light service",
+        "API Gateway is not the primary entrypoint"
+      ]
+    }
+  ]
 }

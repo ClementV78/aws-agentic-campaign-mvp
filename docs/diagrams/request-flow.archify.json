@@ -3,55 +3,71 @@
   "diagram_type": "sequence",
   "meta": {
     "title": "Recommendation Request Flow",
-    "subtitle": "from signed client call to reviewed allocation plan",
-    "output": "request-flow.html",
-    "viewBox": [1000, 1040]
+    "subtitle": "primary path through InvokeAgentRuntime, governed tools, deterministic core, then LLM arbitration",
+    "output": "request-flow.archify.html",
+    "viewBox": [1100, 1160]
   },
   "participants": [
-    { "id": "client", "type": "external", "label": "Client", "sublabel": "demo/harness" },
-    { "id": "apigw", "type": "cloud", "label": "API GW", "sublabel": "AWS_IAM" },
-    { "id": "runtime", "type": "backend", "label": "Runtime", "sublabel": "main.py" },
-    { "id": "graph", "type": "backend", "label": "Agent Graph", "sublabel": "per run" },
-    { "id": "gateway", "type": "backend", "label": "Gateway", "sublabel": "MCP" },
-    { "id": "lambda", "type": "cloud", "label": "Lambda tools", "sublabel": "context data" },
-    { "id": "memory", "type": "database", "label": "Memory", "sublabel": "EPISODIC" },
-    { "id": "bedrock", "type": "cloud", "label": "Bedrock", "sublabel": "multi-LLM" }
+    { "id": "client", "type": "external", "label": "Client", "sublabel": "demo / harness" },
+    { "id": "runtime", "type": "cloud", "label": "Runtime", "sublabel": "AgentCore entrypoint" },
+    { "id": "strands", "type": "backend", "label": "Strands Agent", "sublabel": "orchestrator for this run" },
+    { "id": "gateway", "type": "security", "label": "Gateway", "sublabel": "AgentCore tools surface" },
+    { "id": "policy", "type": "security", "label": "Policy", "sublabel": "guardrails + interceptors" },
+    { "id": "tools", "type": "cloud", "label": "Tool Backends", "sublabel": "weather/events/mobility/refs" },
+    { "id": "core", "type": "backend", "label": "Core", "sublabel": "CityContext + scoring" },
+    { "id": "bedrock", "type": "cloud", "label": "Bedrock", "sublabel": "reasoning tiers" },
+    { "id": "memory", "type": "database", "label": "Memory", "sublabel": "optional episodic recall" }
   ],
   "segments": [
-    { "from": 160, "to": 250, "label": "01 / AUTH" },
-    { "from": 250, "to": 460, "label": "02 / CONTEXT VIA GATEWAY" },
-    { "from": 460, "to": 770, "label": "03 / CLAIMS + ARBITRATION" },
-    { "from": 770, "to": 950, "label": "04 / REVIEW + RESPONSE" }
+    { "from": 170, "to": 250, "label": "01 / ENTRYPOINT" },
+    { "from": 250, "to": 560, "label": "02 / CONTEXT TOOL CALLS" },
+    { "from": 560, "to": 735, "label": "03 / DETERMINISTIC CORE" },
+    { "from": 735, "to": 980, "label": "04 / LLM ARBITRATION" },
+    { "from": 980, "to": 1080, "label": "05 / RESPONSE" }
   ],
   "messages": [
-    { "from": "client", "to": "apigw", "y": 190, "label": "POST /invoke SigV4", "variant": "security" },
-    { "from": "apigw", "to": "runtime", "y": 225, "label": "scenario payload", "variant": "emphasis" },
+    { "from": "client", "to": "runtime", "y": 205, "label": "InvokeAgentRuntime(payload)", "variant": "emphasis" },
+    { "from": "runtime", "to": "strands", "y": 238, "label": "init run agent", "variant": "default" },
 
-    { "from": "runtime", "to": "graph", "y": 285, "label": "build Graph (fresh per run)", "variant": "default" },
-    { "from": "graph", "to": "gateway", "y": 320, "label": "tool calls (MCP)", "variant": "emphasis" },
-    { "from": "gateway", "to": "lambda", "y": 355, "label": "invoke tools", "variant": "default" },
-    { "from": "lambda", "to": "gateway", "y": 390, "label": "raw signals", "variant": "return" },
-    { "from": "gateway", "to": "graph", "y": 425, "label": "tool results", "variant": "return" },
+    { "from": "strands", "to": "gateway", "y": 300, "label": "request get_weather / get_events / get_mobility / refs", "variant": "emphasis" },
+    { "from": "gateway", "to": "policy", "y": 336, "label": "authorize + inspect request", "variant": "security" },
+    { "from": "policy", "to": "gateway", "y": 370, "label": "allow / block / redact", "variant": "return" },
+    { "from": "gateway", "to": "tools", "y": 408, "label": "invoke backend implementation", "variant": "default" },
+    { "from": "tools", "to": "gateway", "y": 446, "label": "raw signals", "variant": "return" },
+    { "from": "gateway", "to": "policy", "y": 482, "label": "inspect tool response", "variant": "security" },
+    { "from": "policy", "to": "gateway", "y": 516, "label": "allow / redact / warn", "variant": "return" },
+    { "from": "gateway", "to": "strands", "y": 550, "label": "governed tool results", "variant": "return" },
 
-    { "from": "graph", "to": "bedrock", "y": 500, "label": "N advertiser claims (parallel, small/medium tier)", "variant": "emphasis", "note": "CityContext + deterministic scoring already computed in-process" },
-    { "from": "bedrock", "to": "graph", "y": 548, "label": "claims", "variant": "return" },
-    { "from": "graph", "to": "memory", "y": 582, "label": "episodic search", "variant": "default" },
-    { "from": "memory", "to": "graph", "y": 614, "label": "matched episodes", "variant": "return" },
-    { "from": "graph", "to": "bedrock", "y": 648, "label": "precedent brief (small tier)", "variant": "default" },
-    { "from": "bedrock", "to": "graph", "y": 680, "label": "brief + citations", "variant": "return" },
-    { "from": "graph", "to": "bedrock", "y": 715, "label": "global arbitration (strong tier)", "variant": "emphasis" },
-    { "from": "bedrock", "to": "graph", "y": 750, "label": "allocation plan", "variant": "return" },
+    { "from": "strands", "to": "core", "y": 610, "label": "build CityContext + compute scores", "variant": "emphasis" },
+    { "from": "core", "to": "strands", "y": 648, "label": "ranked candidates + constraints", "variant": "return" },
+    { "from": "strands", "to": "memory", "y": 688, "label": "optional episodic search", "variant": "dashed" },
+    { "from": "memory", "to": "strands", "y": 720, "label": "matched episodes", "variant": "return" },
 
-    { "from": "graph", "to": "bedrock", "y": 800, "label": "review critique (max 1 retry)", "variant": "default" },
-    { "from": "bedrock", "to": "graph", "y": 832, "label": "approve or reject", "variant": "return" },
-    { "from": "graph", "to": "runtime", "y": 868, "label": "plan + summary + warnings", "variant": "return" },
-    { "from": "runtime", "to": "apigw", "y": 900, "label": "stream events", "variant": "return" },
-    { "from": "apigw", "to": "client", "y": 932, "label": "200 JSON recommendation", "variant": "return" }
+    { "from": "strands", "to": "bedrock", "y": 780, "label": "advertiser claims", "variant": "default", "note": "LLM roles consume deterministic results instead of replacing them" },
+    { "from": "bedrock", "to": "strands", "y": 814, "label": "claims", "variant": "return" },
+    { "from": "strands", "to": "bedrock", "y": 850, "label": "global arbitration", "variant": "emphasis" },
+    { "from": "bedrock", "to": "strands", "y": 884, "label": "allocation plan", "variant": "return" },
+    { "from": "strands", "to": "bedrock", "y": 920, "label": "review critique (bounded)", "variant": "default" },
+    { "from": "bedrock", "to": "strands", "y": 954, "label": "approve / reject", "variant": "return" },
+
+    { "from": "strands", "to": "runtime", "y": 1015, "label": "final plan + warnings + summary", "variant": "return" },
+    { "from": "runtime", "to": "client", "y": 1050, "label": "JSON recommendation", "variant": "return" }
   ],
   "activations": [
-    { "participant": "runtime", "from": 205, "to": 910, "type": "backend" },
-    { "participant": "graph", "from": 265, "to": 880, "type": "backend" },
-    { "participant": "gateway", "from": 300, "to": 440, "type": "backend" }
+    { "participant": "runtime", "from": 190, "to": 1035, "type": "backend" },
+    { "participant": "strands", "from": 230, "to": 1022, "type": "backend" },
+    { "participant": "gateway", "from": 290, "to": 562, "type": "backend" },
+    { "participant": "core", "from": 602, "to": 655, "type": "backend" }
   ],
-  "cards": []
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Primary path",
+      "items": [
+        "InvokeAgentRuntime is the main MVP entrypoint",
+        "API Gateway is only an optional HTTP facade",
+        "Gateway, not Lambda, is the important abstraction"
+      ]
+    }
+  ]
 }

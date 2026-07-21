@@ -48,7 +48,7 @@ Règle d'usage :
 | Élément | Statut | Notes |
 |---|---|---|
 | `AGENTS.md` | `done` | règles projet, objectif portfolio, contraintes |
-| `Urban_Campaign_Intelligence_PRD_MVP.md` | `done` | scope réduit et architecture logique alignée |
+| `docs/archive/2026-07-cadrage-prd-mvp.md` | `archivé` | cadrage initial, remplacé par le DAT |
 | `roadmap.md` | `done` | stratégie d'exécution et lots définis |
 | `ARCHITECTURE.md` | `done` | workflow, data model, reasoning, decision split |
 | `docs/DECISIONS.md` | `done` | ADRs MVP en place |
@@ -140,10 +140,11 @@ Règle d'usage :
 |---|---|---|
 | `bootstrap.sh` | `done` | vérifie les prérequis Lot 2 (`aws`, `agentcore`, `node`, région, identité AWS, projet AgentCore cible) et peut exécuter les tests locaux |
 | `demo.sh` | `done` | lance les scénarios locaux |
-| Cadrage infra MVP | `done` | cible `API Gateway + AWS_IAM + AgentCore + AgentCore Gateway + Bedrock + S3 + CloudWatch` documentée |
+| Cadrage infra MVP | `done` | cible `InvokeAgentRuntime + AgentCore Runtime + Strands agent métier + Gateway-first security model`, documentée |
 | `deploy.sh` | `blocked` | déploiement réel lancé, bootstrap CDK OK, bucket S3 et artefacts OK, échec runtime AgentCore sur quota `maxAgents` du compte AWS |
 | `destroy.sh` | `in_progress` | teardown AgentCore/CDK + nettoyage S3 pilotés par `deploy-outputs.json` ou le manifeste |
 | AgentCore Gateway | `todo` | non démarré |
+| Guardrails / Policy Gateway | `todo` | non démarré |
 | Bedrock model mapping | `todo` | non démarré |
 | Hooks AWS réels | `todo` | non démarré |
 
@@ -154,8 +155,11 @@ Règle d'usage :
 - `done` : sécuriser le bucket S3 et réordonner la validation AgentCore dans `deploy.sh`
 - `done` : consolider le repo autour d'un seul projet AgentCore cible dédié
 - `in_progress` : implémenter `destroy.sh` sur la même base
-- `next` : remplacer le `main.py` AgentCore template par un runtime POC minimal branché sur le vrai flux métier local
-- `next` : préparer le câblage `AgentCore Gateway` sur les contrats tools déjà stabilisés
+- `next` : remplacer le `main.py` AgentCore template par un **Strands agent métier** crédible
+- `next` : brancher ce Strands agent sur le noyau métier déterministe existant
+- `next` : fermer un premier chemin `InvokeAgentRuntime` sur le runtime réel
+- `next` : brancher `AgentCore Gateway` sur `get_weather`, `get_events`, `get_mobility`
+- `next` : attacher `Policy` et `Bedrock Guardrails` à cette surface Gateway
 - `blocked` : reprendre le déploiement live après augmentation du quota AgentCore / runtime sur le compte AWS de démo
 
 ---
@@ -168,18 +172,21 @@ Règle d'usage :
 
 ### Next
 
-- remplacer le `main.py` AgentCore template par un runtime POC minimal crédible
-- préparer le câblage `AgentCore Gateway` sur les tools/contrats existants
+- remplacer le `main.py` AgentCore template par un **Strands agent métier** crédible
+- brancher ce Strands agent sur le noyau métier déterministe
+- fermer un premier chemin `InvokeAgentRuntime` sur le runtime réel
+- brancher `AgentCore Gateway` sur `get_weather`, `get_events`, `get_mobility`
+- attacher `Policy` et `Bedrock Guardrails` à cette surface
 - ajouter un premier harness d'évaluation léger
-- préparer la couche Gateway mockée ou locale pour l'intégration AWS
 - observer le comportement `forecast` sur plusieurs scénarios
 - préparer le prochain retry de déploiement une fois le quota relevé
 
 ### Later
 
 - brancher AgentCore Gateway
+- activer Guardrails / Policy sur Gateway
 - brancher Bedrock
-- finaliser le smoke test signé sur l'endpoint `AWS_IAM`
+- finaliser un smoke test signé sur `API Gateway + AWS_IAM` seulement si cette façade HTTP est retenue
 
 ---
 

@@ -4,10 +4,10 @@ Projet vitrine MVP pour démontrer une architecture agentique AWS appliquée à 
 
 Pour naviguer vite dans le repo :
 
-- [docs/README.md](/home/xclem/projetsperso/agentic-campaign/docs/README.md) : index documentaire
-- [docs/STATUS.md](/home/xclem/projetsperso/agentic-campaign/docs/STATUS.md) : état réel et priorités
-- [ARCHITECTURE.md](/home/xclem/projetsperso/agentic-campaign/ARCHITECTURE.md) : architecture cible et patterns agentiques
-- [roadmap.md](/home/xclem/projetsperso/agentic-campaign/roadmap.md) : lots et ordre d'exécution
+- [docs/README.md](docs/README.md) : index documentaire
+- [docs/STATUS.md](docs/STATUS.md) : état réel et priorités
+- [ARCHITECTURE.md](ARCHITECTURE.md) : architecture cible et patterns agentiques
+- [roadmap.md](roadmap.md) : lots et ordre d'exécution
 
 ## Objectif
 
@@ -16,7 +16,6 @@ Démontrer en peu de temps une chaîne de bout en bout crédible basée sur :
 - AWS Bedrock / AgentCore
 - orchestration multi-agents
 - placement multi-LLM
-- hooks, agents et skills
 - scoring déterministe avec explication LLM
 - environnement de démo rapide à déployer et réversible
 
@@ -42,26 +41,24 @@ Démontrer en peu de temps une chaîne de bout en bout crédible basée sur :
 - `deploy.sh` implémenté avec validation AgentCore, bucket S3 durci, manifest et `deploy-outputs.json`
 - `destroy.sh` implémenté avec teardown AgentCore/CDK et nettoyage S3 piloté par les outputs de déploiement
 - projet AgentCore cible présent sous `agentcore-project/UrbanCampaignIntelligencePoc`
-- cible AWS cadrée et partiellement implémentée, mais endpoint `AWS_IAM`, `AgentCore Gateway` et smoke test signé pas encore démontrés de bout en bout
+- cible AWS cadrée et partiellement implémentée autour de l'**option 2** : `AgentCore Runtime + Strands agent métier + AgentCore Gateway + noyau déterministe`, mais invocation directe `InvokeAgentRuntime`, tools gouvernés et exposition HTTP signée éventuelle pas encore démontrés de bout en bout
 
-Le suivi détaillé et la prochaine action prioritaire vivent dans [docs/STATUS.md](/home/xclem/projetsperso/agentic-campaign/docs/STATUS.md).
+Le suivi détaillé et la prochaine action prioritaire vivent dans [docs/STATUS.md](docs/STATUS.md).
 
 ## Structure du repo
 
 ```text
 .
 ├── AGENTS.md
-├── ARCHITECTURE.md
+├── ARCHITECTURE.md          # DAT
 ├── README.md
-├── Urban_Campaign_Intelligence_PRD_MVP.md
 ├── roadmap.md
-├── agents/
 ├── data/
 ├── docs/
-├── hooks/
+│   ├── archive/             # documents historiques, ne font pas foi
+│   └── diagrams/
 ├── outputs/
 ├── scripts/
-├── skills/
 ├── src/
 ├── tests/
 └── tools/
@@ -70,7 +67,7 @@ Le suivi détaillé et la prochaine action prioritaire vivent dans [docs/STATUS.
 ## Stratégie d'exécution
 
 1. Construire d'abord un workflow local déterministe.
-2. Ajouter ensuite l'orchestration multi-agents via AgentCore.
+2. Ajouter ensuite l'orchestration multi-agents via un **Strands agent métier** dans AgentCore.
 3. Ajouter enfin les scripts de déploiement AWS.
 
 ## Livrables MVP
@@ -83,9 +80,11 @@ Le suivi détaillé et la prochaine action prioritaire vivent dans [docs/STATUS.
 
 ## Known limitations
 
-- la cible AWS `AgentCore-first` n'est pas encore démontrée de bout en bout
+- la cible AWS `AgentCore Runtime + Strands agent métier` n'est pas encore démontrée de bout en bout
 - `AgentCore Gateway` n'est pas encore branché sur le flux final
-- le smoke test signé `AWS_IAM` reste à figer sur l'endpoint final
+- les Guardrails / Policy Gateway ne sont pas encore matérialisés sur les tools
+- l'invocation directe `InvokeAgentRuntime` reste à figer sur le runtime final de l'option 2
+- le smoke test signé `AWS_IAM` reste optionnel tant qu'aucune façade HTTP n'est retenue
 - le harness d'évaluation AWS n'est pas encore branché
 - certains schémas anciens dans `docs/diagrams/` sont conservés à titre historique et ne sont plus canoniques
 
@@ -99,7 +98,10 @@ Pour éviter les doublons de lecture :
 - `roadmap.md` = ordre d'exécution
 - `docs/DECISIONS.md` = décisions structurantes
 
-Les documents d'audit dans `docs/` servent de synthèse ou de support d'entretien, pas de source principale de vérité.
+- `docs/RUNBOOK_DEPLOY.md` = procédures de déploiement
+
+`docs/archive/` conserve les documents qui ont instruit des choix déjà actés. Ils servent de trace du
+raisonnement, jamais de source de vérité.
 
 ## Exécution locale
 
@@ -123,7 +125,7 @@ Il inclut aussi un `executive_summary` séparé du résumé technique.
 
 ## Format des scénarios fake
 
-Les scénarios de [data/scenarios.json](/home/xclem/projetsperso/agentic-campaign/data/scenarios.json) servent maintenant de harness de test explicite. Ils injectent directement :
+Les scénarios de [data/scenarios.json](data/scenarios.json) servent maintenant de harness de test explicite. Ils injectent directement :
 
 - `weather`
 - `mobility`
@@ -290,7 +292,9 @@ Le bootstrap vérifie aussi `aws`, `agentcore`, `node`, `npm`, `npx`, la région
 
 ## Prochaines étapes techniques
 
-1. Câbler `AgentCore Gateway` sur les contrats tools déjà stabilisés.
-2. Ajouter un smoke test `SigV4` rejouable sur l'endpoint `AWS_IAM`.
-3. Connecter le flux cible à Bedrock / AgentCore en live.
-4. Ajouter un harness AWS léger puis enrichir l'évaluation métier.
+1. Implémenter le **Strands agent métier** dans le runtime AgentCore.
+2. Ajouter un premier smoke test `InvokeAgentRuntime` rejouable sur ce runtime final.
+3. Brancher `AgentCore Gateway` sur `get_weather`, `get_events`, `get_mobility`.
+4. Attacher `Policy` et `Bedrock Guardrails` sur cette surface plutôt que réimplémenter les blocages génériques.
+5. N'ajouter `API Gateway + SigV4` que si la démo a besoin d'un endpoint HTTP classique.
+6. Ajouter un harness AWS léger puis enrichir l'évaluation métier.

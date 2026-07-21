@@ -66,17 +66,11 @@ Critères de décision :
 | Lot 3 | Jour 2 | Qualité et robustesse | Harness + guardrails minimum |
 | Lot 4 | Après MVP | Industrialisation | Base pour itérations sérieuses |
 
-## Statut actuel
+## Statut
 
-- `Lot 0`: complété
-- `Lot 1`: complété
-- `Lot 2`: démarré
-- `Lot 3`: démarré partiellement via smoke tests et review basique
-- `Lot 4`: non démarré
+L'état d'avancement n'est pas suivi dans ce document.
 
-Suivi détaillé :
-
-- voir [docs/STATUS.md](/home/xclem/projetsperso/agentic-campaign/docs/STATUS.md)
+Source de vérité unique : [docs/STATUS.md](docs/STATUS.md)
 
 ---
 
@@ -91,7 +85,7 @@ Poser une structure propre pour éviter de mélanger logique métier, orchestrat
 - arborescence initiale du dépôt
 - `README.md`
 - `ARCHITECTURE.md`
-- dossiers `data/`, `agents/`, `skills/`, `hooks/`, `tools/`, `tests/`, `scripts/`, `docs/`
+- dossiers `data/`, `src/`, `tools/`, `tests/`, `scripts/`, `docs/`
 - jeu de données statique minimal :
   - zones
   - annonceurs
@@ -187,23 +181,7 @@ Produire :
 
 ### État courant
 
-Déjà implémenté :
-
-- `pre-hook`
-- agents de contexte
-- `CityContext` builder
-- scoring déterministe
-- allocation
-- review
-- runner CLI local
-- smoke tests
-- première couche LLM utile branchée et testée
-- raisonnement multi-événements de base en place
-
-Clôture du lot :
-
-- `Lot 1` est considéré comme terminé
-- les raffinements complémentaires relèvent désormais du `Lot 3` ou d'itérations post-MVP
+Voir [docs/STATUS.md](docs/STATUS.md).
 
 ### Risques
 
