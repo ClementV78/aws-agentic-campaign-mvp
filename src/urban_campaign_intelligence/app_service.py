@@ -17,12 +17,7 @@ from urban_campaign_intelligence.data_access import (
     load_zones,
 )
 from urban_campaign_intelligence.executive_summary import generate_executive_summary
-from urban_campaign_intelligence.gateway_tools import (
-    EVENT_TOOL_RESPONSES,
-    MOBILITY_TOOL_RESPONSES,
-    WEATHER_TOOL_RESPONSES,
-    GatewayProvider,
-)
+from urban_campaign_intelligence.gateway_tools import GatewayProvider, MockGatewayProvider
 from urban_campaign_intelligence.pre_hook import run_pre_hook
 from urban_campaign_intelligence.review import review_allocation
 from urban_campaign_intelligence.scoring import allocate_campaigns, score_allocations
@@ -36,6 +31,14 @@ LIVE_REQUEST_NAME = "Live Paris Request"
 class UrbanCampaignApplicationService:
     def __init__(self, live_city: str = LIVE_CITY) -> None:
         self.live_city = live_city
+        self.scenario_provider = MockGatewayProvider()
+        # Reference data is static for the process lifetime: load it once, not per request.
+        self._reference_data: tuple[Any, Any, Any] | None = None
+
+    def _load_reference_data(self) -> tuple[Any, Any, Any]:
+        if self._reference_data is None:
+            self._reference_data = (load_zones(), load_advertisers(), load_weights())
+        return self._reference_data
 
     def run_scenario_request(self, scenario_id: str) -> dict[str, Any]:
         scenario = get_scenario_by_id(scenario_id)
@@ -115,69 +118,31 @@ class UrbanCampaignApplicationService:
             "mobility": {"mode": "mock", "network_status": signals.get("mobility", "normal")},
         }
 
-    @staticmethod
-    def _build_scenario_weather_payload(city: str, datetime_iso: str, weather_input: dict[str, Any] | None) -> dict[str, Any]:
-        if weather_input:
-            response = {
-                "provider": "mock_scenarios",
-                "provider_mode": "scenario_injected",
-                "raw_condition": weather_input.get("raw_condition", "clear"),
-                "temperature_c": weather_input.get("temperature_c", 20),
-                "precipitation_mm": weather_input.get("precipitation_mm", 0.0),
-                "wind_kph": weather_input.get("wind_kph", 10),
-            }
-        else:
-            raw_condition = "clear"
-            response = {
-                "provider": "mock_scenarios",
-                "provider_mode": "scenario_injected",
-                **WEATHER_TOOL_RESPONSES.get(raw_condition, WEATHER_TOOL_RESPONSES["clear"]),
-            }
-        return {"city": city, "datetime": datetime_iso, **response}
+    def _build_scenario_weather_payload(self, city: str, datetime_iso: str, weather_input: dict[str, Any] | None) -> dict[str, Any]:
+        payload = self.scenario_provider.get_weather(
+            city=city,
+            datetime_iso=datetime_iso,
+            weather_key=(weather_input or {}).get("raw_condition"),
+            weather_input=weather_input,
+        )
+        return {**payload, "provider_mode": "scenario_injected"}
 
-    @staticmethod
-    def _build_scenario_events_payload(city: str, datetime_iso: str, event_inputs: list[dict[str, Any]] | None) -> dict[str, Any]:
-        events = []
-        for raw_event in event_inputs or []:
-            event_type = raw_event.get("event_type", "generic_event")
-            event = {
-                **EVENT_TOOL_RESPONSES.get(
-                    event_type,
-                    {
-                        "provider": "mock_scenarios",
-                        "event_type": event_type,
-                        "display_name": raw_event.get("title", event_type.replace("_", " ").title()),
-                        "zone_ids": [],
-                        "impact_level": "medium",
-                        "start_local": None,
-                    },
-                ),
-                **raw_event,
-                "provider": "mock_scenarios",
-                "display_name": raw_event.get("title") or raw_event.get("display_name") or event_type.replace("_", " ").title(),
-            }
-            events.append(event)
-        return {"city": city, "datetime": datetime_iso, "events": events, "provider_mode": "scenario_injected"}
+    def _build_scenario_events_payload(self, city: str, datetime_iso: str, event_inputs: list[dict[str, Any]] | None) -> dict[str, Any]:
+        payload = self.scenario_provider.get_events(
+            city=city,
+            datetime_iso=datetime_iso,
+            event_inputs=event_inputs,
+        )
+        return {**payload, "provider_mode": "scenario_injected"}
 
-    @staticmethod
-    def _build_scenario_mobility_payload(city: str, datetime_iso: str, mobility_input: dict[str, Any] | None) -> dict[str, Any]:
-        if mobility_input:
-            response = {
-                "provider": "mock_scenarios",
-                "provider_mode": "scenario_injected",
-                "network_status": mobility_input.get("network_status", "normal"),
-                "severity": mobility_input.get("severity", "low"),
-                "affected_zone_ids": mobility_input.get("affected_zone_ids", []),
-                **({"prediction_confidence": mobility_input["prediction_confidence"]} if "prediction_confidence" in mobility_input else {}),
-                **({"prediction_basis": mobility_input["prediction_basis"]} if "prediction_basis" in mobility_input else {}),
-            }
-        else:
-            response = {
-                "provider": "mock_scenarios",
-                "provider_mode": "scenario_injected",
-                **MOBILITY_TOOL_RESPONSES["normal"],
-            }
-        return {"city": city, "datetime": datetime_iso, **response}
+    def _build_scenario_mobility_payload(self, city: str, datetime_iso: str, mobility_input: dict[str, Any] | None) -> dict[str, Any]:
+        payload = self.scenario_provider.get_mobility(
+            city=city,
+            datetime_iso=datetime_iso,
+            mobility_key=(mobility_input or {}).get("network_status"),
+            mobility_input=mobility_input,
+        )
+        return {**payload, "provider_mode": "scenario_injected"}
 
     @staticmethod
     def _build_live_scenario(datetime_str: str, city: str = LIVE_CITY) -> dict[str, Any]:
@@ -244,9 +209,7 @@ class UrbanCampaignApplicationService:
         request_mode: str,
         degraded_signals: list[str] | None = None,
     ) -> dict[str, Any]:
-        zones = load_zones()
-        advertisers = load_advertisers()
-        weights = load_weights()
+        zones, advertisers, weights = self._load_reference_data()
 
         execution_log: list[dict[str, Any]] = []
 
