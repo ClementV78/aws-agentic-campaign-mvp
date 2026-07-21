@@ -86,10 +86,12 @@ def _owner(entry: dict[str, Any]) -> str:
 def to_mermaid(result: dict[str, Any]) -> str:
     """Render the execution log of a run as a Mermaid sequence diagram.
 
-    Pastes straight into a Markdown file or an issue; no renderer needed.
+    Wrapped in a fenced block so it pastes straight into Markdown and renders on
+    GitHub; without the fence the diagram collapses into a paragraph.
     """
     entries = result.get("execution_log", [])
     lines = [
+        "```mermaid",
         "sequenceDiagram",
         "    autonumber",
         "    participant C as Core",
@@ -110,6 +112,7 @@ def to_mermaid(result: dict[str, Any]) -> str:
     warnings = result.get("city_context", {}).get("warnings", [])
     for warning in warnings:
         lines.append(f"    Note over C: ⚠ {warning[:60]}")
+    lines.append("```")
     return "\n".join(lines)
 
 

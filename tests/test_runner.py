@@ -275,7 +275,8 @@ class RunnerTestCase(unittest.TestCase):
     def test_execution_log_renders_as_mermaid_and_timeline(self) -> None:
         result = run_scenario("transport_strike")
         mermaid = to_mermaid(result)
-        self.assertTrue(mermaid.startswith("sequenceDiagram"))
+        self.assertTrue(mermaid.startswith("```mermaid\nsequenceDiagram"))
+        self.assertTrue(mermaid.endswith("```"))
         self.assertIn("get_weather", mermaid)
         self.assertIn("Note over C:", mermaid)
         self.assertIn("TOTAL", to_timeline(result))
