@@ -5,7 +5,7 @@ import unittest
 
 from urban_campaign_intelligence.app_service import UrbanCampaignApplicationService, run_live_request
 from urban_campaign_intelligence.gateway_tools import MobilityForecastProvider
-from urban_campaign_intelligence.llm_client import BedrockClient, get_llm_client
+from urban_campaign_intelligence.llm_client import StrandsBedrockClient, get_llm_client
 from urban_campaign_intelligence.local_agent import CampaignRequest, LocalRequestMapper, UrbanCampaignStrandsAgent
 from urban_campaign_intelligence.runner import format_summary, run_scenario
 
@@ -253,7 +253,7 @@ class RunnerTestCase(unittest.TestCase):
             os.environ.pop("AGENTCAMPAIGN_LLM_PROVIDER", None)
 
     def test_bedrock_client_is_unconfigured_without_model_id(self) -> None:
-        self.assertFalse(BedrockClient(model=None, region_name="us-east-1").is_configured())
+        self.assertFalse(StrandsBedrockClient(model=None, region_name="us-east-1").is_configured())
 
     def test_mobility_forecast_provider_detects_station_peak(self) -> None:
         provider = MobilityForecastProvider()

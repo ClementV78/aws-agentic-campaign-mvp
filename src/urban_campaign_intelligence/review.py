@@ -4,6 +4,7 @@ import os
 from typing import Any
 
 from urban_campaign_intelligence.llm_client import get_llm_client
+from urban_campaign_intelligence.llm_schemas import AllocationReview
 
 
 def review_allocation(city_context: dict[str, Any], allocation_plan: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -76,20 +77,20 @@ def _review_allocation_llm(city_context: dict[str, Any], allocation_plan: dict[s
     )
 
     try:
-        payload = client.create_json_completion(system_prompt=system_prompt, user_prompt=user_prompt)
+        verdict = client.create_structured_output(
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
+            output_model=AllocationReview,
+        )
     except ValueError:
         return None
 
-    warnings = payload.get("warnings", [])
-    if not isinstance(warnings, list):
-        return None
-
     review = {
-        "guardrails_passed": bool(payload.get("guardrails_passed", True)),
-        "hallucination_risk": payload.get("hallucination_risk", "medium"),
-        "saturation_risk": payload.get("saturation_risk", "medium"),
-        "warnings": warnings or list(city_context["warnings"]),
-        "top_match_summary": payload.get("top_match_summary", allocation_plan["summary"]),
+        "guardrails_passed": verdict.guardrails_passed,
+        "hallucination_risk": verdict.hallucination_risk,
+        "saturation_risk": verdict.saturation_risk,
+        "warnings": verdict.warnings or list(city_context["warnings"]),
+        "top_match_summary": verdict.top_match_summary or allocation_plan["summary"],
     }
     log_entry = {
         "agent": "review_agent",

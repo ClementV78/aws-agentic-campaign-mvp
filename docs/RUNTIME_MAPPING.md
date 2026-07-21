@@ -18,8 +18,10 @@ Il répond à une seule question : *pour chaque brique du code, qui la gouverne 
 Le schéma ci-dessous décrit la **cible**. L'agent y appelle réellement les tools, et les tools y sont
 de vraies surfaces gouvernées. Ce n'est pas encore l'état du code — voir [STATUS.md](STATUS.md).
 
-Le nœud `Bedrock models` correspond à `llm_client.BedrockClient` (API Converse). `OpenRouterClient`
-existe encore comme repli local transitoire et n'est pas représenté : il sort de la cible (ADR-007).
+L'accès modèle passe par le **SDK Strands** : `llm_client.StrandsBedrockClient` enveloppe
+`BedrockModel` (transport Converse) et `Agent.structured_output` (extraction contrainte par les
+schémas Pydantic de `llm_schemas.py`). `OpenRouterClient` reste un repli local transitoire, hors
+cible (ADR-007).
 
 ## Légende
 
@@ -123,6 +125,8 @@ métier critique.
 | Bloc du schéma | Composants réels |
 | --- | --- |
 | `Context Enrichment` | `ContextAgentsModule`, `CityContextModule` |
+| accès modèle | `StrandsBedrockClient` → `strands.models.BedrockModel` + `Agent.structured_output` |
+| contrats de sortie LLM | `llm_schemas.py` : `EventClassification`, `AllocationReview`, `ExecutiveSummary` |
 | `Deterministic Decision Engine` | `ScoringModule`, allocation métier |
 | `Output Review and Summary` | `ReviewModule`, `ExecutiveSummaryModule` |
 | `get_weather tool` | `MockGatewayProvider`, `OpenMeteoWeatherProvider` |
@@ -139,7 +143,7 @@ métier critique.
 | Providers inline | code projet | accès direct aux providers Python | seulement si loggué explicitement | permissions du runtime |
 | PreHookModule | code projet | validation, normalisation, `time_context` | seulement si loggué explicitement | aucune |
 | CityContext / scoring / allocation | code projet | logique métier déterministe | seulement si loggué explicitement | aucune |
-| Appels LLM | Bedrock via Strands ou agents locaux | classification, review, executive summary | oui, côté appels modèle | `bedrock:InvokeModel` |
+| Appels LLM | **Strands `BedrockModel`** sur Bedrock | classification, review, executive summary | oui, côté appels modèle | `bedrock:InvokeModel` |
 | Memory | AgentCore Memory | rappel cross-session | oui | droits Memory dédiés |
 
 ### Conséquence sur l'observabilité

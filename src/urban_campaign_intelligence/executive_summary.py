@@ -4,6 +4,7 @@ import os
 from typing import Any
 
 from urban_campaign_intelligence.llm_client import get_llm_client
+from urban_campaign_intelligence.llm_schemas import ExecutiveSummary
 
 
 def generate_executive_summary(
@@ -83,18 +84,22 @@ def _generate_executive_summary_llm(
         "Summarize the business rationale, the dominant contextual signals, and any caution worth mentioning."
     )
     try:
-        payload = client.create_json_completion(system_prompt=system_prompt, user_prompt=user_prompt)
+        result = client.create_structured_output(
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
+            output_model=ExecutiveSummary,
+        )
     except ValueError:
         return None
 
-    text = payload.get("executive_summary")
-    if not isinstance(text, str) or not text.strip():
+    text = result.executive_summary.strip()
+    if not text:
         return None
 
-    summary = {"text": text.strip(), "mode": "llm", "provider": getattr(client, "provider", "unknown"), "model": client.model}
+    summary = {"text": text, "mode": "llm", "provider": getattr(client, "provider", "unknown"), "model": client.model}
     log_entry = {
         "agent": "executive_summary_agent",
         "status": "completed",
-        "details": {"mode": "llm", "provider": getattr(client, "provider", "unknown"), "model": client.model, "text_length": len(text.strip())},
+        "details": {"mode": "llm", "provider": getattr(client, "provider", "unknown"), "model": client.model, "text_length": len(text)},
     }
     return summary, log_entry

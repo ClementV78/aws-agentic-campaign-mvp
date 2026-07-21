@@ -216,12 +216,17 @@ AgentCore est responsable de :
 
 ### 6.2 Strands
 
-Strands est responsable de :
+Strands est le **SDK par défaut** de la couche agentique et de l'accès modèle. Il est responsable de :
 
 - la boucle agentique
 - la décision d'appeler ou non un tool
 - le séquencement des rôles agentiques
 - la coordination de la requête jusqu'à la réponse
+- l'**accès aux modèles Bedrock** via `BedrockModel` (transport Converse, retries, guardrails)
+- l'**extraction structurée** via `Agent.structured_output`, contrainte par des schémas Pydantic
+
+Règle : du code custom n'est écrit que là où le SDK ne couvre pas le besoin. À ce jour, une seule
+exception subsiste — la cascade de repli décrite au §6.3.
 
 ### 6.3 Code métier du projet
 
@@ -235,11 +240,22 @@ Le code métier du projet reste responsable de :
 - les disclaimers
 - les fallbacks explicites
 
+Il porte aussi la **cascade de repli** `Bedrock → OpenRouter → heuristique déterministe`. Strands
+ne fournit pas de notion de dégradation hors LLM : c'est une décision d'architecture (ADR-007), pas
+un contournement du SDK.
+
 #### 6.3.1 Contrainte de conception
 
 Le scoring et les règles métier ne sont pas déplacés dans des prompts. Cette contrainte est
 structurante pour la cible et conditionne la testabilité du système (voir ADR-002 dans
 [docs/DECISIONS.md](docs/DECISIONS.md)).
+
+Deux motifs distincts justifient donc le code custom, à ne pas confondre :
+
+| Motif | Exemple | Statut |
+| --- | --- | --- |
+| le SDK ne couvre pas le besoin | cascade de repli inter-fournisseurs | à réévaluer si Strands l'offre un jour |
+| on veut **délibérément** rester hors LLM | scoring, allocation, `CityContext` | **non négociable** (ADR-002) |
 
 ## 7. Surface de tools cible
 
@@ -414,9 +430,11 @@ Le moteur local implémente un routage et un pipeline métier déterministe. La 
 pilotant les tool calls de bout en bout n'est pas implémentée, et la surface Gateway n'est pas câblée
 sur les tools de contexte.
 
-La couche modèle appelle **Bedrock via l'API Converse** (ADR-007), avec OpenRouter en repli
-transitoire destiné à être retiré. Sans fournisseur configuré, chaque étage LLM dégrade vers son
-heuristique déterministe. Les providers de contexte restent en `mock` par défaut.
+La couche modèle passe par le **SDK Strands** (`BedrockModel` + `Agent.structured_output`,
+ADR-007), avec OpenRouter en repli transitoire destiné à être retiré. Les contrats de sortie LLM
+sont des schémas Pydantic (`llm_schemas.py`), validés quel que soit le fournisseur. Sans fournisseur
+configuré, chaque étage LLM dégrade vers son heuristique déterministe. Les providers de contexte
+restent en `mock` par défaut.
 
 ### 12.2 Séquence de matérialisation
 
@@ -443,7 +461,8 @@ Le tableau ci-dessous en est l'index de lecture architecture.
 | Sécurité générique | Guardrails + Policy + Gateway | — |
 | Auth outbound | outbound auth natif Gateway, interceptor si besoin dynamique | — |
 | Contrôles métier | hooks applicatifs légers | — |
-| Fournisseur de modèles | Bedrock via Converse ; OpenRouter transitoire, à retirer | ADR-007 |
+| SDK agentique et accès modèle | Strands (`BedrockModel`, `structured_output`) par défaut | ADR-007 |
+| Fournisseur de modèles | Bedrock ; OpenRouter transitoire, à retirer | ADR-007 |
 | Persistance mémoire | `AgentCore Memory` seulement si la démo le justifie | — |
 | Périmètre données | 20 zones, 5 annonceurs | ADR-003 |
 | Déploiement MVP | scripts Bash + AWS CLI + AgentCore CLI | ADR-001 |

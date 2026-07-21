@@ -87,27 +87,40 @@ Note:
 
 - "option 2" is used as shorthand across the repo; this ADR is its definition
 
-## ADR-007 - Bedrock as the model provider, OpenRouter as a transitional fallback
+## ADR-007 - Strands SDK for model access, Bedrock as the provider
 
 Decision:
 
-- Amazon Bedrock is the target model provider, reached through the Converse API
+- the Strands SDK is the default for the agentic layer AND for model access:
+  BedrockModel for the Converse transport, Agent.structured_output for structured
+  extraction constrained by the Pydantic schemas in llm_schemas.py
+- Amazon Bedrock is the target model provider
 - OpenRouter stays only as a transitional local fallback and is to be removed
 - resolution order is Bedrock, then OpenRouter, then deterministic heuristics
+- custom code is written only where the SDK does not cover the need
 
 Reason:
 
 - the point of the project is an agentic architecture on AWS; a non-AWS model
   provider on the critical path contradicts it
-- Converse is the provider-agnostic Bedrock API and exposes token usage, which
-  the observability chapter of the DAT requires
-- the default AWS credential chain means the same code runs locally with a
-  profile and inside AgentCore Runtime with the runtime role
-- Bedrock Guardrails attach at the Converse call, matching the security split
+- a hand-written boto3 Converse client duplicated what BedrockModel already does,
+  including the tool-schema trick used to force structured output
+- structured_output validates against Pydantic instead of leaving type checks
+  scattered across the call sites
+- guardrail_id and guardrail_version are BedrockModel options, so the platform
+  controls of the DAT attach at the model call
+- the default AWS credential chain means the same code runs locally with a profile
+  and inside AgentCore Runtime with the runtime role
 
-Note:
+What stays custom, and why:
 
-- Bedrock has no response_format flag; structured output is forced with a tool
-  schema through toolConfig
-- boto3 is imported lazily, so the project still runs with no dependency
-  installed and simply degrades to the deterministic path
+- the Bedrock to OpenRouter to deterministic cascade: the SDK has no notion of a
+  non-LLM fallback. This is the only "SDK does not cover it" case today.
+- the deterministic core (scoring, allocation, CityContext) is kept out of the SDK
+  deliberately, per ADR-002. That is a design decision, not an SDK limitation, and
+  the two motives must not be conflated.
+
+Consequence:
+
+- src/ is no longer dependency-free: strands-agents and pydantic are required
+- the application still runs without a configured provider, degrading to heuristics

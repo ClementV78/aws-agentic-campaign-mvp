@@ -4,6 +4,7 @@ import os
 from typing import Any
 
 from urban_campaign_intelligence.llm_client import LLMClient, get_llm_client
+from urban_campaign_intelligence.llm_schemas import EventClassification
 
 
 EVENT_MAPPINGS: dict[str, dict[str, Any]] = {
@@ -208,14 +209,14 @@ def _classify_event_with_llm(client: LLMClient, raw_event: dict[str, Any]) -> di
         "You classify a Paris event into a small business taxonomy and estimate likely impact."
     )
     user_prompt = json_prompt_for_event(raw_event)
-    payload = client.create_json_completion(system_prompt=system_prompt, user_prompt=user_prompt)
+    classification = client.create_structured_output(
+        system_prompt=system_prompt,
+        user_prompt=user_prompt,
+        output_model=EventClassification,
+    )
 
-    event_type = payload.get("event_type", raw_event["event_type"])
-    impact_level = payload.get("impact_level", "medium")
-    impact_tags = payload.get("impact_tags", ["events"])
-    zone_ids = payload.get("zone_ids") or EVENT_MAPPINGS.get(event_type, {}).get("zone_ids", [])
-    if not isinstance(impact_tags, list) or not isinstance(zone_ids, list):
-        raise ValueError("LLM event classification payload is invalid.")
+    event_type = classification.event_type or raw_event["event_type"]
+    zone_ids = classification.zone_ids or EVENT_MAPPINGS.get(event_type, {}).get("zone_ids", [])
 
     return {
         "type": event_type,
@@ -231,14 +232,12 @@ def _classify_event_with_llm(client: LLMClient, raw_event: dict[str, Any]) -> di
         "address_city": raw_event.get("address_city"),
         "start_local": raw_event.get("start_local"),
         "zone_ids": zone_ids,
-        "impact_level": impact_level,
-        "impact_tags": impact_tags,
-        "zone_weights": payload.get("zone_weights") or {
-            zone_id: 1.0 for zone_id in zone_ids
-        },
-        "audience_tags": payload.get("audience_tags", []),
-        "active_time_slots": payload.get("active_time_slots", []),
-        "intensity": payload.get("intensity", 0.7),
+        "impact_level": classification.impact_level,
+        "impact_tags": classification.impact_tags,
+        "zone_weights": classification.zone_weights or {zone_id: 1.0 for zone_id in zone_ids},
+        "audience_tags": classification.audience_tags,
+        "active_time_slots": classification.active_time_slots,
+        "intensity": classification.intensity,
     }
 
 
