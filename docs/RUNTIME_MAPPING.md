@@ -57,6 +57,7 @@ flowchart LR
       direction TB
       STRANDSRT[Strands Agent runtime<br/>scope: cloud only]:::loop
       NCM[NullConversationManager<br/>scope: cloud only]:::loop
+      SBM[BedrockModel + structured_output<br/>scope: shared]:::loop
     end
 
     subgraph CUSTOM[Custom code]
@@ -95,8 +96,9 @@ flowchart LR
     UCSA --> EVENTS
     UCSA --> MOBILITY
 
-    ENRICH --> BEDROCK
-    OUTPUT --> BEDROCK
+    ENRICH --> SBM
+    OUTPUT --> SBM
+    SBM --> BEDROCK
 
     STRANDSRT -. tool calling via runtime / MCP .-> MCP
     MCP -. backed by governed tools if externalized .-> WEATHER
@@ -114,11 +116,12 @@ flowchart LR
 | --- | --- |
 | Qu'est-ce qui est **local seulement** ? | [runner.py](../src/urban_campaign_intelligence/runner.py), `LocalRequestMapper` |
 | Qu'est-ce qui est **partagé** local / cloud ? | `CampaignRequest`, `UrbanCampaignStrandsAgent`, `UrbanCampaignApplicationService`, les 4 blocs métier, la couche providers |
-| Qu'apportent **AgentCore et Strands** ? | `BedrockAgentCoreApp + main.py`, `Strands Agent runtime`, les mappers runtime, `MCPClient / Gateway`, les modèles Bedrock, `Memory` plus tard |
+| Qu'apportent **AgentCore et Strands** ? | `BedrockAgentCoreApp + main.py`, `Strands Agent runtime`, **`BedrockModel` + `structured_output`**, les mappers runtime, `MCPClient / Gateway`, `Memory` plus tard |
 
-Le métier reste dans le code du projet. AgentCore apporte l'enveloppe runtime, le tool calling,
-l'accès modèle et les points d'extension cloud. Strands porte la boucle agentique, pas la logique
-métier critique.
+Le métier reste dans le code du projet. AgentCore apporte l'enveloppe runtime, le tool calling et
+les points d'extension cloud. **Strands porte la boucle agentique et l'accès modèle** — depuis la
+migration, aucun appel LLM ne part du code projet sans passer par `BedrockModel`. Ce que Strands ne
+porte pas : la logique métier critique, et la cascade de repli vers l'heuristique déterministe.
 
 ### Détail regroupé dans le schéma
 
