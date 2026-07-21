@@ -65,6 +65,7 @@ def build_city_context(
     weather: dict[str, Any],
     events: list[dict[str, Any]],
     mobility: dict[str, Any],
+    degraded_signals: list[str] | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     warnings: list[str] = []
     if mobility["global_status"] == "major_disruption":
@@ -72,6 +73,14 @@ def build_city_context(
     confidence = 0.86
     if warnings:
         confidence -= 0.12
+
+    # Signals the caller could not resolve are surfaced rather than silently defaulted.
+    for degraded_signal in degraded_signals or []:
+        warnings.append(degraded_signal)
+        confidence -= 0.04
+    if time_context.get("school_holiday") is None:
+        warnings.append("School calendar unknown for this request; family signals may be understated.")
+        confidence -= 0.04
     if any(event["impact_level"] == "high" for event in events):
         confidence += 0.03
     event_influence_by_zone = _compute_event_influence_by_zone(time_context=time_context, events=events)

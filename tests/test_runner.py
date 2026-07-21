@@ -3,7 +3,9 @@ from __future__ import annotations
 import os
 import unittest
 
+from urban_campaign_intelligence.app_service import UrbanCampaignApplicationService, run_live_request
 from urban_campaign_intelligence.gateway_tools import MobilityForecastProvider
+from urban_campaign_intelligence.local_agent import CampaignRequest, LocalRequestMapper, UrbanCampaignStrandsAgent
 from urban_campaign_intelligence.runner import format_summary, run_scenario
 
 
@@ -93,11 +95,11 @@ class RunnerTestCase(unittest.TestCase):
     def test_mock_provider_mode_is_exposed_in_log(self) -> None:
         result = run_scenario("concert_bercy")
         weather_tool_entries = [entry for entry in result["execution_log"] if entry.get("tool") == "get_weather"]
-        self.assertEqual(weather_tool_entries[0]["details"]["provider_mode"], "mock")
+        self.assertEqual(weather_tool_entries[0]["details"]["provider_mode"], "scenario_injected")
         events_tool_entries = [entry for entry in result["execution_log"] if entry.get("tool") == "get_events"]
-        self.assertEqual(events_tool_entries[0]["details"]["provider_mode"], "mock")
+        self.assertEqual(events_tool_entries[0]["details"]["provider_mode"], "scenario_injected")
         mobility_tool_entries = [entry for entry in result["execution_log"] if entry.get("tool") == "get_mobility"]
-        self.assertEqual(mobility_tool_entries[0]["details"]["provider_mode"], "mock")
+        self.assertEqual(mobility_tool_entries[0]["details"]["provider_mode"], "scenario_injected")
 
     def test_events_agent_llm_mode_falls_back_to_heuristic_without_key(self) -> None:
         os.environ["EVENTS_AGENT_MODE"] = "llm"
@@ -165,6 +167,62 @@ class RunnerTestCase(unittest.TestCase):
         os.environ["EXECUTIVE_SUMMARY_MODE"] = "llm"
         result = run_scenario("concert_bercy")
         self.assertEqual(result["executive_summary"]["mode"], "deterministic")
+
+    def test_live_request_runs_with_paris_fixed_context(self) -> None:
+        result = run_live_request("2026-09-18T19:30:00+02:00")
+        self.assertEqual(result["scenario"]["mode"], "live")
+        self.assertEqual(result["scenario"]["city"], "Paris")
+        self.assertTrue(result["allocation_plan"]["recommended_matches"])
+        self.assertTrue(any(entry.get("tool") == "get_weather" for entry in result["execution_log"]))
+
+    def test_live_request_rejects_non_paris_city(self) -> None:
+        with self.assertRaises(ValueError):
+            run_live_request("2026-09-18T19:30:00+02:00", city="Lyon")
+
+    def test_local_request_mapper_builds_scenario_request(self) -> None:
+        request = LocalRequestMapper.from_dict({"scenario_id": "fashion_week"})
+        self.assertEqual(request.mode, "scenario")
+        self.assertEqual(request.scenario_id, "fashion_week")
+
+    def test_local_request_mapper_builds_live_request(self) -> None:
+        request = LocalRequestMapper.from_dict({"datetime": "2026-09-18T19:30:00+02:00"})
+        self.assertEqual(request.mode, "live")
+        self.assertEqual(request.city, "Paris")
+
+    def test_local_agent_handles_scenario_request(self) -> None:
+        agent = UrbanCampaignStrandsAgent(app_service=UrbanCampaignApplicationService())
+        result = agent.handle_request(CampaignRequest(mode="scenario", scenario_id="concert_bercy"))
+        self.assertEqual(result["scenario"]["id"], "concert_bercy")
+
+    def test_local_agent_rejects_invalid_live_request(self) -> None:
+        agent = UrbanCampaignStrandsAgent(app_service=UrbanCampaignApplicationService())
+        with self.assertRaises(ValueError):
+            agent.handle_request(CampaignRequest(mode="live", city="Paris"))
+
+    def test_live_request_does_not_fabricate_events_without_real_source(self) -> None:
+        result = run_live_request("2026-02-03T09:00:00+01:00")
+        self.assertEqual(result["city_context"]["events"], [])
+        self.assertTrue(
+            any("No real event source" in warning for warning in result["city_context"]["warnings"]),
+        )
+
+    def test_live_request_marks_school_calendar_as_unknown(self) -> None:
+        result = run_live_request("2026-08-15T15:00:00+02:00")
+        self.assertIsNone(result["city_context"]["time_context"]["school_holiday"])
+        self.assertTrue(
+            any("School calendar unknown" in warning for warning in result["city_context"]["warnings"]),
+        )
+
+    def test_scenario_request_keeps_school_holiday_boolean(self) -> None:
+        result = run_scenario("school_holiday_departure")
+        self.assertIsInstance(result["city_context"]["time_context"]["school_holiday"], bool)
+        self.assertFalse(
+            any("School calendar unknown" in warning for warning in result["city_context"]["warnings"]),
+        )
+
+    def test_request_mapper_rejects_payload_without_scenario_or_datetime(self) -> None:
+        with self.assertRaises(ValueError):
+            LocalRequestMapper.from_dict({"city": "Paris"})
 
     def test_mobility_forecast_provider_detects_station_peak(self) -> None:
         provider = MobilityForecastProvider()
