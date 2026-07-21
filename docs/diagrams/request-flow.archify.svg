@@ -103,7 +103,6 @@
     .c-region         { fill: rgba(251, 191, 36, 0.05); stroke: var(--cloud-stroke); stroke-dasharray: 8,4; }
     .c-lane           { fill: var(--lane-fill); stroke: var(--lane-stroke); stroke-dasharray: 6,6; }
   </style>
-
         <!-- Definitions -->
         <defs>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
@@ -257,47 +256,47 @@
         <rect x="19" y="72" width="86" height="54" rx="6" class="c-mask"/>
         <rect x="19" y="72" width="86" height="54" rx="6" class="c-external" stroke-width="1.5"/>
         <text x="62" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Client</text>
-        <text x="62" y="111" class="t-muted" font-size="7" text-anchor="middle">demo / harness</text>
+        <text x="62" y="111" class="t-muted" font-size="7" text-anchor="middle">demo caller</text>
 
         <rect x="127" y="72" width="86" height="54" rx="6" class="c-mask"/>
         <rect x="127" y="72" width="86" height="54" rx="6" class="c-cloud" stroke-width="1.5"/>
         <text x="170" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Runtime</text>
-        <text x="170" y="111" class="t-muted" font-size="7" text-anchor="middle">AgentCore entrypoint</text>
+        <text x="170" y="111" class="t-muted" font-size="7" text-anchor="middle">entrypoint</text>
 
         <rect x="235" y="72" width="86" height="54" rx="6" class="c-mask"/>
         <rect x="235" y="72" width="86" height="54" rx="6" class="c-backend" stroke-width="1.5"/>
         <text x="278" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Strands Agent</text>
-        <text x="278" y="111" class="t-muted" font-size="7" text-anchor="middle">orchestrator for this run</text>
+        <text x="278" y="111" class="t-muted" font-size="7" text-anchor="middle">orchestrator</text>
 
         <rect x="343" y="72" width="86" height="54" rx="6" class="c-mask"/>
         <rect x="343" y="72" width="86" height="54" rx="6" class="c-security" stroke-width="1.5"/>
         <text x="386" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Gateway</text>
-        <text x="386" y="111" class="t-muted" font-size="7" text-anchor="middle">AgentCore tools surface</text>
+        <text x="386" y="111" class="t-muted" font-size="7" text-anchor="middle">tool surface</text>
 
         <rect x="451" y="72" width="86" height="54" rx="6" class="c-mask"/>
         <rect x="451" y="72" width="86" height="54" rx="6" class="c-security" stroke-width="1.5"/>
         <text x="494" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Policy</text>
-        <text x="494" y="111" class="t-muted" font-size="7" text-anchor="middle">guardrails + interceptors</text>
+        <text x="494" y="111" class="t-muted" font-size="7" text-anchor="middle">guardrails</text>
 
         <rect x="559" y="72" width="86" height="54" rx="6" class="c-mask"/>
         <rect x="559" y="72" width="86" height="54" rx="6" class="c-cloud" stroke-width="1.5"/>
         <text x="602" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Tool Backends</text>
-        <text x="602" y="111" class="t-muted" font-size="7" text-anchor="middle">weather/events/mobility/refs</text>
+        <text x="602" y="111" class="t-muted" font-size="7" text-anchor="middle">tool impls</text>
 
         <rect x="667" y="72" width="86" height="54" rx="6" class="c-mask"/>
         <rect x="667" y="72" width="86" height="54" rx="6" class="c-backend" stroke-width="1.5"/>
         <text x="710" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Core</text>
-        <text x="710" y="111" class="t-muted" font-size="7" text-anchor="middle">CityContext + scoring</text>
+        <text x="710" y="111" class="t-muted" font-size="7" text-anchor="middle">scoring</text>
 
         <rect x="775" y="72" width="86" height="54" rx="6" class="c-mask"/>
         <rect x="775" y="72" width="86" height="54" rx="6" class="c-cloud" stroke-width="1.5"/>
         <text x="818" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Bedrock</text>
-        <text x="818" y="111" class="t-muted" font-size="7" text-anchor="middle">reasoning tiers</text>
+        <text x="818" y="111" class="t-muted" font-size="7" text-anchor="middle">LLM tiers</text>
 
         <rect x="883" y="72" width="86" height="54" rx="6" class="c-mask"/>
         <rect x="883" y="72" width="86" height="54" rx="6" class="c-database" stroke-width="1.5"/>
         <text x="926" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Memory</text>
-        <text x="926" y="111" class="t-muted" font-size="7" text-anchor="middle">optional episodic recall</text>
+        <text x="926" y="111" class="t-muted" font-size="7" text-anchor="middle">optional</text>
 
         <!-- Legend -->
         <text x="150" y="1086" class="t-primary" font-size="10" font-weight="600">Legend</text>

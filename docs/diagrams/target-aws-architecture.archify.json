@@ -5,72 +5,482 @@
     "title": "Target AWS Architecture",
     "subtitle": "InvokeAgentRuntime + AgentCore Runtime + Gateway-first tool governance",
     "output": "target-aws-architecture.html",
-    "viewBox": [1440, 1040]
+    "viewBox": [
+      1440,
+      1040
+    ]
   },
   "components": [
-    { "id": "client", "type": "external", "label": "Demo client", "sublabel": "SDK / CLI caller", "pos": [40, 90], "size": [170, 64] },
-    { "id": "harness", "type": "external", "label": "Scenario harness", "sublabel": "replay + evaluation", "pos": [40, 520], "size": [170, 64] },
-    { "id": "apigw", "type": "cloud", "label": "API Gateway", "sublabel": "optional HTTP facade", "pos": [40, 250], "size": [170, 64], "tag": "optional" },
-
-    { "id": "runtime", "type": "backend", "label": "AgentCore Runtime", "sublabel": "InvokeAgentRuntime target", "pos": [300, 250], "size": [180, 70] },
-    { "id": "strands", "type": "backend", "label": "Strands Agent", "sublabel": "tool-calling orchestration", "pos": [300, 420], "size": [180, 70] },
-    { "id": "bedrock", "type": "cloud", "label": "Amazon Bedrock", "sublabel": "LLM calls + token usage", "pos": [300, 590], "size": [180, 64] },
-    { "id": "logs", "type": "cloud", "label": "CloudWatch Logs", "sublabel": "runtime + tool traces", "pos": [300, 730], "size": [180, 64] },
-
-    { "id": "gateway", "type": "backend", "label": "AgentCore Gateway", "sublabel": "governed tool surface", "pos": [590, 270], "size": [190, 72] },
-    { "id": "policy", "type": "security", "label": "Policy + Guardrails", "sublabel": "Cedar + Bedrock Guardrails", "pos": [590, 60], "size": [190, 72] },
-    { "id": "interceptors", "type": "security", "label": "Gateway Interceptors", "sublabel": "tool checks + request filters", "pos": [590, 155], "size": [190, 72] },
-    { "id": "memory", "type": "database", "label": "AgentCore Memory", "sublabel": "optional episodic recall", "pos": [590, 700], "size": [190, 64], "tag": "optional" },
-    { "id": "detcore", "type": "backend", "label": "Deterministic Core", "sublabel": "CityContext + scoring + allocation", "pos": [590, 515], "size": [190, 72] },
-
-    { "id": "tool_weather", "type": "backend", "label": "get_weather", "sublabel": "governed tool", "pos": [920, 95], "size": [160, 60] },
-    { "id": "tool_events", "type": "backend", "label": "get_events", "sublabel": "governed tool", "pos": [920, 190], "size": [160, 60] },
-    { "id": "tool_mobility", "type": "backend", "label": "get_mobility", "sublabel": "governed tool", "pos": [920, 285], "size": [160, 60] },
-    { "id": "tool_zones", "type": "backend", "label": "get_zones", "sublabel": "governed tool", "pos": [920, 415], "size": [160, 60] },
-    { "id": "tool_advertisers", "type": "backend", "label": "get_advertisers", "sublabel": "governed tool", "pos": [920, 510], "size": [160, 60] },
-
-    { "id": "s3", "type": "database", "label": "S3", "sublabel": "data + outputs + replay evidence", "pos": [1150, 430], "size": [160, 64] },
-    { "id": "providers", "type": "cloud", "label": "Tool backends", "sublabel": "Lambda or service implementation", "pos": [1150, 175], "size": [160, 64], "tag": "implementation choice" }
+    {
+      "id": "client",
+      "type": "external",
+      "label": "Demo client",
+      "sublabel": "SDK / CLI caller",
+      "pos": [
+        40,
+        90
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "harness",
+      "type": "external",
+      "label": "Scenario harness",
+      "sublabel": "replay + evaluation",
+      "pos": [
+        40,
+        520
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "apigw",
+      "type": "cloud",
+      "label": "API Gateway",
+      "sublabel": "optional HTTP facade",
+      "pos": [
+        40,
+        250
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "tag": "optional"
+    },
+    {
+      "id": "runtime",
+      "type": "backend",
+      "label": "AgentCore Runtime",
+      "sublabel": "InvokeAgentRuntime target",
+      "pos": [
+        300,
+        250
+      ],
+      "size": [
+        180,
+        70
+      ]
+    },
+    {
+      "id": "strands",
+      "type": "backend",
+      "label": "Strands Agent",
+      "sublabel": "tool-calling orchestration",
+      "pos": [
+        300,
+        420
+      ],
+      "size": [
+        180,
+        70
+      ]
+    },
+    {
+      "id": "bedrock",
+      "type": "cloud",
+      "label": "Amazon Bedrock",
+      "sublabel": "LLM calls + token usage",
+      "pos": [
+        300,
+        590
+      ],
+      "size": [
+        180,
+        64
+      ]
+    },
+    {
+      "id": "logs",
+      "type": "cloud",
+      "label": "CloudWatch Logs",
+      "sublabel": "runtime + tool traces",
+      "pos": [
+        300,
+        730
+      ],
+      "size": [
+        180,
+        64
+      ]
+    },
+    {
+      "id": "gateway",
+      "type": "backend",
+      "label": "AgentCore Gateway",
+      "sublabel": "governed tool surface",
+      "pos": [
+        590,
+        270
+      ],
+      "size": [
+        190,
+        72
+      ]
+    },
+    {
+      "id": "policy",
+      "type": "security",
+      "label": "Policy + Guardrails",
+      "sublabel": "Cedar + Bedrock Guardrails",
+      "pos": [
+        590,
+        60
+      ],
+      "size": [
+        190,
+        72
+      ]
+    },
+    {
+      "id": "interceptors",
+      "type": "security",
+      "label": "Gateway Interceptors",
+      "sublabel": "tool checks + request filters",
+      "pos": [
+        590,
+        155
+      ],
+      "size": [
+        190,
+        72
+      ]
+    },
+    {
+      "id": "memory",
+      "type": "database",
+      "label": "AgentCore Memory",
+      "sublabel": "optional episodic recall",
+      "pos": [
+        590,
+        760
+      ],
+      "size": [
+        190,
+        64
+      ],
+      "tag": "optional"
+    },
+    {
+      "id": "detcore",
+      "type": "backend",
+      "label": "Deterministic Core",
+      "sublabel": "CityContext + scoring + allocation",
+      "pos": [
+        590,
+        620
+      ],
+      "size": [
+        190,
+        72
+      ]
+    },
+    {
+      "id": "tool_weather",
+      "type": "backend",
+      "label": "get_weather",
+      "sublabel": "governed tool",
+      "pos": [
+        920,
+        95
+      ],
+      "size": [
+        160,
+        60
+      ]
+    },
+    {
+      "id": "tool_events",
+      "type": "backend",
+      "label": "get_events",
+      "sublabel": "governed tool",
+      "pos": [
+        920,
+        190
+      ],
+      "size": [
+        160,
+        60
+      ]
+    },
+    {
+      "id": "tool_mobility",
+      "type": "backend",
+      "label": "get_mobility",
+      "sublabel": "governed tool",
+      "pos": [
+        920,
+        285
+      ],
+      "size": [
+        160,
+        60
+      ]
+    },
+    {
+      "id": "tool_zones",
+      "type": "backend",
+      "label": "get_zones",
+      "sublabel": "governed tool",
+      "pos": [
+        920,
+        415
+      ],
+      "size": [
+        160,
+        60
+      ]
+    },
+    {
+      "id": "tool_advertisers",
+      "type": "backend",
+      "label": "get_advertisers",
+      "sublabel": "governed tool",
+      "pos": [
+        920,
+        510
+      ],
+      "size": [
+        160,
+        60
+      ]
+    },
+    {
+      "id": "s3",
+      "type": "database",
+      "label": "S3",
+      "sublabel": "data + outputs + replay evidence",
+      "pos": [
+        1150,
+        430
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "providers",
+      "type": "cloud",
+      "label": "Tool backends",
+      "sublabel": "Lambda or service implementation",
+      "pos": [
+        1150,
+        175
+      ],
+      "size": [
+        160,
+        64
+      ],
+      "tag": "implementation choice"
+    }
   ],
   "boundaries": [
     {
       "kind": "region",
       "label": "AWS account / AgentCore project",
-      "wraps": ["runtime", "strands", "bedrock", "logs", "gateway", "policy", "interceptors", "memory", "detcore", "tool_weather", "tool_events", "tool_mobility", "tool_zones", "tool_advertisers", "s3", "providers"]
+      "wraps": [
+        "runtime",
+        "strands",
+        "bedrock",
+        "logs",
+        "gateway",
+        "policy",
+        "interceptors",
+        "memory",
+        "detcore",
+        "tool_weather",
+        "tool_events",
+        "tool_mobility",
+        "tool_zones",
+        "tool_advertisers",
+        "s3",
+        "providers"
+      ]
     },
     {
       "kind": "security-group",
       "label": "Governed tool surface",
-      "wraps": ["gateway", "policy", "interceptors", "tool_weather", "tool_events", "tool_mobility", "tool_zones", "tool_advertisers"]
+      "wraps": [
+        "gateway",
+        "policy",
+        "interceptors",
+        "tool_weather",
+        "tool_events",
+        "tool_mobility",
+        "tool_zones",
+        "tool_advertisers"
+      ]
     }
   ],
   "connections": [
-    { "from": "client", "to": "runtime", "label": "InvokeAgentRuntime", "variant": "emphasis" },
-    { "from": "harness", "to": "runtime", "label": "same runtime", "variant": "dashed", "fromSide": "top", "toSide": "left" },
-    { "from": "apigw", "to": "runtime", "variant": "security" },
-
-    { "from": "runtime", "to": "strands", "variant": "default", "fromSide": "bottom", "toSide": "top" },
-    { "from": "strands", "to": "bedrock", "label": "model calls", "variant": "default", "fromSide": "bottom", "toSide": "top", "labelDy": 32 },
-    { "from": "strands", "to": "logs", "label": "execution traces", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "labelDy": 32 },
-    { "from": "strands", "to": "gateway", "label": "tool calls", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
-    { "from": "strands", "to": "detcore", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
-    { "from": "strands", "to": "memory", "label": "optional recall", "variant": "dashed", "fromSide": "right", "toSide": "left" },
-
-    { "from": "policy", "to": "gateway", "variant": "security", "fromSide": "bottom", "toSide": "top" },
-    { "from": "interceptors", "to": "gateway", "variant": "security", "fromSide": "bottom", "toSide": "top" },
-
-    { "from": "gateway", "to": "tool_weather", "label": "invoke", "variant": "default", "route": "orthogonal-h" },
-    { "from": "gateway", "to": "tool_events", "label": "invoke", "variant": "default", "route": "orthogonal-h" },
-    { "from": "gateway", "to": "tool_mobility", "label": "invoke", "variant": "default", "route": "orthogonal-h" },
-    { "from": "gateway", "to": "tool_zones", "label": "invoke", "variant": "default", "route": "orthogonal-h" },
-    { "from": "gateway", "to": "tool_advertisers", "label": "invoke", "variant": "default", "route": "orthogonal-h" },
-
-    { "from": "tool_weather", "to": "providers", "variant": "dashed", "fromSide": "right", "toSide": "left" },
-    { "from": "tool_events", "to": "providers", "variant": "dashed", "fromSide": "right", "toSide": "left" },
-    { "from": "tool_mobility", "to": "providers", "variant": "dashed", "fromSide": "right", "toSide": "left" },
-    { "from": "tool_zones", "to": "s3", "label": "read", "variant": "dashed", "fromSide": "right", "toSide": "left" },
-    { "from": "tool_advertisers", "to": "s3", "label": "read", "variant": "dashed", "fromSide": "right", "toSide": "left" },
-    { "from": "detcore", "to": "logs", "label": "decision traces", "variant": "dashed", "fromSide": "bottom", "toSide": "right" }
+    {
+      "from": "client",
+      "to": "runtime",
+      "label": "InvokeAgentRuntime",
+      "variant": "emphasis"
+    },
+    {
+      "from": "harness",
+      "to": "runtime",
+      "label": "same runtime",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "left"
+    },
+    {
+      "from": "apigw",
+      "to": "runtime",
+      "variant": "security"
+    },
+    {
+      "from": "runtime",
+      "to": "strands",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "from": "strands",
+      "to": "bedrock",
+      "label": "model calls",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 32
+    },
+    {
+      "from": "strands",
+      "to": "logs",
+      "label": "execution traces",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 32
+    },
+    {
+      "from": "strands",
+      "to": "gateway",
+      "label": "tool calls",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "from": "strands",
+      "to": "detcore",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "from": "strands",
+      "to": "memory",
+      "label": "optional recall",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "from": "policy",
+      "to": "gateway",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "from": "interceptors",
+      "to": "gateway",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "from": "gateway",
+      "to": "tool_weather",
+      "label": "invoke",
+      "variant": "default",
+      "route": "orthogonal-h"
+    },
+    {
+      "from": "gateway",
+      "to": "tool_events",
+      "label": "invoke",
+      "variant": "default",
+      "route": "orthogonal-h"
+    },
+    {
+      "from": "gateway",
+      "to": "tool_mobility",
+      "label": "invoke",
+      "variant": "default",
+      "route": "orthogonal-h"
+    },
+    {
+      "from": "gateway",
+      "to": "tool_zones",
+      "label": "invoke",
+      "variant": "default",
+      "route": "orthogonal-h"
+    },
+    {
+      "from": "gateway",
+      "to": "tool_advertisers",
+      "label": "invoke",
+      "variant": "default",
+      "route": "orthogonal-h"
+    },
+    {
+      "from": "tool_weather",
+      "to": "providers",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "from": "tool_events",
+      "to": "providers",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "from": "tool_mobility",
+      "to": "providers",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "from": "tool_zones",
+      "to": "s3",
+      "label": "read",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "from": "tool_advertisers",
+      "to": "s3",
+      "label": "read",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "from": "detcore",
+      "to": "logs",
+      "label": "decision traces",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "right"
+    }
   ],
   "cards": [
     {
