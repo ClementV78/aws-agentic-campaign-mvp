@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from urban_campaign_intelligence.local_agent import CampaignRequest, LocalRequestMapper, UrbanCampaignStrandsAgent
-from urban_campaign_intelligence.observability import to_mermaid, to_timeline
+from urban_campaign_intelligence.observability import to_gantt, to_mermaid, to_timeline
 
 
 def run_scenario(scenario_id: str) -> dict[str, Any]:
@@ -98,6 +98,7 @@ def main() -> None:
     parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON output")
     parser.add_argument("--trace", action="store_true", help="Print a timeline of the run")
     parser.add_argument("--trace-mermaid", action="store_true", help="Print the run as a Mermaid sequence diagram")
+    parser.add_argument("--trace-gantt", action="store_true", help="Print the run as a Mermaid gantt chart on a time axis")
     parser.add_argument("--verbose", action="store_true", help="Emit the structured execution log on stderr")
     parser.add_argument("--summary", action="store_true", help="Print a compact human-readable summary")
     parser.add_argument("--output", help="Write full JSON result to a file")
@@ -112,12 +113,17 @@ def main() -> None:
     if args.output:
         output_path = write_result(result, args.output)
 
-    if args.trace or args.trace_mermaid:
+    if args.trace or args.trace_mermaid or args.trace_gantt:
         run = result.get("run", {})
         print(f"run_id={run.get('run_id')} mode={run.get('mode')} "
               f"steps={run.get('step_count')} duration={run.get('duration_ms')} ms "
               f"tokens={run.get('total_tokens')}")
-        print(to_mermaid(result) if args.trace_mermaid else to_timeline(result))
+        if args.trace_gantt:
+            print(to_gantt(result))
+        elif args.trace_mermaid:
+            print(to_mermaid(result))
+        else:
+            print(to_timeline(result))
         if not (args.pretty or args.summary or args.output):
             return
 

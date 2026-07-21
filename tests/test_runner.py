@@ -6,7 +6,7 @@ import unittest
 from urban_campaign_intelligence.app_service import UrbanCampaignApplicationService, run_live_request
 from urban_campaign_intelligence.gateway_tools import MobilityForecastProvider
 from urban_campaign_intelligence.llm_client import StrandsBedrockClient, get_llm_client
-from urban_campaign_intelligence.observability import to_mermaid, to_timeline
+from urban_campaign_intelligence.observability import to_gantt, to_mermaid, to_timeline
 from urban_campaign_intelligence.local_agent import CampaignRequest, LocalRequestMapper, UrbanCampaignStrandsAgent
 from urban_campaign_intelligence.runner import format_summary, run_scenario
 
@@ -280,6 +280,17 @@ class RunnerTestCase(unittest.TestCase):
         self.assertIn("get_weather", mermaid)
         self.assertIn("Note over C:", mermaid)
         self.assertIn("TOTAL", to_timeline(result))
+
+    def test_gantt_places_steps_on_a_non_overlapping_time_axis(self) -> None:
+        result = run_scenario("transport_strike")
+        gantt = to_gantt(result)
+        self.assertTrue(gantt.startswith("```mermaid\ngantt"))
+        self.assertIn("dateFormat x", gantt)
+        previous_end = 0
+        for entry in result["execution_log"]:
+            self.assertGreaterEqual(entry["start_ms"], previous_end - 1e-6)
+            self.assertGreaterEqual(entry["end_ms"], entry["start_ms"])
+            previous_end = entry["end_ms"]
 
     def test_mobility_forecast_provider_detects_station_peak(self) -> None:
         provider = MobilityForecastProvider()

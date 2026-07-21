@@ -45,6 +45,10 @@ class RunTrace:
             **entry,
             "run_id": self.run_id,
             "seq": len(self.entries),
+            # start_ms is kept unrounded-derived so a time axis can place bars exactly;
+            # t_ms and elapsed_ms stay rounded for readability.
+            "start_ms": round((self._last - self._start) * 1000, 3),
+            "end_ms": round((now - self._start) * 1000, 3),
             "t_ms": round((now - self._last) * 1000, 1),
             "elapsed_ms": round((now - self._start) * 1000, 1),
         }
@@ -112,6 +116,41 @@ def to_mermaid(result: dict[str, Any]) -> str:
     warnings = result.get("city_context", {}).get("warnings", [])
     for warning in warnings:
         lines.append(f"    Note over C: ⚠ {warning[:60]}")
+    lines.append("```")
+    return "\n".join(lines)
+
+
+def to_gantt(result: dict[str, Any]) -> str:
+    """Render the run on a time axis as a Mermaid gantt chart.
+
+    Unlike the sequence diagram, which only shows ordering, this places each step at
+    its real offset with its real duration — the view to use when hunting latency.
+    """
+    entries = result.get("execution_log", [])
+    run = result.get("run", {})
+    total_ms = run.get("duration_ms") or 0
+    # Sub-millisecond steps collapse to zero-width bars, so plot microseconds when the
+    # whole run is short. Deterministic runs are ~2 ms; LLM runs will be seconds.
+    scale, unit = (1000, "us") if total_ms < 50 else (1, "ms")
+    lines = [
+        "```mermaid",
+        "gantt",
+        f"    title Run {run.get('run_id', '?')} — {total_ms} ms total (axis in {unit})",
+        "    dateFormat x",
+        "    axisFormat %L",
+        "    todayMarker off",
+    ]
+    current_section = None
+    for entry in entries:
+        owner = _owner(entry)
+        if owner != current_section:
+            lines.append(f"    section {owner}")
+            current_section = owner
+        start = (entry.get("start_ms") or 0) * scale
+        elapsed = (entry.get("end_ms") or entry.get("elapsed_ms") or 0) * scale
+        # Mermaid needs a non-zero span to draw a bar at all.
+        end = max(start + 1, elapsed)
+        lines.append(f"    {_step_name(entry)} :{int(round(start))}, {int(round(end))}")
     lines.append("```")
     return "\n".join(lines)
 
