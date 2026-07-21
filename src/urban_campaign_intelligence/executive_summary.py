@@ -100,6 +100,12 @@ def _generate_executive_summary_llm(
     log_entry = {
         "agent": "executive_summary_agent",
         "status": "completed",
-        "details": {"mode": "llm", "provider": getattr(client, "provider", "unknown"), "model": client.model, "text_length": len(text)},
+        "details": {
+            "mode": "llm",
+            "provider": getattr(client, "provider", "unknown"),
+            "model": client.model,
+            "text_length": len(text),
+            "total_tokens": (getattr(client, "last_usage", None) or {}).get("totalTokens"),
+        },
     }
     return summary, log_entry

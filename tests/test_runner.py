@@ -6,6 +6,7 @@ import unittest
 from urban_campaign_intelligence.app_service import UrbanCampaignApplicationService, run_live_request
 from urban_campaign_intelligence.gateway_tools import MobilityForecastProvider
 from urban_campaign_intelligence.llm_client import StrandsBedrockClient, get_llm_client
+from urban_campaign_intelligence.observability import to_mermaid, to_timeline
 from urban_campaign_intelligence.local_agent import CampaignRequest, LocalRequestMapper, UrbanCampaignStrandsAgent
 from urban_campaign_intelligence.runner import format_summary, run_scenario
 
@@ -254,6 +255,30 @@ class RunnerTestCase(unittest.TestCase):
 
     def test_bedrock_client_is_unconfigured_without_model_id(self) -> None:
         self.assertFalse(StrandsBedrockClient(model=None, region_name="us-east-1").is_configured())
+
+    def test_run_carries_a_correlation_id_and_timings(self) -> None:
+        result = run_scenario("concert_bercy")
+        run = result["run"]
+        self.assertTrue(run["run_id"].startswith("run_"))
+        self.assertEqual(run["mode"], "scenario")
+        self.assertEqual(run["step_count"], len(result["execution_log"]))
+        self.assertGreater(run["duration_ms"], 0)
+        for entry in result["execution_log"]:
+            self.assertEqual(entry["run_id"], run["run_id"])
+            self.assertIn("t_ms", entry)
+            self.assertIn("elapsed_ms", entry)
+
+    def test_two_runs_get_distinct_correlation_ids(self) -> None:
+        self.assertNotEqual(run_scenario("concert_bercy")["run"]["run_id"],
+                            run_scenario("concert_bercy")["run"]["run_id"])
+
+    def test_execution_log_renders_as_mermaid_and_timeline(self) -> None:
+        result = run_scenario("transport_strike")
+        mermaid = to_mermaid(result)
+        self.assertTrue(mermaid.startswith("sequenceDiagram"))
+        self.assertIn("get_weather", mermaid)
+        self.assertIn("Note over C:", mermaid)
+        self.assertIn("TOTAL", to_timeline(result))
 
     def test_mobility_forecast_provider_detects_station_peak(self) -> None:
         provider = MobilityForecastProvider()

@@ -399,19 +399,27 @@ directement sur l'enveloppe des 10 s. C'est un critère de refus pour tout nouve
 
 Le MVP rend visibles au minimum :
 
-- le fournisseur et le modèle utilisés par étape LLM
+- le `run_id` de corrélation
+- la durée de chaque étape et la durée totale
+- le fournisseur, le modèle et les tokens consommés par étape LLM
 - les tools appelés
 - les succès / échecs / fallbacks de tools
 - les warnings produits
 - le modèle utilisé pour chaque étape LLM critique
 - la forme de sortie finale
 
-Les traces d'exécution sont centralisées dans **CloudWatch Logs**. La corrélation entre le runtime et
-les appels de tools s'appuie sur le `run_id` propagé de bout en bout.
+Chaque run porte un **`run_id`** propagé sur toutes les entrées de l'`execution_log`, et chaque étape
+est horodatée (`t_ms`, `elapsed_ms`). Le bloc `run` de la réponse résume identifiant, mode, nombre
+d'étapes, durée totale et tokens consommés — ce qui rend le budget de latence du §10 **mesurable**.
 
-Le `run_id` n'est pas encore implémenté : aucun identifiant de corrélation n'est propagé à ce jour.
-La traçabilité fine (tokens consommés, hooks déclenchés, permissions effectives, corrélation `run_id`) est
-une **exigence cible** : elle est spécifiée ici mais n'est pas encore implémentée. La rétention des
+Les entrées sont émises comme **logs structurés JSON** via le module `logging` standard, en plus
+d'être présentes dans la réponse. C'est ce qui permettra leur reprise par CloudWatch Logs une fois le
+pipeline hébergé dans AgentCore Runtime, sans réécriture.
+
+Le parcours d'une requête est reconstituable visuellement : `--trace` produit une frise ASCII des
+durées par étape, `--trace-mermaid` un diagramme de séquence Mermaid collable dans un document.
+
+La traçabilité des hooks déclenchés et des permissions effectives reste une **exigence cible** : elle est spécifiée ici mais n'est pas encore implémentée. La rétention des
 logs et l'alerting ne sont pas définis à ce stade et relèvent de
 [docs/RUNBOOK_DEPLOY.md](docs/RUNBOOK_DEPLOY.md).
 

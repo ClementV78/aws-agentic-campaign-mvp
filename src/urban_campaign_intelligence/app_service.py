@@ -18,6 +18,7 @@ from urban_campaign_intelligence.data_access import (
 )
 from urban_campaign_intelligence.executive_summary import generate_executive_summary
 from urban_campaign_intelligence.gateway_tools import GatewayProvider, MockGatewayProvider
+from urban_campaign_intelligence.observability import RunTrace
 from urban_campaign_intelligence.pre_hook import run_pre_hook
 from urban_campaign_intelligence.review import review_allocation
 from urban_campaign_intelligence.scoring import allocate_campaigns, score_allocations
@@ -211,16 +212,16 @@ class UrbanCampaignApplicationService:
     ) -> dict[str, Any]:
         zones, advertisers, weights = self._load_reference_data()
 
-        execution_log: list[dict[str, Any]] = []
+        trace = RunTrace(request_mode=request_mode)
 
         pre_hook_output, pre_hook_log = run_pre_hook(scenario)
-        execution_log.extend(pre_hook_log)
-        execution_log.extend(self._build_tool_log_entries(weather_payload, events_payload, mobility_payload))
+        trace.record_all(pre_hook_log)
+        trace.record_all(self._build_tool_log_entries(weather_payload, events_payload, mobility_payload))
 
         weather_log, weather = run_weather_agent(weather_payload)
         events_log, events = run_events_agent(events_payload)
         mobility_log, mobility = run_mobility_agent(mobility_payload)
-        execution_log.extend([weather_log, events_log, mobility_log])
+        trace.record_all([weather_log, events_log, mobility_log])
 
         city_context, context_log = build_city_context(
             normalized_input=pre_hook_output["input"],
@@ -230,25 +231,26 @@ class UrbanCampaignApplicationService:
             mobility=mobility,
             degraded_signals=degraded_signals,
         )
-        execution_log.append(context_log)
+        trace.record(context_log)
 
         scorecards, scoring_logs = score_allocations(zones, advertisers, city_context, weights)
-        execution_log.extend(scoring_logs)
+        trace.record_all(scoring_logs)
 
         allocation_plan, allocation_log = allocate_campaigns(scorecards)
-        execution_log.append(allocation_log)
+        trace.record(allocation_log)
 
         review, review_log = review_allocation(city_context, allocation_plan)
-        execution_log.append(review_log)
+        trace.record(review_log)
         executive_summary, executive_summary_log = generate_executive_summary(
             scenario=scenario,
             city_context=city_context,
             allocation_plan=allocation_plan,
             review=review,
         )
-        execution_log.append(executive_summary_log)
+        trace.record(executive_summary_log)
 
         return {
+            "run": trace.summary(),
             "scenario": {
                 "id": scenario["id"],
                 "name": scenario["name"],
@@ -260,7 +262,7 @@ class UrbanCampaignApplicationService:
             "allocation_plan": allocation_plan,
             "review": review,
             "executive_summary": executive_summary,
-            "execution_log": execution_log,
+            "execution_log": trace.entries,
         }
 
 

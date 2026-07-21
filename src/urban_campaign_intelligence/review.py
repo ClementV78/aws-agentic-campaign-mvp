@@ -101,6 +101,7 @@ def _review_allocation_llm(city_context: dict[str, Any], allocation_plan: dict[s
             "mode": "llm",
             "provider": getattr(client, "provider", "unknown"),
             "model": client.model,
+            "total_tokens": (getattr(client, "last_usage", None) or {}).get("totalTokens"),
         },
     }
     return review, log_entry

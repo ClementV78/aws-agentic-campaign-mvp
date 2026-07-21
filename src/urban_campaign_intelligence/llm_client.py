@@ -52,6 +52,7 @@ class StrandsBedrockClient:
     """
 
     provider = "bedrock"
+    last_usage: dict[str, Any] | None = None
 
     def __init__(
         self,
@@ -110,7 +111,11 @@ class StrandsBedrockClient:
             raise ValueError("Bedrock client is not configured.")
         try:
             agent = self._build_agent(system_prompt)
-            return agent.structured_output(output_model, user_prompt)
+            result = agent.structured_output(output_model, user_prompt)
+            # Strands accumulates token usage on the agent's event loop metrics.
+            metrics = getattr(agent, "event_loop_metrics", None)
+            self.last_usage = getattr(metrics, "accumulated_usage", None)
+            return result
         except ValidationError as exc:
             raise ValueError(f"Bedrock returned output violating {output_model.__name__}: {exc}") from exc
         except Exception as exc:  # boto and strands raise many provider-specific errors
