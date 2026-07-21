@@ -120,6 +120,23 @@ def to_mermaid(result: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+_PHASES = {
+    "pre_hook": "Input",
+    "get_weather": "Context", "get_events": "Context", "get_mobility": "Context",
+    "weather_agent": "Context", "events_agent": "Context", "mobility_agent": "Context",
+    "city_context_builder": "Context",
+    "zone_analyzer_agent": "Decision", "advertiser_matcher_agent": "Decision",
+    "campaign_allocator_agent": "Decision",
+    "review_agent": "Output", "executive_summary_agent": "Output",
+}
+
+
+def _phase(entry: dict[str, Any]) -> str:
+    """Pipeline phase, used as gantt section. Phases are contiguous by construction,
+    unlike the owning layer, which alternates and would produce duplicate sections."""
+    return _PHASES.get(_step_name(entry), "Other")
+
+
 def to_gantt(result: dict[str, Any]) -> str:
     """Render the run on a time axis as a Mermaid gantt chart.
 
@@ -142,15 +159,20 @@ def to_gantt(result: dict[str, Any]) -> str:
     ]
     current_section = None
     for entry in entries:
-        owner = _owner(entry)
-        if owner != current_section:
-            lines.append(f"    section {owner}")
-            current_section = owner
+        phase = _phase(entry)
+        if phase != current_section:
+            lines.append(f"    section {phase}")
+            current_section = phase
         start = (entry.get("start_ms") or 0) * scale
         elapsed = (entry.get("end_ms") or entry.get("elapsed_ms") or 0) * scale
         # Mermaid needs a non-zero span to draw a bar at all.
         end = max(start + 1, elapsed)
-        lines.append(f"    {_step_name(entry)} :{int(round(start))}, {int(round(end))}")
+        # The axis is a clock and wraps every 1000 units, so keep the duration in the
+        # label: it stays exact whatever the axis shows.
+        span = (entry.get("end_ms") or 0) - (entry.get("start_ms") or 0)
+        shown = f"{span * scale:.0f}{unit}" if scale > 1 else f"{span:.1f}{unit}"
+        label = f"{_step_name(entry)} {shown}"
+        lines.append(f"    {label} :{int(round(start))}, {int(round(end))}")
     lines.append("```")
     return "\n".join(lines)
 

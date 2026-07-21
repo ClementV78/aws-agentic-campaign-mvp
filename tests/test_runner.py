@@ -286,6 +286,9 @@ class RunnerTestCase(unittest.TestCase):
         gantt = to_gantt(result)
         self.assertTrue(gantt.startswith("```mermaid\ngantt"))
         self.assertIn("dateFormat x", gantt)
+        # Sections must be contiguous: a repeated section renders a misplaced label.
+        sections = [line.split("section ")[1] for line in gantt.splitlines() if "    section " in line]
+        self.assertEqual(len(sections), len(set(sections)))
         previous_end = 0
         for entry in result["execution_log"]:
             self.assertGreaterEqual(entry["start_ms"], previous_end - 1e-6)
