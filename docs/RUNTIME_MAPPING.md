@@ -16,54 +16,82 @@ Il répond à une seule question : *pour chaque brique du code, qui la gouverne 
 ## Modes d'entrée — payload structuré vs prompt
 
 Le runtime a **une seule sortie** (une recommandation explicable via un scoring déterministe) mais
-**plusieurs façons d'y entrer**. La différence tient à deux axes : le payload est-il **structuré** ou
-un **prompt** en langage naturel, et **qui construit le contexte** (les tools, l'appelant, un fichier,
-ou l'agent qui décide).
+**plusieurs façons d'y entrer**. Ce qui distingue les modes, c'est **qui appelle les tools** — ou si
+personne ne les appelle. Les diagrammes ci-dessous montrent la séquence d'appels, mode par mode.
+
+### Modes structurés (socle actuel) : c'est le **code** qui orchestre
+
+En live/inline/scenario_id, `UrbanCampaignApplicationService` pilote une séquence **fixe**. Seul le
+mode **live** appelle réellement les tools ; l'inline reçoit les signaux dans le payload, le
+scenario_id les lit d'un fichier.
 
 ```mermaid
-flowchart TB
-    P1["payload structuré<br/>datetime + city<br/>· LIVE ·"]
-    P2["payload structuré<br/>scenario inline<br/>· TEST, derrière flag ·"]
-    P3["payload structuré<br/>scenario_id<br/>· DEV local ·"]
-    P4["prompt langage naturel<br/>· CIBLE ·"]
+sequenceDiagram
+    autonumber
+    participant C as Client
+    participant RT as Runtime (main.py)
+    participant AS as ApplicationService
+    participant T as Tools (Gateway)
+    participant B as CityContextBuilder
+    participant S as ScoringEngine
 
-    P4["prompt langage naturel<br/>· CIBLE ·"] --> AG["agent Strands<br/>interprète + décide des tools"]
-    AG -. "appelle" .-> T["tools via Gateway"]
-    P1["payload structuré<br/>datetime + city<br/>· LIVE ·"] -. "déclenche l'appel" .-> T
-    T -. "répond" .-> SIG["signaux de contexte bruts<br/>weather · events · mobility"]
-
-    P2["payload structuré<br/>scenario inline<br/>· TEST, derrière flag ·"] -- "fournit" --> SIG
-    P3["payload structuré<br/>scenario_id<br/>· DEV local ·"] -- "lit du fichier" --> SIG
-
-    SIG --> CTX["CityContextBuilder<br/>· code déterministe ·<br/>normalise → CityContext"]
-    CTX --> SC["scoring DÉTERMINISTE<br/>hors LLM"]
-    SC --> R["réponse explicable"]
-
-    classDef target fill:#f5f3ff,stroke:#7c3aed,color:#4c1d95,stroke-width:1.5px,stroke-dasharray: 5 4;
-    classDef det fill:#ecfdf5,stroke:#059669,color:#064e3b,stroke-width:1.5px;
-    class P4,AG target;
-    class CTX,SC det;
+    C->>RT: POST /invocations (payload structuré)
+    RT->>AS: handle_request
+    alt mode live (datetime + city)
+        AS->>T: get_weather / get_events / get_mobility
+        T-->>AS: signaux
+    else mode inline (scenario injecté, derrière flag)
+        Note over AS: signaux fournis dans le payload — aucun appel de tool
+    else mode scenario_id (dev local)
+        AS->>AS: lit data/scenarios.json
+    end
+    AS->>B: build_city_context(signaux)
+    B-->>AS: CityContext
+    AS->>S: score_allocations(CityContext)
+    S-->>AS: allocation
+    AS-->>RT: réponse explicable
+    RT-->>C: JSON
 ```
 
-Lecture des flèches : **pointillé = appel de tool** (on *appelle*, le tool *répond* — c'est une
-dépendance, pas une étape de transmission), **plein = flux de données** (l'inline *fournit* les
-signaux, le fichier les *lit*, le builder *normalise*). Un tool ne pousse rien vers le bas : il est
-appelé et il répond ; sa réponse **est** le signal.
+**Qui appelle quoi** : c'est `ApplicationService` (du code) qui appelle les tools, dans un ordre figé.
+Le LLM ne décide de rien ici — c'est le mode mince actuel.
 
-Ce qui change d'un mode à l'autre, c'est seulement **comment les signaux sont obtenus** : l'agent
-appelle les tools (prompt), un appel direct (live), l'appelant les fournit (inline), un fichier les
-donne (dev). **À partir des signaux, tout est commun et déterministe** : le `CityContextBuilder` (du
-**code**, pas les tools ni le LLM) normalise en `CityContext`, puis le scoring.
+### Mode prompt (cible) : c'est l'**agent** qui décide et appelle
 
-Pour la vraie sémantique **requête/réponse** dans le temps, un *flowchart* n'est pas le bon format —
-c'est un **sequenceDiagram** qu'il faut, exactement ce que produit `--trace-mermaid` sur un run
-(`ApplicationService->>GatewayProvider: get_weather`, puis la réponse). Les context agents
-(interprétation des signaux, `events_agent` pouvant être LLM) sont élidés ici — voir la vue intégrée
-plus bas.
+Avec un prompt en langage naturel, l'agent Strands interroge le modèle pour savoir **quels** tools
+appeler, puis les appelle. C'est le « le LLM décide des tool calls » du DAT (§5.1.2). Non implémenté,
+dépend de Bedrock.
 
-Le mode **prompt** (violet pointillé) est la **cible** : il rebranche l'agent Strands qui décide des
-tool calls (§5.1.2 du DAT). Il n'est pas implémenté et dépend de Bedrock. Les trois modes structurés
-sont le socle actuel.
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Client
+    participant RT as Runtime (main.py)
+    participant AG as Strands Agent
+    participant M as Bedrock (LLM)
+    participant T as Tools (Gateway)
+    participant B as CityContextBuilder
+    participant S as ScoringEngine
+
+    C->>RT: POST /invocations (prompt NL)
+    RT->>AG: invoke(prompt)
+    AG->>M: quels tools appeler pour ce prompt ?
+    M-->>AG: décision (tool calls)
+    AG->>T: get_weather / get_events (décidés par le LLM)
+    T-->>AG: signaux
+    AG->>B: build_city_context(signaux)
+    B-->>AG: CityContext
+    AG->>S: score_allocations(CityContext)
+    S-->>AG: allocation
+    AG-->>RT: réponse explicable
+    RT-->>C: JSON
+```
+
+**La seule vraie différence** entre les deux : *qui* appelle les tools. En structuré, le **code**, dans
+un ordre fixe. En prompt, l'**agent**, sur décision du **LLM**. À partir des signaux, tout est
+identique et déterministe : `CityContextBuilder` normalise, `ScoringEngine` score — jamais dans un
+prompt. (Les context agents qui interprètent les signaux, `events_agent` pouvant être LLM, sont élidés
+ici — voir la vue intégrée plus bas.)
 
 | Mode | Payload | Contexte fourni par | Déterministe ? | Déployé ? | Contrôle d'entrée |
 | --- | --- | --- | --- | --- | --- |
