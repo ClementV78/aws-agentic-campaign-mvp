@@ -33,6 +33,7 @@ Ce dossier regroupe la documentation d'architecture, opérationnelle et d'archiv
 | [RUNBOOK_DEPLOY.md](RUNBOOK_DEPLOY.md) | procédures de déploiement AWS / AgentCore, IAM, observabilité |
 | [GATEWAY_TOOLS.md](GATEWAY_TOOLS.md) | contrats de tools et pattern providers / fallback |
 | [RUNTIME_MAPPING.md](RUNTIME_MAPPING.md) | mapping des composants réels sur la frontière AgentCore / Strands / code |
+| [PACKAGING.md](PACKAGING.md) | structure du package partagé, flux d'une requête, local vs déploiement (PO-7) |
 | [diagrams/README.md](diagrams/README.md) | inventaire des schémas |
 
 ## 3. Archive
