@@ -167,7 +167,8 @@ Règle d'usage :
 | `bootstrap.sh` | `done` | vérifie les prérequis Lot 2 (`aws`, `agentcore`, `node`, région, identité AWS, projet AgentCore cible) et peut exécuter les tests locaux |
 | `demo.sh` | `done` | lance les scénarios locaux |
 | Cadrage infra MVP | `done` | cible `InvokeAgentRuntime + AgentCore Runtime + Strands agent métier + Gateway-first security model`, documentée |
-| Verticale locale fermée | `done` | `runtime_app.py` : entrypoint `BedrockAgentCoreApp` branché sur le noyau métier ; `handle_invocation` testé (38 tests). Serveur HTTP non validé dans le harness actuel (uvicorn long-running), à confirmer via `curl` en local |
+| Verticale locale fermée | `done` | entrypoint **canonique** `app/…/main.py` branché sur le pipeline métier (package installable, `pip install -e .`) ; `POST /invocations` → 200, `/ping` → 200 (validé ASGI in-process). `handle_invocation` dans `urban_campaign_intelligence.invocation`, testé. 38 tests verts |
+| Packaging déploiement (CodeZip) | `todo` | le package doit entrer dans le zip ; path-dependency insuffisante. Décision ouverte PO-7 : copie au build vs index privé |
 | Agent Strands réel sur le runtime | `todo` | l'entrypoint appelle le pipeline déterministe ; la boucle Strands pilotant les tool calls est la marche suivante, `blocked` sur Bedrock |
 | `deploy.sh` | `blocked` | déploiement réel lancé, bootstrap CDK OK, bucket S3 et artefacts OK, échec runtime AgentCore sur quota `maxAgents` du compte AWS |
 | `destroy.sh` | `in_progress` | teardown AgentCore/CDK + nettoyage S3 pilotés par `deploy-outputs.json` ou le manifeste |

@@ -9,7 +9,7 @@ from urban_campaign_intelligence.llm_client import StrandsBedrockClient, get_llm
 from urban_campaign_intelligence.observability import to_gantt, to_mermaid, to_timeline
 from urban_campaign_intelligence.local_agent import CampaignRequest, LocalRequestMapper, UrbanCampaignStrandsAgent
 from urban_campaign_intelligence.runner import format_summary, run_scenario
-from urban_campaign_intelligence.runtime_app import handle_invocation
+from urban_campaign_intelligence.invocation import handle_invocation
 
 
 class RunnerTestCase(unittest.TestCase):
@@ -311,14 +311,22 @@ class RunnerTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             handle_invocation({})
 
-    def test_build_app_attaches_the_entrypoint(self) -> None:
+    def test_canonical_main_attaches_the_entrypoint(self) -> None:
         try:
             import bedrock_agentcore  # noqa: F401
         except ImportError:
             self.skipTest("bedrock-agentcore not installed")
-        from urban_campaign_intelligence.runtime_app import build_app
-        app = build_app()
-        self.assertIn("main", app.handlers)
+        import pathlib
+        import sys
+        app_dir = (pathlib.Path(__file__).resolve().parent.parent
+                   / "agentcore-project/UrbanCampaignIntelligencePoc/app/UrbanCampaignIntelligencePoc")
+        sys.path.insert(0, str(app_dir))
+        try:
+            import main
+            app = main.build_app()
+            self.assertIn("main", app.handlers)
+        finally:
+            sys.path.remove(str(app_dir))
 
     def test_mobility_forecast_provider_detects_station_peak(self) -> None:
         provider = MobilityForecastProvider()

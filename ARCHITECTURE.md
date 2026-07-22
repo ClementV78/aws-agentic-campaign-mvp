@@ -459,14 +459,20 @@ Le critère de **« MVP AWS done »** est une **seule verticale fermée**, pas u
 Tant que cette verticale n'est pas fermée de bout en bout, le reste (multi-tools, Memory, façade HTTP)
 est explicitement **post-MVP**. Ordre de matérialisation :
 
-1. **verticale locale fermée** — entrypoint AgentCore branché sur le noyau métier, testable via
-   `app.run()` sans dépendre de Bedrock (le pipeline dégrade en déterministe). *← marche courante*
-2. agent Strands pilotant réellement les tool calls, sur Bedrock débloqué
-3. un premier tool de contexte exposé via `AgentCore Gateway`, puis les suivants
-4. contrôles AgentCore / Guardrails / Policy effectivement câblés
-5. observabilité d'exécution alignée avec le chapitre 11
+1. **verticale locale fermée** — ✅ *fait.* L'entrypoint canonique
+   [`app/…/main.py`](agentcore-project/UrbanCampaignIntelligencePoc/app/UrbanCampaignIntelligencePoc/main.py)
+   importe le pipeline métier (package installable `urban_campaign_intelligence`) et répond en
+   JSON sur `POST /invocations`, sans Bedrock (dégradation déterministe). Testable en local via
+   `python main.py` + `curl`.
+2. **packaging de déploiement** — le package doit entrer dans le CodeZip. La path-dependency ne
+   suffit pas (CodeZip ne zippe que `codeLocation`). Décision ouverte : copie au build vs index
+   privé (voir [15. Points ouverts](#15-points-ouverts)).
+3. agent Strands pilotant réellement les tool calls, sur Bedrock débloqué
+4. un premier tool de contexte exposé via `AgentCore Gateway`, puis les suivants
+5. contrôles AgentCore / Guardrails / Policy effectivement câblés
+6. observabilité d'exécution alignée avec le chapitre 11
 
-Les étapes 2 à 4 sont conditionnées à deux blocages compte AWS : accès Bedrock et quota
+Les étapes 3 à 5 sont conditionnées à deux blocages compte AWS : accès Bedrock et quota
 `AWS::BedrockAgentCore::Runtime` (voir [docs/STATUS.md](docs/STATUS.md)).
 
 ## 13. Décisions d'architecture retenues
@@ -518,6 +524,7 @@ deviennent contestées ou réversibles à coût élevé.
 | PO-4 | Introduction ou non d'`AgentCore Memory` | seulement si un scénario inter-run apporte une valeur démonstrative | après le flux nominal |
 | PO-5 | Introduction ou non d'`API Gateway` | seulement si la démo requiert une façade HTTP classique | après le flux nominal |
 | PO-6 | Rétention des logs et alerting | à cadrer avec la cible infra | Lot 2 |
+| PO-7 | Packaging du pipeline dans le CodeZip déployé | copie au build vs index privé (CodeArtifact) ; la path-dependency ne suffit pas | avant premier déploiement runtime |
 
 ## 16. Hypothèses, limites et hors périmètre
 

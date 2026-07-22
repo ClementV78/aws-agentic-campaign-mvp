@@ -6,11 +6,20 @@ build-backend = "setuptools.build_meta"
 name = "urban-campaign-intelligence"
 version = "0.1.0"
 description = "Local MVP engine for contextual urban campaign allocation."
-requires-python = ">=3.12"
+requires-python = ">=3.11"
+dependencies = [
+    "strands-agents>=1.15.0",
+    "pydantic>=2.0",
+    "boto3>=1.35.0",
+]
+
+# Needed only to serve the AgentCore Runtime entrypoint (app/.../main.py). The CLI,
+# the pipeline and the test suite import it lazily and run without it.
+[project.optional-dependencies]
+runtime = ["bedrock-agentcore>=1.9.1"]
 
 [tool.setuptools]
 package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
-

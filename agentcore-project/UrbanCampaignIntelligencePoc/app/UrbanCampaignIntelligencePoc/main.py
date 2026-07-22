@@ -1,130 +1,51 @@
-from typing import Any
-from collections import OrderedDict
-from strands import Agent, tool
-import asyncio
-from strands.agent.conversation_manager.null_conversation_manager import NullConversationManager
-from bedrock_agentcore.runtime import BedrockAgentCoreApp
-from model.load import load_model
-from mcp_client.client import get_streamable_http_mcp_client
+"""AgentCore Runtime entrypoint for Urban Campaign Intelligence.
 
-app = BedrockAgentCoreApp()
-log = app.logger
+This is the single canonical entrypoint (agentcore.json -> entrypoint: main.py). It is a
+thin transport wrapper: it maps the InvokeAgentRuntime payload to the shared business
+pipeline and returns the recommendation as JSON.
 
-# Define a Streamable HTTP MCP Client
-mcp_clients = [get_streamable_http_mcp_client()]
+    InvokeAgentRuntime -> invoke() -> handle_invocation -> deterministic core -> JSON
 
-DEFAULT_SYSTEM_PROMPT = """
-You are a helpful assistant. Use tools when appropriate.
+The business logic lives in the installable ``urban_campaign_intelligence`` package, imported
+here rather than copied, so the CLI, the tests and this runtime all run the same code. With no
+Bedrock model configured the pipeline degrades to deterministic heuristics, so this vertical is
+exercisable locally (``python main.py`` then curl) without AWS.
 
+Packaging note: the package must be present in the deployed CodeZip. Locally it is resolved via
+``pip install -e .`` at the repo root; the deployment strategy (build-time copy vs private
+index) is an open decision tracked in ARCHITECTURE.md §12.2.
 """
 
+from typing import Any
 
-# Define a collection of tools used by the model
-tools = []
+from bedrock_agentcore.runtime import BedrockAgentCoreApp
 
-_INLINE_FUNCTION_NAMES = set()
-
-# Define a simple function tool
-@tool
-def add_numbers(a: int, b: int) -> int:
-    """Return the sum of two numbers"""
-    return a+b
-tools.append(add_numbers)
+from urban_campaign_intelligence.invocation import handle_invocation
 
 
+def build_app(debug: bool = False) -> BedrockAgentCoreApp:
+    """Construct the runtime app with the business entrypoint attached.
 
-# Add MCP client to tools if available
-for mcp_client in mcp_clients:
-    if mcp_client:
-        tools.append(mcp_client)
+    ``debug=True`` surfaces the uvicorn startup and access logs the SDK otherwise silences.
+    """
+    app = BedrockAgentCoreApp(debug=debug)
 
+    @app.entrypoint
+    def invoke(payload: dict[str, Any], context: Any = None) -> dict[str, Any]:
+        # Deterministic request/response: return JSON, not a stream. The correlation id is
+        # inside the response under result["run"]["run_id"].
+        return handle_invocation(payload)
 
-def _make_conversation_manager():
-    return NullConversationManager()
-
-# Reuses one Agent per session_id so each session keeps its own in-process
-# conversation history (best-effort; resets on cold start). The cache is bounded
-# to 128 sessions with LRU eviction (least-recently-used is dropped and its
-# history reset) so a single process serving many sessions cannot leak history
-# between them or grow without limit. For durable history, attach a session manager.
-def agent_factory():
-    cache = OrderedDict()
-    def get_or_create_agent(session_id):
-        if session_id in cache:
-            cache.move_to_end(session_id)
-            return cache[session_id]
-        if len(cache) >= 128:
-            cache.popitem(last=False)
-        cache[session_id] = Agent(
-            model=load_model(),
-            system_prompt=DEFAULT_SYSTEM_PROMPT,
-            tools=tools,
-            conversation_manager=_make_conversation_manager(),
-            hooks=[
-            ],
-        )
-        return cache[session_id]
-    return get_or_create_agent
-get_or_create_agent = agent_factory()
+    return app
 
 
-def _extract_prompt(payload: dict):
-    """Accept harness-style messages[], tool_results[], or plain prompt string payloads."""
-    if "messages" in payload:
-        return payload["messages"]
-    if "tool_results" in payload:
-        return [{"role": "user", "content": [{"toolResult": {
-            "toolUseId": tr["toolUseId"],
-            "status": tr.get("status", "success"),
-            "content": tr.get("content", []),
-        }} for tr in payload["tool_results"]]}]
-    return payload.get("prompt", "")
-
-
-def _has_inline_function_call(messages) -> bool:
-    """Return True if messages contains an assistant toolUse for an inline function tool."""
-    if not _INLINE_FUNCTION_NAMES or not isinstance(messages, list):
-        return False
-    for msg in messages:
-        if msg.get("role") == "assistant":
-            for block in msg.get("content", []):
-                if isinstance(block, dict) and block.get("toolUse", {}).get("name") in _INLINE_FUNCTION_NAMES:
-                    return True
-    return False
-
-
-def _is_inline_function_call(event: dict) -> bool:
-    """Check if a contentBlockStart event is for an inline function tool."""
-    if not _INLINE_FUNCTION_NAMES:
-        return False
-    cbs = event.get("contentBlockStart", {})
-    start = cbs.get("start", {})
-    tool_use = start.get("toolUse") if isinstance(start, dict) else None
-    return tool_use is not None and tool_use.get("name") in _INLINE_FUNCTION_NAMES
-
-
-
-@app.entrypoint
-async def invoke(payload, context):
-    log.info("Invoking Agent.....")
-
-
-    session_id = getattr(context, 'session_id', 'default-session')
-    agent = get_or_create_agent(session_id)
-
-    prompt = _extract_prompt(payload)
-
-
-    async for event in agent.stream_async(
-        prompt,
-    ):
-        if not isinstance(event, dict) or "event" not in event:
-            continue
-        cbs = event["event"].get("contentBlockStart")
-        if cbs is not None and not cbs.get("start"):
-            continue
-        yield event
+app = build_app()
 
 
 if __name__ == "__main__":
-    app.run()
+    import os
+
+    # AgentCore serves on 8080 in production; PORT lets a local run pick a free port, since
+    # the SDK does not read it. DEBUG=1 surfaces the startup logs.
+    debug = os.getenv("DEBUG", "").lower() in {"1", "true", "yes"}
+    build_app(debug=debug).run(port=int(os.getenv("PORT", "8080")))
