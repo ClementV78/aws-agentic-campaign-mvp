@@ -24,6 +24,7 @@ class RunnerTestCase(unittest.TestCase):
         self.previous_executive_summary_model = os.environ.get("EXECUTIVE_SUMMARY_OPENROUTER_MODEL")
         self.previous_openrouter_key = os.environ.get("AGENTCAMPAIGN_OPENROUTER_API_KEY")
         self.previous_openrouter_model = os.environ.get("AGENTCAMPAIGN_OPENROUTER_MODEL")
+        self.previous_inline_flag = os.environ.get("AGENTCAMPAIGN_ALLOW_INLINE_SCENARIO")
         os.environ["WEATHER_PROVIDER"] = "mock"
         os.environ["EVENTS_PROVIDER"] = "mock"
         os.environ["MOBILITY_PROVIDER"] = "mock"
@@ -34,6 +35,7 @@ class RunnerTestCase(unittest.TestCase):
         os.environ.pop("EXECUTIVE_SUMMARY_OPENROUTER_MODEL", None)
         os.environ.pop("AGENTCAMPAIGN_OPENROUTER_API_KEY", None)
         os.environ.pop("AGENTCAMPAIGN_OPENROUTER_MODEL", None)
+        os.environ.pop("AGENTCAMPAIGN_ALLOW_INLINE_SCENARIO", None)
 
     def tearDown(self) -> None:
         if self.previous_weather_provider is None:
@@ -76,6 +78,10 @@ class RunnerTestCase(unittest.TestCase):
             os.environ.pop("AGENTCAMPAIGN_OPENROUTER_MODEL", None)
         else:
             os.environ["AGENTCAMPAIGN_OPENROUTER_MODEL"] = self.previous_openrouter_model
+        if self.previous_inline_flag is None:
+            os.environ.pop("AGENTCAMPAIGN_ALLOW_INLINE_SCENARIO", None)
+        else:
+            os.environ["AGENTCAMPAIGN_ALLOW_INLINE_SCENARIO"] = self.previous_inline_flag
 
     def test_fashion_week_returns_expected_sections(self) -> None:
         result = run_scenario("fashion_week")
@@ -328,7 +334,13 @@ class RunnerTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             handle_invocation({})
 
+    def test_inline_scenario_refused_without_flag(self) -> None:
+        # Secure-by-default: inline injection is off unless explicitly enabled.
+        with self.assertRaises(ValueError):
+            handle_invocation({"scenario": {"inputs": {}}})
+
     def test_inline_scenario_payload_runs_without_a_file(self) -> None:
+        os.environ["AGENTCAMPAIGN_ALLOW_INLINE_SCENARIO"] = "1"
         # Deployable smoke-test path: the payload carries the scenario, no data/ file is read.
         result = handle_invocation({"scenario": {
             "datetime": "2026-07-11T15:00:00+02:00",
@@ -344,6 +356,7 @@ class RunnerTestCase(unittest.TestCase):
         self.assertTrue(result["allocation_plan"]["recommended_matches"])
 
     def test_inline_scenario_defaults_missing_identity_fields(self) -> None:
+        os.environ["AGENTCAMPAIGN_ALLOW_INLINE_SCENARIO"] = "1"
         result = handle_invocation({"scenario": {"inputs": {}}})
         self.assertEqual(result["scenario"]["id"], "inline_request")
         self.assertEqual(result["scenario"]["city"], "Paris")

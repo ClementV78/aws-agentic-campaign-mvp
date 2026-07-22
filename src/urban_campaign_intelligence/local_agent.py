@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from typing import Any, Literal
 
@@ -7,6 +8,17 @@ from urban_campaign_intelligence.app_service import LIVE_CITY, UrbanCampaignAppl
 
 
 RequestMode = Literal["scenario", "live"]
+
+# Inline scenario injects the scoring context through the payload. It is a test capability,
+# not a product feature, so it is off by default (secure-by-default): the deployed prod endpoint
+# never enables it, a test/dev endpoint or the CI pipeline sets the flag. This flag governs the
+# structured-signal surface, which guardrails cannot see (it is data, not a prompt); the free-text
+# that reaches the LLM stays covered by guardrails independently. See ARCHITECTURE.md §8.2.
+INLINE_SCENARIO_FLAG = "AGENTCAMPAIGN_ALLOW_INLINE_SCENARIO"
+
+
+def _inline_scenario_allowed() -> bool:
+    return os.getenv(INLINE_SCENARIO_FLAG, "").strip().lower() in {"1", "true", "yes"}
 
 
 @dataclass(frozen=True)
@@ -31,6 +43,11 @@ class LocalRequestMapper:
     @staticmethod
     def from_dict(payload: dict[str, Any]) -> CampaignRequest:
         if isinstance(payload.get("scenario"), dict):
+            if not _inline_scenario_allowed():
+                raise ValueError(
+                    "Inline scenario is disabled. Set AGENTCAMPAIGN_ALLOW_INLINE_SCENARIO=1 to "
+                    "enable it (test/dev only; keep it off in production)."
+                )
             return CampaignRequest(mode="scenario", scenario=payload["scenario"])
         if payload.get("scenario_id"):
             return CampaignRequest(mode="scenario", scenario_id=payload["scenario_id"])
