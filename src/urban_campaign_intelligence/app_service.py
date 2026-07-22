@@ -41,8 +41,19 @@ class UrbanCampaignApplicationService:
             self._reference_data = (load_zones(), load_advertisers(), load_weights())
         return self._reference_data
 
-    def run_scenario_request(self, scenario_id: str) -> dict[str, Any]:
-        scenario = get_scenario_by_id(scenario_id)
+    def run_scenario_request(
+        self, scenario_id: str | None = None, scenario: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
+        # Two sources: a file lookup (dev catalogue, local only) or an inline scenario carried by
+        # the payload (deployable, reads no file — for a deterministic smoke test of the runtime).
+        if scenario is not None:
+            scenario = self._normalize_inline_scenario(scenario)
+            request_mode = "scenario_inline"
+        else:
+            if not scenario_id:
+                raise ValueError("run_scenario_request requires a scenario or a scenario_id.")
+            scenario = get_scenario_by_id(scenario_id)
+            request_mode = "scenario"
         scenario_inputs = self._get_scenario_inputs(scenario)
         weather_payload = self._build_scenario_weather_payload(
             city=scenario["city"],
@@ -64,8 +75,30 @@ class UrbanCampaignApplicationService:
             weather_payload=weather_payload,
             events_payload=events_payload,
             mobility_payload=mobility_payload,
-            request_mode="scenario",
+            request_mode=request_mode,
         )
+
+    @staticmethod
+    def _normalize_inline_scenario(scenario: dict[str, Any]) -> dict[str, Any]:
+        """Fill the fields the pipeline needs but an inline payload may omit.
+
+        The caller supplies at least `inputs` (the injected signals) and usually `datetime`;
+        identity and calendar fields are defaulted, matching the live scenario shape.
+        """
+        datetime_iso = scenario.get("datetime") or datetime.now().isoformat()
+        dt = datetime.fromisoformat(datetime_iso)
+        calendar = scenario.get("calendar") or {}
+        return {
+            "id": scenario.get("id", "inline_request"),
+            "name": scenario.get("name", "Inline Scenario Request"),
+            "city": scenario.get("city", LIVE_CITY),
+            "datetime": dt.isoformat(),
+            "calendar": {
+                "day_type": calendar.get("day_type", "weekend" if dt.weekday() >= 5 else "weekday"),
+                "school_holiday": calendar.get("school_holiday"),
+            },
+            "inputs": scenario.get("inputs", {}),
+        }
 
     def run_live_request(self, datetime_str: str, city: str = LIVE_CITY) -> dict[str, Any]:
         if city.strip().lower() != self.live_city.lower():
@@ -269,8 +302,10 @@ class UrbanCampaignApplicationService:
 DEFAULT_APP_SERVICE = UrbanCampaignApplicationService()
 
 
-def run_scenario_request(scenario_id: str) -> dict[str, Any]:
-    return DEFAULT_APP_SERVICE.run_scenario_request(scenario_id)
+def run_scenario_request(
+    scenario_id: str | None = None, scenario: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    return DEFAULT_APP_SERVICE.run_scenario_request(scenario_id=scenario_id, scenario=scenario)
 
 
 def run_live_request(datetime_str: str, city: str = LIVE_CITY) -> dict[str, Any]:

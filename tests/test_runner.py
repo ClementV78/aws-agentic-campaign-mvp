@@ -328,6 +328,26 @@ class RunnerTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             handle_invocation({})
 
+    def test_inline_scenario_payload_runs_without_a_file(self) -> None:
+        # Deployable smoke-test path: the payload carries the scenario, no data/ file is read.
+        result = handle_invocation({"scenario": {
+            "datetime": "2026-07-11T15:00:00+02:00",
+            "city": "Paris",
+            "inputs": {
+                "weather": {"raw_condition": "hot_weather", "temperature_c": 33},
+                "events": [{"event_type": "family_event", "title": "Test Fest"}],
+                "mobility": {"network_status": "dense_central", "severity": "medium"},
+            },
+        }})
+        self.assertEqual(result["scenario"]["mode"], "scenario_inline")
+        self.assertEqual(result["city_context"]["weather"]["summary"], "hot")
+        self.assertTrue(result["allocation_plan"]["recommended_matches"])
+
+    def test_inline_scenario_defaults_missing_identity_fields(self) -> None:
+        result = handle_invocation({"scenario": {"inputs": {}}})
+        self.assertEqual(result["scenario"]["id"], "inline_request")
+        self.assertEqual(result["scenario"]["city"], "Paris")
+
     def test_canonical_main_attaches_the_entrypoint(self) -> None:
         try:
             import bedrock_agentcore  # noqa: F401

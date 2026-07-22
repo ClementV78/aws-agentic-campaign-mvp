@@ -13,6 +13,10 @@ RequestMode = Literal["scenario", "live"]
 class CampaignRequest:
     mode: RequestMode
     scenario_id: str | None = None
+    # Inline scenario carried by the payload: deployable and reads no file, so it smoke-tests the
+    # deployed runtime deterministically without the external tools. scenario_id stays a local-only
+    # shortcut into the dev catalogue (data/scenarios.json).
+    scenario: dict[str, Any] | None = None
     datetime: str | None = None
     city: str = LIVE_CITY
 
@@ -26,10 +30,12 @@ class LocalRequestMapper:
 
     @staticmethod
     def from_dict(payload: dict[str, Any]) -> CampaignRequest:
+        if isinstance(payload.get("scenario"), dict):
+            return CampaignRequest(mode="scenario", scenario=payload["scenario"])
         if payload.get("scenario_id"):
             return CampaignRequest(mode="scenario", scenario_id=payload["scenario_id"])
         if not payload.get("datetime"):
-            raise ValueError("Request payload requires either scenario_id or datetime.")
+            raise ValueError("Request payload requires a scenario, a scenario_id, or a datetime.")
         return CampaignRequest(
             mode="live",
             datetime=payload["datetime"],
@@ -43,9 +49,11 @@ class UrbanCampaignStrandsAgent:
 
     def handle_request(self, request: CampaignRequest) -> dict[str, Any]:
         if request.mode == "scenario":
+            if request.scenario is not None:
+                return self.app_service.run_scenario_request(scenario=request.scenario)
             if not request.scenario_id:
-                raise ValueError("Scenario mode requires scenario_id.")
-            return self.app_service.run_scenario_request(request.scenario_id)
+                raise ValueError("Scenario mode requires a scenario or a scenario_id.")
+            return self.app_service.run_scenario_request(scenario_id=request.scenario_id)
 
         if not request.datetime:
             raise ValueError("Live mode requires datetime.")
