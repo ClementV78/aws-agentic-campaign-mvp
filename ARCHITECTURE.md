@@ -349,21 +349,34 @@ refresh, enrichissement). Il n'est pas le mécanisme d'authentification par déf
 
 Le détail d'implémentation par tool n'est pas figé à ce stade (voir [15. Points ouverts](#15-points-ouverts)).
 
-#### 8.2.3 Mode scénario inline — deux surfaces, deux contrôles
+#### 8.2.3 Mode scénario inline — pourquoi un flag, et pas les Guardrails
 
-Le mode scénario inline (§4.1) laisse l'appelant fournir le contexte dans le payload. Il expose
-**deux surfaces distinctes**, gouvernées par **deux mécanismes indépendants** — à ne pas confondre :
+Le mode scénario inline (§4.1) laisse l'appelant fournir le contexte dans le payload. Le risque est la
+**manipulation du scoring** : un contexte forcé (`weather`, `mobility`) produit une allocation biaisée.
 
-| Surface | Ce qui transite | Risque | Contrôle |
-| --- | --- | --- | --- |
-| Signaux **structurés** | `weather`, `mobility`, scores injectés | scoring manipulé (manipulation de **données**, pas un prompt) | **flag** `AGENTCAMPAIGN_ALLOW_INLINE_SCENARIO`, désactivé par défaut. Les Guardrails **n'y voient rien** |
-| **Texte libre** | `title` / `description` d'un event → `events_agent` LLM | prompt injection | **Bedrock Guardrails** sur l'appel modèle (§8.3.1), indépendamment du flag |
+Point de vigilance, corrigé d'une formulation antérieure : **les données injectées ne sont pas
+invisibles aux Guardrails.** Le `CityContext` complet est re-sérialisé dans les prompts des étages
+`review` et `executive_summary` (et l'événementiel dans `events_agent`), donc il **atteint** le modèle
+et les Bedrock Guardrails. Ceux-ci le voient et peuvent bloquer le run — mais **en aval du scoring**.
 
-Les deux ne sont **pas en concurrence** : le flag gouverne l'existence même de la capacité (surface
-données), les Guardrails couvrent le texte-vers-LLM. La capacité inline étant un outil de test, le flag
-est **secure-by-default** : l'endpoint de production ne l'active pas ; un endpoint de test ou la CI le
+Le flag reste néanmoins la bonne protection de cette surface, pour deux raisons d'**ordre** et de
+**provenance**, pas de visibilité :
+
+- **Le scoring est déterministe et hors LLM.** Il est calculé avant `review`/`summary`. Aucun Guardrail
+  ne peut défaire un scoring déjà produit ; `weather`/`mobility` n'ont d'ailleurs aucun étage LLM avant
+  le scoring (seul l'événementiel en a un, via `events_agent`).
+- **La provenance diffère.** En mode **live**, ces signaux viennent des tools via `AgentCore Gateway`
+  et sont gouvernés à ce niveau (interceptors, guardrails de tool — §8.3.1). Le mode **inline** les fait
+  **bypasser Gateway** : le flag rétablit le contrôle que Gateway assure en live.
+
+La capacité inline étant un outil de test, le flag `AGENTCAMPAIGN_ALLOW_INLINE_SCENARIO` est
+**secure-by-default** : l'endpoint de production ne l'active pas ; un endpoint de test ou la CI le
 positionne. Une granularité par utilisateur en production relèverait de l'auth par identité (JWT scope
 ou endpoints IAM séparés), hors v1 (voir [15. Points ouverts](#15-points-ouverts)).
+
+En résumé : le flag protège la **décision** (scoring déterministe, ou signaux bypassant Gateway) ; les
+Guardrails protègent le **texte-vers-LLM**. Ils se recouvrent en partie (le contexte atteint les deux),
+ils ne sont pas étanches — mais aucun ne remplace l'autre.
 
 ### 8.3 Répartition des contrôles
 
@@ -543,7 +556,7 @@ deviennent contestées ou réversibles à coût élevé.
 | Quotas / throttling Bedrock | échecs en cours de run | retry borné, dégradation explicite plutôt qu'échec silencieux |
 | Dérive de coût liée à la consommation de tokens | dépassement du budget MVP | traçabilité de la consommation (exigence cible du chapitre 11), périmètre de données figé |
 | Injection résiduelle via contenu de tool | sortie manipulée | Guardrails plateforme + agent de review + logique métier hors prompt |
-| Contexte forcé via le payload scénario inline (§4.1) | scoring manipulé par l'appelant | flag `AGENTCAMPAIGN_ALLOW_INLINE_SCENARIO` **off par défaut** ; surface données distincte des Guardrails (§8.2.3) |
+| Contexte forcé via le payload scénario inline (§4.1) | scoring manipulé par l'appelant | flag `AGENTCAMPAIGN_ALLOW_INLINE_SCENARIO` **off par défaut** ; le scoring est déterministe et en amont du LLM, les Guardrails ne le défont pas (§8.2.3) |
 
 ## 15. Points ouverts
 
