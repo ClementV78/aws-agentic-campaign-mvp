@@ -45,6 +45,9 @@ class RunTrace:
             **entry,
             "run_id": self.run_id,
             "seq": len(self.entries),
+            # component is derived from a single table (like phase), not hardcoded per entry,
+            # so a step name maps to its owning component in one place.
+            "component": _component(entry),
             # start_ms is kept unrounded-derived so a time axis can place bars exactly;
             # t_ms and elapsed_ms stay rounded for readability.
             "start_ms": round((self._last - self._start) * 1000, 3),
@@ -87,35 +90,51 @@ def _owner(entry: dict[str, Any]) -> str:
     return "Core"
 
 
-def to_mermaid(result: dict[str, Any]) -> str:
-    """Render the execution log of a run as a Mermaid sequence diagram.
+# Which real component runs each step. Single source, like _PHASES; the names match the
+# components of docs/RUNTIME_MAPPING.md so the runtime trace mirrors the static map.
+_COMPONENTS = {
+    "pre_hook": "PreHook",
+    "get_weather": "GatewayProvider", "get_events": "GatewayProvider", "get_mobility": "GatewayProvider",
+    "weather_agent": "ContextAgents", "events_agent": "ContextAgents", "mobility_agent": "ContextAgents",
+    "city_context_builder": "CityContextBuilder",
+    "zone_analyzer_agent": "ScoringEngine", "advertiser_matcher_agent": "ScoringEngine",
+    "campaign_allocator_agent": "ScoringEngine",
+    "review_agent": "ReviewAgent",
+    "executive_summary_agent": "ExecutiveSummary",
+}
 
-    Wrapped in a fenced block so it pastes straight into Markdown and renders on
-    GitHub; without the fence the diagram collapses into a paragraph.
+
+def _component(entry: dict[str, Any]) -> str:
+    return _COMPONENTS.get(_step_name(entry), "Other")
+
+
+def to_mermaid(result: dict[str, Any]) -> str:
+    """Render the execution log as a Mermaid sequence diagram, by real component.
+
+    The application service orchestrates: each step is a call from the orchestrator to the
+    component that ran it — the runtime counterpart of the static map in RUNTIME_MAPPING.md.
+    Wrapped in a fenced block so it pastes straight into Markdown and renders on GitHub.
     """
     entries = result.get("execution_log", [])
-    lines = [
-        "```mermaid",
-        "sequenceDiagram",
-        "    autonumber",
-        "    participant C as Core",
-        "    participant T as Tools",
-        "    participant L as LLM",
-    ]
-    actor = {"Core": "C", "Tools": "T", "LLM": "L"}
+    # Distinct components in order of first appearance, each given a short mermaid alias.
+    components: list[str] = []
     for entry in entries:
-        target = actor[_owner(entry)]
-        label = _step_name(entry)
+        comp = entry.get("component") or _component(entry)
+        if comp not in components:
+            components.append(comp)
+    alias = {comp: f"C{i}" for i, comp in enumerate(components)}
+
+    lines = ["```mermaid", "sequenceDiagram", "    autonumber", "    participant APP as ApplicationService"]
+    for comp in components:
+        lines.append(f"    participant {alias[comp]} as {comp}")
+    for entry in entries:
+        comp = entry.get("component") or _component(entry)
         millis = entry.get("t_ms")
         suffix = f" ({millis} ms)" if millis is not None else ""
-        if target == "C":
-            lines.append(f"    C->>C: {label}{suffix}")
-        else:
-            lines.append(f"    C->>{target}: {label}{suffix}")
-            lines.append(f"    {target}-->>C: ok")
-    warnings = result.get("city_context", {}).get("warnings", [])
-    for warning in warnings:
-        lines.append(f"    Note over C: ⚠ {warning[:60]}")
+        lines.append(f"    APP->>{alias[comp]}: {_step_name(entry)}{suffix}")
+        lines.append(f"    {alias[comp]}-->>APP: ok")
+    for warning in result.get("city_context", {}).get("warnings", []):
+        lines.append(f"    Note over APP: ⚠ {warning[:60]}")
     lines.append("```")
     return "\n".join(lines)
 

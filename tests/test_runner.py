@@ -273,13 +273,30 @@ class RunnerTestCase(unittest.TestCase):
         self.assertNotEqual(run_scenario("concert_bercy")["run"]["run_id"],
                             run_scenario("concert_bercy")["run"]["run_id"])
 
+    def test_each_log_entry_carries_its_component(self) -> None:
+        result = run_scenario("transport_strike")
+        for entry in result["execution_log"]:
+            self.assertIn("component", entry)
+            self.assertNotEqual(entry["component"], "Other")
+        by_step = {(e.get("step") or e.get("tool") or e.get("agent")): e["component"]
+                   for e in result["execution_log"]}
+        self.assertEqual(by_step["get_weather"], "GatewayProvider")
+        self.assertEqual(by_step["zone_analyzer_agent"], "ScoringEngine")
+
+    def test_mermaid_lists_real_components_as_participants(self) -> None:
+        mermaid = to_mermaid(run_scenario("concert_bercy"))
+        self.assertIn("participant APP as ApplicationService", mermaid)
+        self.assertIn("as ScoringEngine", mermaid)
+        self.assertIn("as GatewayProvider", mermaid)
+        self.assertNotIn("participant C as Core", mermaid)
+
     def test_execution_log_renders_as_mermaid_and_timeline(self) -> None:
         result = run_scenario("transport_strike")
         mermaid = to_mermaid(result)
         self.assertTrue(mermaid.startswith("```mermaid\nsequenceDiagram"))
         self.assertTrue(mermaid.endswith("```"))
         self.assertIn("get_weather", mermaid)
-        self.assertIn("Note over C:", mermaid)
+        self.assertIn("Note over APP:", mermaid)
         self.assertIn("TOTAL", to_timeline(result))
 
     def test_gantt_places_steps_on_a_non_overlapping_time_axis(self) -> None:
