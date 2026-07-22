@@ -334,6 +334,23 @@ class RunnerTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             handle_invocation({})
 
+    def test_request_mapper_routes_prompt(self) -> None:
+        req = LocalRequestMapper.from_dict({"prompt": "recommend campaigns for Paris"})
+        self.assertEqual(req.mode, "prompt")
+        self.assertEqual(req.prompt, "recommend campaigns for Paris")
+
+    def test_prompt_mode_orchestrates_tools_via_bedrock(self) -> None:
+        # Real agentic path: the Strands agent decides the tool calls. Costs Bedrock tokens,
+        # off by default. Enable with AGENTCAMPAIGN_RUN_LLM_TESTS=1 and AWS creds.
+        if os.getenv("AGENTCAMPAIGN_RUN_LLM_TESTS", "").lower() not in {"1", "true", "yes"}:
+            self.skipTest("LLM integration test; set AGENTCAMPAIGN_RUN_LLM_TESTS=1 (uses Bedrock)")
+        from urban_campaign_intelligence.invocation import handle_invocation
+        result = handle_invocation({"prompt": "Recommend campaigns for Paris this Saturday afternoon"})
+        self.assertEqual(result["scenario"]["mode"], "prompt")
+        tools = [e["tool"] for e in result["execution_log"] if e.get("tool")]
+        self.assertIn("get_weather", tools)
+        self.assertTrue(result["allocation_plan"]["recommended_matches"])
+
     def test_inline_scenario_refused_without_flag(self) -> None:
         # Secure-by-default: inline injection is off unless explicitly enabled.
         with self.assertRaises(ValueError):

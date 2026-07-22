@@ -100,6 +100,25 @@ class UrbanCampaignApplicationService:
             "inputs": scenario.get("inputs", {}),
         }
 
+    def run_prompt_request(self, prompt: str) -> dict[str, Any]:
+        """Target agentic mode: a Strands agent interprets the prompt and decides the tool calls.
+
+        The agent orchestrates the input (prompt -> tools -> signals); the deterministic pipeline
+        then builds the CityContext and scores, unchanged. Needs a tool-use-capable model (Bedrock
+        Nova Lite by default).
+        """
+        from urban_campaign_intelligence.orchestrator import run_prompt
+
+        context = run_prompt(prompt)
+        scenario = self._build_live_scenario(datetime_str=context["datetime"], city=context["city"])
+        return self._run_pipeline(
+            scenario=scenario,
+            weather_payload=context["weather"],
+            events_payload=context["events"],
+            mobility_payload=context["mobility"],
+            request_mode="prompt",
+        )
+
     def run_live_request(self, datetime_str: str, city: str = LIVE_CITY) -> dict[str, Any]:
         if city.strip().lower() != self.live_city.lower():
             raise ValueError(f"Live mode currently supports {self.live_city} only.")

@@ -7,7 +7,7 @@ from typing import Any, Literal
 from urban_campaign_intelligence.app_service import LIVE_CITY, UrbanCampaignApplicationService
 
 
-RequestMode = Literal["scenario", "live"]
+RequestMode = Literal["prompt", "scenario", "live"]
 
 # Inline scenario injects the scoring context through the payload. It is a test capability,
 # not a product feature, so it is off by default (secure-by-default): the deployed prod endpoint
@@ -24,6 +24,7 @@ def _inline_scenario_allowed() -> bool:
 @dataclass(frozen=True)
 class CampaignRequest:
     mode: RequestMode
+    prompt: str | None = None
     scenario_id: str | None = None
     # Inline scenario carried by the payload: deployable and reads no file, so it smoke-tests the
     # deployed runtime deterministically without the external tools. scenario_id stays a local-only
@@ -42,6 +43,8 @@ class LocalRequestMapper:
 
     @staticmethod
     def from_dict(payload: dict[str, Any]) -> CampaignRequest:
+        if payload.get("prompt"):
+            return CampaignRequest(mode="prompt", prompt=payload["prompt"])
         if isinstance(payload.get("scenario"), dict):
             if not _inline_scenario_allowed():
                 raise ValueError(
@@ -65,6 +68,11 @@ class UrbanCampaignStrandsAgent:
         self.app_service = app_service or UrbanCampaignApplicationService()
 
     def handle_request(self, request: CampaignRequest) -> dict[str, Any]:
+        if request.mode == "prompt":
+            if not request.prompt:
+                raise ValueError("Prompt mode requires a prompt.")
+            return self.app_service.run_prompt_request(request.prompt)
+
         if request.mode == "scenario":
             if request.scenario is not None:
                 return self.app_service.run_scenario_request(scenario=request.scenario)
