@@ -93,7 +93,23 @@ flowchart TB
 Le point clé : la référence au package est résolue **au build** (localement, où tout le repo est là),
 puis **copiée**. Au runtime il ne reste qu'une copie dans le zip — aucune dépendance externe à résoudre.
 
-## 4. Faire entrer le package dans le zip (PO-7)
+## 4. Les données ne sont pas toutes de même nature
+
+Un test local (installer le package via `--target` puis lancer le pipeline depuis la copie) a révélé
+que packager le **code** ne suffit pas : le pipeline lit des fichiers de `data/` et `tools/`. Mais ces
+fichiers ont trois rôles distincts, et un seul reste dans le runtime :
+
+| Fichier | Nature | Où il vit |
+| --- | --- | --- |
+| `data/scenarios.json` | **input** de test/replay | dev / CLI local — **jamais déployé**. En déployé, un scénario passe par le payload inline (§4.1 du DAT) |
+| `data/zones.json`, `data/advertisers.json` | **référence métier** | derrière les tools `get_zones` / `get_advertisers` (backends S3, cible §7) — **PO-8**. Chargés localement dans le monolithe MVP |
+| `tools/scoring_weights.json` | **config** du noyau de scoring | dans le runtime — la **seule** donnée que le CodeZip doit embarquer |
+
+Conséquence : le runtime déployé embarque le **code + `scoring_weights.json`**. Les scénarios sortent
+(payload inline), zones/advertisers partent vers les tools. Le mode scénario inline lit **zéro fichier**,
+ce qui en fait la voie de smoke-test du runtime déployé.
+
+## 5. Faire entrer le package dans le zip (PO-7)
 
 Procédure de référence, à câbler dans le script de déploiement au déblocage AWS :
 
@@ -121,5 +137,5 @@ Deux points de vigilance :
 Cette étape est **testable seulement au déblocage** (accès Bedrock + quota
 `AWS::BedrockAgentCore::Runtime`). Voir ARCHITECTURE.md §15 (PO-7).
 
-> Note d'organisation : ce document pourra à terme être résorbé, la procédure §4 rejoignant
+> Note d'organisation : ce document pourra à terme être résorbé, la procédure §5 rejoignant
 > [RUNBOOK_DEPLOY.md](RUNBOOK_DEPLOY.md) et les schémas §1–2 restant le support d'explication.

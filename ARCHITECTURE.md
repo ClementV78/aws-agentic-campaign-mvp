@@ -118,6 +118,20 @@ Le workflow cible traite une requête de recommandation de campagne sur une vill
 5. arbitrer et reviewer le résultat avec des agents LLM ciblés
 6. renvoyer une recommandation explicable avec scores, confiance et warnings
 
+### 4.1 Modes d'entrée
+
+Le runtime accepte trois formes de payload :
+
+| Payload | Mode | Portée |
+| --- | --- | --- |
+| `{"datetime", "city"}` | **live** — contexte via tools gouvernés | nominal, déployé |
+| `{"scenario": {…signaux…}}` | **scénario inline** — contexte injecté par l'appelant, aucun fichier lu | déployé : smoke-test **déterministe** du runtime, découplé des tools externes |
+| `{"scenario_id"}` | **scénario catalogue** — lecture d'un cas prédéfini | **dev / CLI local uniquement** (catalogue `data/scenarios.json`, non déployé) |
+
+Le mode scénario inline est la voie de test du runtime déployé : il exerce tout le pipeline
+(CityContext → scoring → review) sur des signaux fournis, sans dépendre de la disponibilité des
+API réelles.
+
 Le contrat d'entrée / sortie et les structures associées sont décrits dans
 [docs/RUNTIME_MAPPING.md](docs/RUNTIME_MAPPING.md).
 Un exemple de contexte normalisé est disponible dans
@@ -466,7 +480,7 @@ est explicitement **post-MVP**. Ordre de matérialisation :
    `python main.py` + `curl`.
 2. **packaging de déploiement** — le package doit entrer dans le CodeZip. Solution retenue : le
    copier au build via `uv pip install --target` (mécanisme officiel AWS, cible ARM64) ; reste à
-   câbler dans le script de déploiement (PO-7, [docs/PACKAGING.md](docs/PACKAGING.md) §4).
+   câbler dans le script de déploiement (PO-7, [docs/PACKAGING.md](docs/PACKAGING.md) §5).
 3. agent Strands pilotant réellement les tool calls, sur Bedrock débloqué
 4. un premier tool de contexte exposé via `AgentCore Gateway`, puis les suivants
 5. contrôles AgentCore / Guardrails / Policy effectivement câblés
@@ -513,6 +527,7 @@ deviennent contestées ou réversibles à coût élevé.
 | Quotas / throttling Bedrock | échecs en cours de run | retry borné, dégradation explicite plutôt qu'échec silencieux |
 | Dérive de coût liée à la consommation de tokens | dépassement du budget MVP | traçabilité de la consommation (exigence cible du chapitre 11), périmètre de données figé |
 | Injection résiduelle via contenu de tool | sortie manipulée | Guardrails plateforme + agent de review + logique métier hors prompt |
+| Contexte forcé via le payload scénario inline (§4.1) | scoring manipulé par l'appelant | acceptable en MVP démo ; en production le mode inline se garde derrière un flag ou une autorisation dédiée |
 
 ## 15. Points ouverts
 
@@ -524,7 +539,8 @@ deviennent contestées ou réversibles à coût élevé.
 | PO-4 | Introduction ou non d'`AgentCore Memory` | seulement si un scénario inter-run apporte une valeur démonstrative | après le flux nominal |
 | PO-5 | Introduction ou non d'`API Gateway` | seulement si la démo requiert une façade HTTP classique | après le flux nominal |
 | PO-6 | Rétention des logs et alerting | à cadrer avec la cible infra | Lot 2 |
-| PO-7 | Packaging du pipeline dans le CodeZip déployé | **solution retenue** : `uv pip install --target=deployment_package .` (cible ARM64) copie le package au build ; reste à câbler dans le script de déploiement. Détail : [docs/PACKAGING.md](docs/PACKAGING.md) §4 | avant premier déploiement runtime |
+| PO-7 | Packaging du pipeline dans le CodeZip déployé | **code** : copié au build via `uv pip install --target` (ARM64), à câbler dans le script — [docs/PACKAGING.md](docs/PACKAGING.md) §5. **Données** typées — [docs/PACKAGING.md](docs/PACKAGING.md) §4 : le runtime n'embarque que `scoring_weights.json` | avant premier déploiement runtime |
+| PO-8 | `zones` / `advertisers` derrière les tools S3 | matérialiser `get_zones` / `get_advertisers` (backends S3, §7) ; aujourd'hui chargés localement dans le monolithe MVP | au câblage Gateway |
 
 ## 16. Hypothèses, limites et hors périmètre
 
