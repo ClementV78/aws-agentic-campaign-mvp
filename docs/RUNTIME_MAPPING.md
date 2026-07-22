@@ -13,6 +13,53 @@ Il répond à une seule question : *pour chaque brique du code, qui la gouverne 
 | le choix « option 2 » | [DECISIONS.md](DECISIONS.md) ADR-006 |
 | le choix du fournisseur de modèles | [DECISIONS.md](DECISIONS.md) ADR-007 |
 
+## Modes d'entrée — payload structuré vs prompt
+
+Le runtime a **une seule sortie** (une recommandation explicable via un scoring déterministe) mais
+**plusieurs façons d'y entrer**. La différence tient à deux axes : le payload est-il **structuré** ou
+un **prompt** en langage naturel, et **qui construit le contexte** (les tools, l'appelant, un fichier,
+ou l'agent qui décide).
+
+```mermaid
+flowchart TB
+    P1["payload structuré<br/>datetime + city<br/>· LIVE ·"]
+    P2["payload structuré<br/>scenario inline<br/>· TEST, derrière flag ·"]
+    P3["payload structuré<br/>scenario_id<br/>· DEV local ·"]
+    P4["prompt langage naturel<br/>· CIBLE ·"]
+
+    P4 --> AG["agent Strands<br/>interprète + décide des tools"]
+    AG --> T["tools via Gateway"]
+    P1 --> T
+    P2 --> INJ["contexte injecté<br/>par l'appelant"]
+    P3 --> FIL["lookup fichier local<br/>data/scenarios.json"]
+
+    T --> CTX["CityContext normalisé"]
+    INJ --> CTX
+    FIL --> CTX
+    CTX --> SC["scoring DÉTERMINISTE<br/>hors LLM"]
+    SC --> R["réponse explicable"]
+
+    classDef target fill:#f5f3ff,stroke:#7c3aed,color:#4c1d95,stroke-width:1.5px,stroke-dasharray: 5 4;
+    classDef det fill:#ecfdf5,stroke:#059669,color:#064e3b,stroke-width:1.5px;
+    class P4,AG target;
+    class CTX,SC det;
+```
+
+Le mode **prompt** (violet pointillé) est la **cible** : il rebranche l'agent Strands qui décide des
+tool calls (§5.1.2 du DAT). Il n'est pas implémenté et dépend de Bedrock. Les trois modes structurés
+sont le socle actuel. **Tous convergent vers le même tronc déterministe** : `CityContext` → scoring.
+
+| Mode | Payload | Contexte fourni par | Déterministe ? | Déployé ? | Contrôle d'entrée |
+| --- | --- | --- | --- | --- | --- |
+| **live** | structuré | tools (Gateway) | oui | ✅ | validation de structure (`pre_hook`) + guardrails de tool |
+| **inline** | structuré | l'appelant | oui | ✅ derrière flag | validation de structure + flag (§8.2.3) |
+| **scenario_id** | structuré | fichier local | oui | ❌ dev only | validation de structure |
+| **prompt** *(cible)* | langage naturel | agent Strands (décide) | non (interprétation) | cible | **Guardrail *input*** sur le prompt, à la surface plateforme (§8.3.1) |
+
+Le point qui relie tout : un **prompt** n'est reproductible que si le modèle l'est ; les modes
+**structurés** restent la voie de test déterministe, même une fois le prompt disponible. Ce n'est pas
+l'un ou l'autre — c'est une **API structurée avec une surcouche NL**.
+
 ## Règle de lecture
 
 Le schéma ci-dessous décrit la **cible**. L'agent y appelle réellement les tools, et les tools y sont
