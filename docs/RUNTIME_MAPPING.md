@@ -27,15 +27,14 @@ flowchart TB
     P3["payload structuré<br/>scenario_id<br/>· DEV local ·"]
     P4["prompt langage naturel<br/>· CIBLE ·"]
 
-    P4 --> AG["agent Strands<br/>interprète + décide des tools"]
-    AG --> T["tools via Gateway"]
-    P1 --> T
-    P2 --> INJ["signaux injectés<br/>par l'appelant"]
-    P3 --> FIL["signaux lus du fichier<br/>data/scenarios.json"]
+    P4["prompt langage naturel<br/>· CIBLE ·"] --> AG["agent Strands<br/>interprète + décide des tools"]
+    AG -. "appelle" .-> T["tools via Gateway"]
+    P1["payload structuré<br/>datetime + city<br/>· LIVE ·"] -. "déclenche l'appel" .-> T
+    T -. "répond" .-> SIG["signaux de contexte bruts<br/>weather · events · mobility"]
 
-    T --> SIG["signaux de contexte bruts<br/>weather · events · mobility"]
-    INJ --> SIG
-    FIL --> SIG
+    P2["payload structuré<br/>scenario inline<br/>· TEST, derrière flag ·"] -- "fournit" --> SIG
+    P3["payload structuré<br/>scenario_id<br/>· DEV local ·"] -- "lit du fichier" --> SIG
+
     SIG --> CTX["CityContextBuilder<br/>· code déterministe ·<br/>normalise → CityContext"]
     CTX --> SC["scoring DÉTERMINISTE<br/>hors LLM"]
     SC --> R["réponse explicable"]
@@ -46,10 +45,19 @@ flowchart TB
     class CTX,SC det;
 ```
 
+Lecture des flèches : **pointillé = appel de tool** (on *appelle*, le tool *répond* — c'est une
+dépendance, pas une étape de transmission), **plein = flux de données** (l'inline *fournit* les
+signaux, le fichier les *lit*, le builder *normalise*). Un tool ne pousse rien vers le bas : il est
+appelé et il répond ; sa réponse **est** le signal.
+
 Ce qui change d'un mode à l'autre, c'est seulement **comment les signaux sont obtenus** : l'agent
-décide des tools (prompt), un appel direct (live), l'appelant les fournit (inline), un fichier les
+appelle les tools (prompt), un appel direct (live), l'appelant les fournit (inline), un fichier les
 donne (dev). **À partir des signaux, tout est commun et déterministe** : le `CityContextBuilder` (du
-**code**, pas les tools ni le LLM) normalise en `CityContext`, puis le scoring. Les context agents
+**code**, pas les tools ni le LLM) normalise en `CityContext`, puis le scoring.
+
+Pour la vraie sémantique **requête/réponse** dans le temps, un *flowchart* n'est pas le bon format —
+c'est un **sequenceDiagram** qu'il faut, exactement ce que produit `--trace-mermaid` sur un run
+(`ApplicationService->>GatewayProvider: get_weather`, puis la réponse). Les context agents
 (interprétation des signaux, `events_agent` pouvant être LLM) sont élidés ici — voir la vue intégrée
 plus bas.
 
