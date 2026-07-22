@@ -125,7 +125,7 @@ Le runtime accepte trois formes de payload :
 | Payload | Mode | Portée |
 | --- | --- | --- |
 | `{"datetime", "city"}` | **live** — contexte via tools gouvernés | nominal, déployé |
-| `{"scenario": {…signaux…}}` | **scénario inline** — contexte injecté par l'appelant, aucun fichier lu | déployé : smoke-test **déterministe** du runtime, découplé des tools externes |
+| `{"scenario": {…signaux…}}` | **scénario inline** — contexte injecté par l'appelant, aucun fichier lu | smoke-test **déterministe** du runtime, découplé des tools externes. **Gated** par flag, off par défaut (§8.2.3) |
 | `{"scenario_id"}` | **scénario catalogue** — lecture d'un cas prédéfini | **dev / CLI local uniquement** (catalogue `data/scenarios.json`, non déployé) |
 
 Le mode scénario inline est la voie de test du runtime déployé : il exerce tout le pipeline
@@ -349,6 +349,22 @@ refresh, enrichissement). Il n'est pas le mécanisme d'authentification par déf
 
 Le détail d'implémentation par tool n'est pas figé à ce stade (voir [15. Points ouverts](#15-points-ouverts)).
 
+#### 8.2.3 Mode scénario inline — deux surfaces, deux contrôles
+
+Le mode scénario inline (§4.1) laisse l'appelant fournir le contexte dans le payload. Il expose
+**deux surfaces distinctes**, gouvernées par **deux mécanismes indépendants** — à ne pas confondre :
+
+| Surface | Ce qui transite | Risque | Contrôle |
+| --- | --- | --- | --- |
+| Signaux **structurés** | `weather`, `mobility`, scores injectés | scoring manipulé (manipulation de **données**, pas un prompt) | **flag** `AGENTCAMPAIGN_ALLOW_INLINE_SCENARIO`, désactivé par défaut. Les Guardrails **n'y voient rien** |
+| **Texte libre** | `title` / `description` d'un event → `events_agent` LLM | prompt injection | **Bedrock Guardrails** sur l'appel modèle (§8.3.1), indépendamment du flag |
+
+Les deux ne sont **pas en concurrence** : le flag gouverne l'existence même de la capacité (surface
+données), les Guardrails couvrent le texte-vers-LLM. La capacité inline étant un outil de test, le flag
+est **secure-by-default** : l'endpoint de production ne l'active pas ; un endpoint de test ou la CI le
+positionne. Une granularité par utilisateur en production relèverait de l'auth par identité (JWT scope
+ou endpoints IAM séparés), hors v1 (voir [15. Points ouverts](#15-points-ouverts)).
+
 ### 8.3 Répartition des contrôles
 
 #### 8.3.1 Contrôles de plateforme
@@ -527,7 +543,7 @@ deviennent contestées ou réversibles à coût élevé.
 | Quotas / throttling Bedrock | échecs en cours de run | retry borné, dégradation explicite plutôt qu'échec silencieux |
 | Dérive de coût liée à la consommation de tokens | dépassement du budget MVP | traçabilité de la consommation (exigence cible du chapitre 11), périmètre de données figé |
 | Injection résiduelle via contenu de tool | sortie manipulée | Guardrails plateforme + agent de review + logique métier hors prompt |
-| Contexte forcé via le payload scénario inline (§4.1) | scoring manipulé par l'appelant | acceptable en MVP démo ; en production le mode inline se garde derrière un flag ou une autorisation dédiée |
+| Contexte forcé via le payload scénario inline (§4.1) | scoring manipulé par l'appelant | flag `AGENTCAMPAIGN_ALLOW_INLINE_SCENARIO` **off par défaut** ; surface données distincte des Guardrails (§8.2.3) |
 
 ## 15. Points ouverts
 
