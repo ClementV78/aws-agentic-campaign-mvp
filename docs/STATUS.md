@@ -1,5 +1,31 @@
 # Status
 
+run_id=run_7463c4868c72 mode=scenario steps=13 duration=2.6 ms tokens=None
+```mermaid
+gantt
+    title Run run_7463c4868c72 — 2.6 ms total (axis in us)
+    dateFormat x
+    axisFormat %L
+    todayMarker off
+    section Input
+    pre_hook 37us :0, 37
+    section Context
+    get_weather 87us :37, 124
+    get_events 39us :124, 163
+    get_mobility 24us :163, 187
+    weather_agent 51us :187, 238
+    events_agent 31us :238, 269
+    mobility_agent 20us :269, 289
+    city_context_builder 39us :289, 328
+    section Decision
+    zone_analyzer_agent 1922us :328, 2250
+    advertiser_matcher_agent 47us :2250, 2297
+    campaign_allocator_agent 117us :2297, 2414
+    section Output
+    review_agent 107us :2414, 2521
+    executive_summary_agent 48us :2521, 2569
+```
+
 ## Objectif
 
 Suivre l'avancement opérationnel du projet avec un niveau de granularité plus fin que la roadmap.
@@ -36,7 +62,7 @@ Règle d'usage :
 | Weather semi-real backend | `done` | `Open-Meteo` branché avec fallback mock |
 | Events semi-real backend | `done` | Paris Open Data branché avec fallback mock |
 | Mobility forecast backend | `done` | forecast déterministe `hour_of_week` branché |
-| AgentCore orchestration | `todo` | non démarré |
+| AgentCore orchestration | `in_progress` | verticale locale fermée (`runtime_app.py`) : entrypoint AgentCore → noyau métier → réponse ; boucle Strands + Gateway restent à faire |
 | Déploiement AWS | `blocked` | déploiement réel tenté sur un compte AWS de démo, bloqué par quota `AWS::BedrockAgentCore::Runtime` (`maxAgents limit exceeded`) |
 
 ---
@@ -141,6 +167,8 @@ Règle d'usage :
 | `bootstrap.sh` | `done` | vérifie les prérequis Lot 2 (`aws`, `agentcore`, `node`, région, identité AWS, projet AgentCore cible) et peut exécuter les tests locaux |
 | `demo.sh` | `done` | lance les scénarios locaux |
 | Cadrage infra MVP | `done` | cible `InvokeAgentRuntime + AgentCore Runtime + Strands agent métier + Gateway-first security model`, documentée |
+| Verticale locale fermée | `done` | `runtime_app.py` : entrypoint `BedrockAgentCoreApp` branché sur le noyau métier ; `handle_invocation` testé (38 tests). Serveur HTTP non validé dans le harness actuel (uvicorn long-running), à confirmer via `curl` en local |
+| Agent Strands réel sur le runtime | `todo` | l'entrypoint appelle le pipeline déterministe ; la boucle Strands pilotant les tool calls est la marche suivante, `blocked` sur Bedrock |
 | `deploy.sh` | `blocked` | déploiement réel lancé, bootstrap CDK OK, bucket S3 et artefacts OK, échec runtime AgentCore sur quota `maxAgents` du compte AWS |
 | `destroy.sh` | `in_progress` | teardown AgentCore/CDK + nettoyage S3 pilotés par `deploy-outputs.json` ou le manifeste |
 | AgentCore Gateway | `todo` | non démarré |

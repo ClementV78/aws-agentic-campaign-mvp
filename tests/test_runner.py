@@ -9,6 +9,7 @@ from urban_campaign_intelligence.llm_client import StrandsBedrockClient, get_llm
 from urban_campaign_intelligence.observability import to_gantt, to_mermaid, to_timeline
 from urban_campaign_intelligence.local_agent import CampaignRequest, LocalRequestMapper, UrbanCampaignStrandsAgent
 from urban_campaign_intelligence.runner import format_summary, run_scenario
+from urban_campaign_intelligence.runtime_app import handle_invocation
 
 
 class RunnerTestCase(unittest.TestCase):
@@ -294,6 +295,30 @@ class RunnerTestCase(unittest.TestCase):
             self.assertGreaterEqual(entry["start_ms"], previous_end - 1e-6)
             self.assertGreaterEqual(entry["end_ms"], entry["start_ms"])
             previous_end = entry["end_ms"]
+
+    def test_runtime_entrypoint_handles_a_scenario_payload(self) -> None:
+        result = handle_invocation({"scenario_id": "concert_bercy"})
+        self.assertEqual(result["scenario"]["id"], "concert_bercy")
+        self.assertTrue(result["run"]["run_id"].startswith("run_"))
+        self.assertTrue(result["allocation_plan"]["recommended_matches"])
+
+    def test_runtime_entrypoint_handles_a_live_payload(self) -> None:
+        result = handle_invocation({"datetime": "2026-09-18T19:30:00+02:00"})
+        self.assertEqual(result["scenario"]["mode"], "live")
+        self.assertEqual(result["scenario"]["city"], "Paris")
+
+    def test_runtime_entrypoint_rejects_empty_payload(self) -> None:
+        with self.assertRaises(ValueError):
+            handle_invocation({})
+
+    def test_build_app_attaches_the_entrypoint(self) -> None:
+        try:
+            import bedrock_agentcore  # noqa: F401
+        except ImportError:
+            self.skipTest("bedrock-agentcore not installed")
+        from urban_campaign_intelligence.runtime_app import build_app
+        app = build_app()
+        self.assertIn("main", app.handlers)
 
     def test_mobility_forecast_provider_detects_station_peak(self) -> None:
         provider = MobilityForecastProvider()

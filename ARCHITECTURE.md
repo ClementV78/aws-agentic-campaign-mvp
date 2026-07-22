@@ -302,6 +302,12 @@ structurante : la gouvernance est portée par Gateway, pas par le backend.
 
 ## 8. Sécurité et garde-fous
 
+> **État actuel — contrôles à matérialiser.** Ce chapitre décrit le modèle de sécurité **cible**.
+> Le runtime AgentCore déployable est aujourd'hui minimal : `networkMode: PUBLIC`, `protocol: HTTP`,
+> et `agentCoreGateways`, `policyEngines`, `memories` vides dans `agentcore.json`. Aucun des contrôles
+> de plateforme ci-dessous (Gateway gouverné, Policy, Guardrails) n'est encore câblé. La séquence de
+> matérialisation est au [§12.2](#12-trajectoire).
+
 ### 8.1 Principe général
 
 Les contrôles génériques sont couverts en priorité par les mécanismes AWS natifs, et non
@@ -446,10 +452,22 @@ restent en `mock` par défaut.
 
 ### 12.2 Séquence de matérialisation
 
-1. agent Strands pilotant réellement les tool calls
-2. tools de contexte exposés via `AgentCore Gateway`
-3. contrôles AgentCore / Guardrails / Policy effectivement câblés
-4. observabilité d'exécution alignée avec le chapitre 11
+Le critère de **« MVP AWS done »** est une **seule verticale fermée**, pas une couverture large :
+
+> `InvokeAgentRuntime` → 1 agent Strands → 1 tool via Gateway → noyau déterministe → réponse explicable.
+
+Tant que cette verticale n'est pas fermée de bout en bout, le reste (multi-tools, Memory, façade HTTP)
+est explicitement **post-MVP**. Ordre de matérialisation :
+
+1. **verticale locale fermée** — entrypoint AgentCore branché sur le noyau métier, testable via
+   `app.run()` sans dépendre de Bedrock (le pipeline dégrade en déterministe). *← marche courante*
+2. agent Strands pilotant réellement les tool calls, sur Bedrock débloqué
+3. un premier tool de contexte exposé via `AgentCore Gateway`, puis les suivants
+4. contrôles AgentCore / Guardrails / Policy effectivement câblés
+5. observabilité d'exécution alignée avec le chapitre 11
+
+Les étapes 2 à 4 sont conditionnées à deux blocages compte AWS : accès Bedrock et quota
+`AWS::BedrockAgentCore::Runtime` (voir [docs/STATUS.md](docs/STATUS.md)).
 
 ## 13. Décisions d'architecture retenues
 
