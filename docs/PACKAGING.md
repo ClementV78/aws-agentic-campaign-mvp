@@ -57,10 +57,16 @@ flowchart TB
 Sans Bedrock configuré, chaque étage LLM dégrade vers son heuristique : la verticale tourne hors
 ligne. La réponse porte son identifiant de corrélation sous `run.run_id`.
 
-## 3. Local vs déploiement — la seule différence
+## 3. Local vs déploiement — le même code, deux façons de le placer
 
-En local, le package est installé dans le venv, donc `main.py` le trouve. Au déploiement, `CodeZip`
-ne prend que `codeLocation` (`app/`) : le package doit y entrer autrement. C'est **PO-7**.
+La règle AWS est simple : **tout le code déployé finit dans le zip**, décompressé sous `/var/task`,
+premier répertoire du `sys.path`
+([doc officielle](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-code-deploy-python.html)).
+Il n'existe pas de « path-dependency » vue par le runtime : le conteneur ne voit que le paquet.
+
+En local, `pip install -e .` met le package dans le venv → `main.py` le trouve. Pour le déploiement,
+on **copie** le package dans le paquet au moment du build, avec la commande officielle `uv pip
+install --target` — mécanisme standard, pas un contournement.
 
 ```mermaid
 flowchart TB
@@ -71,20 +77,49 @@ flowchart TB
         L3 --> L4["python main.py → curl → 200"]
     end
 
-    subgraph DEPLOY["DÉPLOIEMENT AWS — PO-7, non résolu"]
+    subgraph DEPLOY["DÉPLOIEMENT AWS — build local, puis zip"]
         direction TB
-        D1["agentcore CodeZip"] --> D2["zippe app/ uniquement"]
-        D2 --> D3["src/ hors du zip"]
-        D3 --> D4["main.py importe le package ✗ ImportError"]
-        D4 --> D5["à régler : copie au build · OU · index privé (CodeArtifact)"]
+        D1["uv pip install --target=deployment_package .<br/>(machine locale, repo présent, cible ARM64)"]
+        D2["package + deps COPIÉS dans deployment_package/"]
+        D3["zip du deployment_package + main.py"]
+        D4["/var/task : main.py importe le package ✓"]
+        D1 --> D2 --> D3 --> D4
     end
 
     classDef ok fill:#ecfdf5,stroke:#059669,color:#064e3b;
-    classDef ko fill:#fff7ed,stroke:#c2410c,color:#7c2d12;
-    class L1,L2,L3,L4 ok;
-    class D1,D2,D3,D4,D5 ko;
+    class L1,L2,L3,L4,D1,D2,D3,D4 ok;
 ```
 
-La path-dependency ne résout pas le déploiement : elle pointe hors de `codeLocation`, que le zip
-ignore. La décision (copie au build vs index privé) est reportée au premier déploiement réel, lui-même
-bloqué par l'accès Bedrock et le quota `AWS::BedrockAgentCore::Runtime`.
+Le point clé : la référence au package est résolue **au build** (localement, où tout le repo est là),
+puis **copiée**. Au runtime il ne reste qu'une copie dans le zip — aucune dépendance externe à résoudre.
+
+## 4. Faire entrer le package dans le zip (PO-7)
+
+Procédure de référence, à câbler dans le script de déploiement au déblocage AWS :
+
+```bash
+# 1. installer le package + ses deps pour la cible ARM64 du runtime, dans un dossier
+uv pip install \
+  --python-platform aarch64-manylinux2014 \
+  --python-version 3.13 \
+  --target=deployment_package \
+  --only-binary=:all: \
+  .
+
+# 2. ajouter l'entrypoint, puis zipper
+cp agentcore-project/.../app/.../main.py deployment_package/
+cd deployment_package && zip -r ../deployment_package.zip .
+```
+
+Deux points de vigilance :
+
+- **ARM64 obligatoire** : le runtime AgentCore tourne en `aarch64`. Des wheels `x86_64` échouent au
+  déploiement. Nos deps (`strands-agents`, `pydantic`, `boto3`) sont pures Python ou ont des wheels
+  ARM64, donc OK — mais toute future dépendance native devra être buildée pour ARM64.
+- **Pas de `__pycache__`** dans le paquet (bytecode compilé sur une autre archi, incompatible).
+
+Cette étape est **testable seulement au déblocage** (accès Bedrock + quota
+`AWS::BedrockAgentCore::Runtime`). Voir ARCHITECTURE.md §15 (PO-7).
+
+> Note d'organisation : ce document pourra à terme être résorbé, la procédure §4 rejoignant
+> [RUNBOOK_DEPLOY.md](RUNBOOK_DEPLOY.md) et les schémas §1–2 restant le support d'explication.

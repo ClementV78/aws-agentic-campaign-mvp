@@ -464,9 +464,9 @@ est explicitement **post-MVP**. Ordre de matérialisation :
    importe le pipeline métier (package installable `urban_campaign_intelligence`) et répond en
    JSON sur `POST /invocations`, sans Bedrock (dégradation déterministe). Testable en local via
    `python main.py` + `curl`.
-2. **packaging de déploiement** — le package doit entrer dans le CodeZip. La path-dependency ne
-   suffit pas (CodeZip ne zippe que `codeLocation`). Décision ouverte : copie au build vs index
-   privé (voir [15. Points ouverts](#15-points-ouverts)).
+2. **packaging de déploiement** — le package doit entrer dans le CodeZip. Solution retenue : le
+   copier au build via `uv pip install --target` (mécanisme officiel AWS, cible ARM64) ; reste à
+   câbler dans le script de déploiement (PO-7, [docs/PACKAGING.md](docs/PACKAGING.md) §4).
 3. agent Strands pilotant réellement les tool calls, sur Bedrock débloqué
 4. un premier tool de contexte exposé via `AgentCore Gateway`, puis les suivants
 5. contrôles AgentCore / Guardrails / Policy effectivement câblés
@@ -524,7 +524,7 @@ deviennent contestées ou réversibles à coût élevé.
 | PO-4 | Introduction ou non d'`AgentCore Memory` | seulement si un scénario inter-run apporte une valeur démonstrative | après le flux nominal |
 | PO-5 | Introduction ou non d'`API Gateway` | seulement si la démo requiert une façade HTTP classique | après le flux nominal |
 | PO-6 | Rétention des logs et alerting | à cadrer avec la cible infra | Lot 2 |
-| PO-7 | Packaging du pipeline dans le CodeZip déployé | copie au build vs index privé (CodeArtifact) ; la path-dependency ne suffit pas | avant premier déploiement runtime |
+| PO-7 | Packaging du pipeline dans le CodeZip déployé | **solution retenue** : `uv pip install --target=deployment_package .` (cible ARM64) copie le package au build ; reste à câbler dans le script de déploiement. Détail : [docs/PACKAGING.md](docs/PACKAGING.md) §4 | avant premier déploiement runtime |
 
 ## 16. Hypothèses, limites et hors périmètre
 
