@@ -30,12 +30,13 @@ flowchart TB
     P4 --> AG["agent Strands<br/>interprète + décide des tools"]
     AG --> T["tools via Gateway"]
     P1 --> T
-    P2 --> INJ["contexte injecté<br/>par l'appelant"]
-    P3 --> FIL["lookup fichier local<br/>data/scenarios.json"]
+    P2 --> INJ["signaux injectés<br/>par l'appelant"]
+    P3 --> FIL["signaux lus du fichier<br/>data/scenarios.json"]
 
-    T --> CTX["CityContext normalisé"]
-    INJ --> CTX
-    FIL --> CTX
+    T --> SIG["signaux de contexte bruts<br/>weather · events · mobility"]
+    INJ --> SIG
+    FIL --> SIG
+    SIG --> CTX["CityContextBuilder<br/>· code déterministe ·<br/>normalise → CityContext"]
     CTX --> SC["scoring DÉTERMINISTE<br/>hors LLM"]
     SC --> R["réponse explicable"]
 
@@ -45,9 +46,16 @@ flowchart TB
     class CTX,SC det;
 ```
 
+Ce qui change d'un mode à l'autre, c'est seulement **comment les signaux sont obtenus** : l'agent
+décide des tools (prompt), un appel direct (live), l'appelant les fournit (inline), un fichier les
+donne (dev). **À partir des signaux, tout est commun et déterministe** : le `CityContextBuilder` (du
+**code**, pas les tools ni le LLM) normalise en `CityContext`, puis le scoring. Les context agents
+(interprétation des signaux, `events_agent` pouvant être LLM) sont élidés ici — voir la vue intégrée
+plus bas.
+
 Le mode **prompt** (violet pointillé) est la **cible** : il rebranche l'agent Strands qui décide des
 tool calls (§5.1.2 du DAT). Il n'est pas implémenté et dépend de Bedrock. Les trois modes structurés
-sont le socle actuel. **Tous convergent vers le même tronc déterministe** : `CityContext` → scoring.
+sont le socle actuel.
 
 | Mode | Payload | Contexte fourni par | Déterministe ? | Déployé ? | Contrôle d'entrée |
 | --- | --- | --- | --- | --- | --- |
