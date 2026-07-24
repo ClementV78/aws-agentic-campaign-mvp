@@ -33,6 +33,7 @@ Chaque diagramme a :
 | `agentcore-capability-map.archify.svg` | carte des capacités AgentCore (calquée sur AWS) avec notre usage et son statut — référencée par `ARCHITECTURE.md` §6 |
 | `deployed-request.archify.svg` | séquence d'un run réel sur le runtime déployé : `InvokeAgentRuntime` → agent Nova Lite → tools → pipeline déterministe → reco — `RUNTIME_MAPPING.md` |
 | `observability-layers.archify.svg` | les 2 couches d'observabilité (trace GenAI AWS vs `RunTrace`) et leur corrélation par `trace_id`/`session_id` — `RUNTIME_MAPPING.md` |
+| `cfn-stack.archify.svg` | chaîne de déploiement (`deploy.sh` → `agentcore deploy` → CDK → CloudFormation) et les 11 ressources de la stack — `RUNBOOK_DEPLOY.md` |
 
 Régénération : modifier le `.archify.json`, re-rendre le `.archify.html` avec le renderer archify,
 puis ré-extraire / régénérer le `.archify.svg` statique pour les docs Markdown.

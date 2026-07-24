@@ -11,8 +11,7 @@ Ce dossier regroupe la documentation d'architecture, opérationnelle et d'archiv
 | où en est réellement le projet | [STATUS.md](STATUS.md) |
 | ce qui reste à faire et dans quel ordre | [../roadmap.md](../roadmap.md) |
 | pourquoi telle décision a été prise | [DECISIONS.md](DECISIONS.md) |
-| comment déployer sur AWS | [RUNBOOK_DEPLOY.md](RUNBOOK_DEPLOY.md) |
-| quelles ressources AWS sont déployées (inventaire) | [DEPLOYED_RESOURCES.md](DEPLOYED_RESOURCES.md) |
+| comment déployer sur AWS, et quelles ressources sont créées (inventaire de la stack) | [RUNBOOK_DEPLOY.md](RUNBOOK_DEPLOY.md) |
 | à quel fichier correspond quelle brique | [RUNTIME_MAPPING.md](RUNTIME_MAPPING.md) |
 
 ---

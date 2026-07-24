@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Déploiement : de deploy.sh à la stack CloudFormation",
+    "subtitle": "agentcore deploy → CDK synth/deploy → une stack CloudFormation possède toutes les ressources AgentCore",
+    "output": "cfn-stack.html",
+    "viewBox": [1300, 780]
+  },
+  "components": [
+    { "id": "deploysh", "type": "external", "label": "scripts/deploy.sh", "sublabel": "stage code + data", "pos": [40, 40], "size": [150, 58] },
+    { "id": "cli", "type": "backend", "label": "agentcore deploy", "sublabel": "CLI", "pos": [240, 40], "size": [150, 58] },
+    { "id": "synth", "type": "backend", "label": "cdk synth", "sublabel": "agentcore.json → template", "pos": [440, 40], "size": [165, 58] },
+    { "id": "cdkdeploy", "type": "backend", "label": "cdk deploy", "sublabel": "upload + CloudFormation", "pos": [655, 40], "size": [160, 58] },
+    { "id": "assets", "type": "database", "label": "CDK assets bucket", "sublabel": "template + lambda .zip", "pos": [870, 40], "size": [170, 58] },
+
+    { "id": "runtime", "type": "cloud", "label": "Runtime", "sublabel": "BedrockAgentCore::Runtime", "pos": [70, 250], "size": [190, 60] },
+    { "id": "execrole", "type": "security", "label": "Runtime Exec Role", "sublabel": "IAM::Role", "pos": [70, 350], "size": [190, 56] },
+    { "id": "execpol", "type": "security", "label": "Exec Policy", "sublabel": "InvokeModel · logs · gateway", "pos": [70, 446], "size": [190, 56] },
+
+    { "id": "gw", "type": "cloud", "label": "Gateway", "sublabel": "BedrockAgentCore::Gateway", "pos": [440, 250], "size": [190, 60] },
+    { "id": "target", "type": "cloud", "label": "Gateway Target", "sublabel": "tools → lambda", "pos": [670, 250], "size": [175, 60] },
+    { "id": "lambda", "type": "backend", "label": "Lambda", "sublabel": "Lambda::Function (contextTools)", "pos": [890, 250], "size": [210, 60] },
+
+    { "id": "gwrole", "type": "security", "label": "Gateway Role", "sublabel": "IAM::Role", "pos": [440, 350], "size": [190, 56] },
+    { "id": "gwpol", "type": "security", "label": "Gateway Policy", "sublabel": "invoke lambda", "pos": [670, 350], "size": [175, 56] },
+    { "id": "lambdarole", "type": "security", "label": "Lambda Role", "sublabel": "IAM::Role", "pos": [890, 350], "size": [190, 56] },
+    { "id": "loggroup", "type": "cloud", "label": "Log Group", "sublabel": "Logs::LogGroup", "pos": [890, 446], "size": [190, 56] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "CloudFormation stack — AgentCore-UrbanCampaignIntelPoc-default (11 ressources)", "wraps": ["runtime", "execrole", "execpol", "gw", "target", "lambda", "gwrole", "gwpol", "lambdarole", "loggroup"] }
+  ],
+  "connections": [
+    { "from": "deploysh", "to": "cli", "variant": "emphasis" },
+    { "from": "cli", "to": "synth", "variant": "emphasis" },
+    { "from": "synth", "to": "cdkdeploy", "variant": "emphasis" },
+    { "from": "cdkdeploy", "to": "assets", "label": "upload", "variant": "dashed" },
+    { "from": "cdkdeploy", "to": "runtime", "label": "create / update", "variant": "emphasis", "fromSide": "bottom", "toSide": "top" },
+    { "from": "runtime", "to": "gw", "label": "appelle (MCP, SigV4) — cible", "variant": "security", "fromSide": "right", "toSide": "left" },
+    { "from": "target", "to": "lambda", "label": "invoke", "variant": "default", "fromSide": "right", "toSide": "left" }
+  ],
+  "cards": [
+    {
+      "dot": "amber",
+      "title": "Le maillon absent de la doc",
+      "items": [
+        "agentcore.json (managedBy: CDK) est lu par le CDK",
+        "cdk synth le transforme en template CloudFormation",
+        "cdk deploy crée/maj UNE stack qui possède tout"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Côté Runtime (3 ressources)",
+      "items": [
+        "AWS::BedrockAgentCore::Runtime (héberge main.py)",
+        "IAM::Role d'exécution + sa IAM::Policy",
+        "bedrock:InvokeModel, CloudWatch, accès gateway"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Côté Gateway / tools (7 ressources)",
+      "items": [
+        "Gateway (MCP) + GatewayTarget (tools→lambda)",
+        "Lambda::Function + son Logs::LogGroup",
+        "3 IAM: rôle Lambda, rôle Gateway, policy invoke"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "Réversibilité",
+      "items": [
+        "destroy.sh = cdk destroy → supprime toute la stack",
+        "Le CDK assets bucket est un prérequis (bootstrap)",
+        "CDK::Metadata = métadonnée, pas une vraie ressource"
+      ]
+    }
+  ]
+}

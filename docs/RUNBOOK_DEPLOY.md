@@ -49,6 +49,49 @@ flowchart LR
     D --> E["Resources AWS creees<br/>selon le contenu du spec"]
 ```
 
+### Vue concrète : la stack réellement déployée
+
+Vue détaillée de la même chaîne, avec les ressources réelles d'un déploiement de ce repo :
+
+![Déploiement : de deploy.sh à la stack CloudFormation](diagrams/cfn-stack.archify.svg)
+
+La stack `AgentCore-UrbanCampaignIntelPoc-default` (compte `194031983377`, `us-east-1`, profil
+`aws100demo1`) possède **11 ressources** (hors `AWS::CDK::Metadata`) :
+
+**Côté Runtime**
+
+| Ressource | Type | Note |
+|---|---|---|
+| **AgentCore Runtime** | `AWS::BedrockAgentCore::Runtime` | héberge `main.py` ; compté par le quota `maxAgents` |
+| Rôle d'exécution | `AWS::IAM::Role` | rôle du runtime |
+| Policy du rôle | `AWS::IAM::Policy` | `bedrock:InvokeModel` · CloudWatch · accès gateway |
+
+**Côté Gateway / tools**
+
+| Ressource | Type | Note |
+|---|---|---|
+| **Gateway** (MCP) | `AWS::BedrockAgentCore::Gateway` | `authorizerType: AWS_IAM` |
+| Gateway Target | `AWS::BedrockAgentCore::GatewayTarget` | lie les 3 tools → Lambda |
+| **Lambda** | `AWS::Lambda::Function` | `UrbanCampaignIntelPoc-contextTools` (python3.13) |
+| Log Group Lambda | `AWS::Logs::LogGroup` | `/aws/lambda/UrbanCampaignIntelPoc-contextTools` |
+| Rôle Lambda | `AWS::IAM::Role` | exécution de la Lambda |
+| Rôle Gateway + Policy | `AWS::IAM::Role` + `Policy` | permet au Gateway d'invoquer la Lambda |
+
+- **Runtime ARN** : `arn:aws:bedrock-agentcore:us-east-1:194031983377:runtime/UrbanCampaignIntelPoc_UrbanCampaignIntelPoc-9WdEB7BnPP`
+- **Gateway URL (MCP)** : `https://urbancampaignintelpoc-urbancampaigntools-4nhesyuq9h.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp`
+- **Hors stack** : bucket S3 d'artefacts `urban-campaign-intelligence-poc-194031983377-us-east-1`, log group runtime `/aws/bedrock-agentcore/runtimes/…-DEFAULT`.
+- **Préexistant, réutilisé** : bootstrap CDK (`CDKToolkit` v32) — son **bucket d'assets** `cdk-hnb659fds-assets-…` reçoit le template + le `.zip` Lambda à chaque `cdk deploy` ; **ne pas le supprimer** (sinon `Failed to publish asset`, re-bootstrap requis).
+
+> ⚠️ État : le Gateway est **déployé et sert du réel** (Lambda testée : `open_meteo`, `paris_open_data`,
+> `forecast`), mais l'agent du runtime ne le consomme **pas encore** (il utilise ses `@tool` locaux). Le
+> rewire de l'orchestrateur (MCP + SigV4) est la marche suivante.
+
+Régénérer l'inventaire :
+`aws cloudformation describe-stack-resources --stack-name AgentCore-UrbanCampaignIntelPoc-default` (profil `aws100demo1`).
+
+Utiliser / tester le runtime : voir [../agentcore-project/…/main.py](../agentcore-project/UrbanCampaignIntelligencePoc/app/UrbanCampaignIntelligencePoc/main.py) ;
+invoquer via `agentcore invoke "…" --target default` ; teardown via `destroy.sh` (= `cdk destroy`, supprime toute la stack).
+
 ### Lecture rapide
 
 - `agentcore.json` décrit les ressources du projet
