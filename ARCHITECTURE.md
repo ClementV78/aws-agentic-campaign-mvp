@@ -120,17 +120,26 @@ Le workflow cible traite une requête de recommandation de campagne sur une vill
 
 ### 4.1 Modes d'entrée
 
-Le runtime accepte trois formes de payload :
+Le runtime accepte quatre formes de payload. Le mode **produit** cible est le prompt en langage
+naturel ; les trois modes structurés restent comme voies de test déterministe et outillage local.
 
 | Payload | Mode | Portée |
 | --- | --- | --- |
-| `{"datetime", "city"}` | **live** — contexte via tools gouvernés | nominal, déployé |
+| `{"prompt"}` | **prompt** — un agent Strands interprète la demande et **décide des tool calls** | **mode produit nominal**, agentique (Nova Lite / Bedrock). Implémenté et testé |
+| `{"datetime", "city"}` | **live** — contexte via tools, appelés dans un ordre figé par le code | **déprécié comme mode produit** ; conservé comme voie déterministe (tests, CLI) |
 | `{"scenario": {…signaux…}}` | **scénario inline** — contexte injecté par l'appelant, aucun fichier lu | smoke-test **déterministe** du runtime, découplé des tools externes. **Gated** par flag, off par défaut (§8.2.3) |
-| `{"scenario_id"}` | **scénario catalogue** — lecture d'un cas prédéfini | **dev / CLI local uniquement** (catalogue `data/scenarios.json`, non déployé) |
+| `{"scenario_id"}` | **scénario catalogue** — lecture d'un cas prédéfini | **déprécié comme mode produit** ; dev / CLI local uniquement (catalogue `data/scenarios.json`, non déployé) |
 
-Le mode scénario inline est la voie de test du runtime déployé : il exerce tout le pipeline
-(CityContext → scoring → review) sur des signaux fournis, sans dépendre de la disponibilité des
-API réelles.
+La distinction structurante est **qui appelle les tools** : en mode prompt, c'est l'**agent** (sur
+décision du LLM) ; dans les modes structurés, c'est le **code**, dans un ordre fixe. Depuis ces
+signaux, tout est identique et déterministe (CityContext → scoring → review), quel que soit le mode.
+
+Le mode **live** et le mode **scenario_id** ne sont plus des façons prévues d'appeler le produit :
+`live` n'accepte que Paris et ne présente aucun événement réel quand aucune source ne répond ;
+`scenario_id` lit un catalogue de dev non déployé. Ils restent utiles comme entrées **déterministes**
+(la reproductibilité d'un prompt dépend de celle du modèle) et sont exercés par les tests. Le mode
+scénario inline est la voie de test du runtime déployé : il exerce tout le pipeline sur des signaux
+fournis, sans dépendre de la disponibilité des API réelles.
 
 Le contrat d'entrée / sortie et les structures associées sont décrits dans
 [docs/RUNTIME_MAPPING.md](docs/RUNTIME_MAPPING.md).
@@ -181,7 +190,7 @@ Source éditable : [multi-agent-orchestration.archify.json](docs/diagrams/multi-
 
 | Rôle | Type | Responsabilité |
 | --- | --- | --- |
-| `UrbanCampaignStrandsAgent` | agent d'orchestration | pilote la requête, décide des tool calls, orchestre les étapes |
+| `UrbanCampaignStrandsAgent` | agent d'orchestration | pilote la requête, **décide des tool calls** et collecte les signaux (mode `prompt`, réel sur Nova Lite / Bedrock — [`orchestrator.py`](src/urban_campaign_intelligence/orchestrator.py)) |
 | `Events Agent` | agent spécialisé | interprète des événements bruts en signaux métier exploitables |
 | `Advertiser Agent` | agent spécialisé | formule des revendications argumentées par annonceur |
 | `Campaign Allocator Agent` | agent spécialisé | arbitre globalement les revendications |
@@ -189,10 +198,11 @@ Source éditable : [multi-agent-orchestration.archify.json](docs/diagrams/multi-
 | `CityContext Builder` | code déterministe | normalise les signaux bruts en `CityContext` |
 | `Scoring Engine` | code déterministe | calcule les scores et garde une explicabilité forte |
 
-À ce jour, seuls `Events Agent`, `Review Agent` et la synthèse exécutive ont un étage LLM
-réel (chacun avec repli heuristique). `Advertiser Agent` et `Campaign Allocator Agent` sont des
-cibles : l'arbitrage est aujourd'hui porté par le scoring déterministe. Le code comporte en outre
-un agent météo et un agent mobilité, non représentés ici car purement normalisateurs.
+À ce jour, ont un étage LLM réel : l'**agent d'orchestration** (mode `prompt`, décide des tool
+calls sur Nova Lite), puis `Events Agent`, `Review Agent` et la synthèse exécutive (chacun avec
+repli heuristique). `Advertiser Agent` et `Campaign Allocator Agent` sont des cibles : l'arbitrage
+est aujourd'hui porté par le scoring déterministe. Le code comporte en outre un agent météo et un
+agent mobilité, non représentés ici car purement normalisateurs.
 
 #### 5.2.2 Règle de conception
 
@@ -217,6 +227,15 @@ Source éditable : [request-flow.archify.json](docs/diagrams/request-flow.archif
 8. la réponse finale est validée, enrichie de warnings/disclaimers puis renvoyée
 
 ## 6. Répartition des responsabilités
+
+La carte ci-dessous reprend la grille des **capacités AgentCore** publiée par AWS et la surcharge
+d'un code statut : ce que nous utilisons, pour quoi, et à quel stade. Elle situe d'un coup d'œil nos
+briques (agent Strands, SDK, Runtime, Observabilité) et ce qui reste **cible** (Gateway, Policy,
+Evaluations) ou **hors périmètre** (Memory, Payments, Registry, built-in tools).
+
+![Carte des capacités AgentCore — usage et statut](docs/diagrams/agentcore-capability-map.archify.svg)
+
+Source éditable (toggle thème + export) : [agentcore-capability-map.archify.html](docs/diagrams/agentcore-capability-map.archify.html)
 
 ### 6.1 AgentCore
 
@@ -483,9 +502,17 @@ Le présent chapitre n'en donne que la synthèse.
 
 ### 12.1 Écart principal à date
 
-Le moteur local implémente un routage et un pipeline métier déterministe. La boucle agentique Strands
-pilotant les tool calls de bout en bout n'est pas implémentée, et la surface Gateway n'est pas câblée
-sur les tools de contexte.
+Le mode **prompt** est désormais réellement agentique : un agent Strands (Nova Lite sur Bedrock,
+[`orchestrator.py`](src/urban_campaign_intelligence/orchestrator.py)) interprète le prompt, décide
+des tool calls et collecte les signaux de contexte. Le pipeline déterministe reprend ensuite la main
+sur `CityContext`, le scoring et les garde-fous (ADR-002). C'est le « le LLM décide des tool calls »
+du §5.1.2, câblé de bout en bout et testé réellement (agent → Bedrock → tools).
+
+L'agent orchestre **l'entrée** uniquement ; il n'appelle pas lui-même le scoring, qui reste hors
+prompt. Ce chemin est désormais **fermé sur le runtime AgentCore déployé** : un `InvokeAgentRuntime`
+(prompt NL) traverse l'agent Nova Lite, les tool calls et le pipeline déterministe, et renvoie une
+recommandation explicable (voir §12.2). Le seul écart restant est la surface **Gateway** : les tools
+sont encore des providers Python in-process, pas des tools gouvernés.
 
 La couche modèle passe par le **SDK Strands** (`BedrockModel` + `Agent.structured_output`,
 ADR-007), avec OpenRouter en repli transitoire destiné à être retiré. Les contrats de sortie LLM
@@ -507,16 +534,20 @@ est explicitement **post-MVP**. Ordre de matérialisation :
    importe le pipeline métier (package installable `urban_campaign_intelligence`) et répond en
    JSON sur `POST /invocations`, sans Bedrock (dégradation déterministe). Testable en local via
    `python main.py` + `curl`.
-2. **packaging de déploiement** — le package doit entrer dans le CodeZip. Solution retenue : le
-   copier au build via `uv pip install --target` (mécanisme officiel AWS, cible ARM64) ; reste à
-   câbler dans le script de déploiement (PO-7, [docs/PACKAGING.md](docs/PACKAGING.md) §5).
-3. agent Strands pilotant réellement les tool calls, sur Bedrock débloqué
-4. un premier tool de contexte exposé via `AgentCore Gateway`, puis les suivants
+2. **packaging de déploiement** — ✅ *fait* (PO-7). `deploy.sh` stage le package pur-Python
+   `urban_campaign_intelligence` + `data/` + `tools/scoring_weights.json` dans `codeLocation` au
+   build ; `data_access` résout ses chemins pour le layout conteneur (`/var/task`). Prouvé dans le
+   runtime déployé.
+3. **agent Strands pilotant réellement les tool calls** — ✅ *fait*, sur le **runtime déployé** :
+   un `InvokeAgentRuntime` (prompt Nike) a traversé agent Nova Lite → tools → pipeline → reco.
+4. un premier tool de contexte exposé via `AgentCore Gateway`, puis les suivants — **prochaine étape**
 5. contrôles AgentCore / Guardrails / Policy effectivement câblés
-6. observabilité d'exécution alignée avec le chapitre 11
+6. observabilité d'exécution alignée avec le chapitre 11 (l'export OTEL des traces est à corriger)
 
-Les étapes 3 à 5 sont conditionnées à deux blocages compte AWS : accès Bedrock et quota
-`AWS::BedrockAgentCore::Runtime` (voir [docs/STATUS.md](docs/STATUS.md)).
+La verticale « MVP AWS done » est **fermée**. Les vrais blocages du premier essai n'étaient pas le
+quota `maxAgents` mais le **compte cible placeholder** (`aws-targets.json` valait `123456789012`) et
+le **packaging** (PO-7) ; les deux sont corrigés. Restent à câbler les étapes 4-5 (Gateway, Policy),
+voir [docs/STATUS.md](docs/STATUS.md).
 
 ## 13. Décisions d'architecture retenues
 
@@ -538,6 +569,7 @@ Le tableau ci-dessous en est l'index de lecture architecture.
 | Contrôles métier | hooks applicatifs légers | — |
 | SDK agentique et accès modèle | Strands (`BedrockModel`, `structured_output`) par défaut | ADR-007 |
 | Fournisseur de modèles | Bedrock ; OpenRouter transitoire, à retirer | ADR-007 |
+| Modèle de l'agent d'orchestration (mode `prompt`) | Amazon Nova Lite ; Gemma rejeté (tool use non fiable) | ADR-008 |
 | Persistance mémoire | `AgentCore Memory` seulement si la démo le justifie | — |
 | Périmètre données | 20 zones, 5 annonceurs | ADR-003 |
 | Déploiement MVP | scripts Bash + AWS CLI + AgentCore CLI | ADR-001 |
@@ -562,13 +594,13 @@ deviennent contestées ou réversibles à coût élevé.
 
 | # | Point | Critère de décision | Échéance |
 | --- | --- | --- | --- |
-| PO-1 | `model_id` Bedrock par rôle, et retrait d'OpenRouter | accès modèle activé sur le compte, puis mesure latence / coût / qualité | avant câblage de l'agent Strands |
+| PO-1 | `model_id` Bedrock par rôle, et retrait d'OpenRouter | accès modèle **activé** ; l'agent d'orchestration est fixé à Nova Lite (ADR-008), reste à trancher le `model_id` par rôle LLM (events / review / summary) et à retirer OpenRouter | mesure latence / coût / qualité par rôle |
 | PO-2 | Implémentation outbound auth par tool | selon la nature du backend retenu par tool | au câblage Gateway |
 | PO-3 | Wrapper d'exécution des tools (Lambda ou autre) | coût d'implémentation, non structurant | au câblage Gateway |
 | PO-4 | Introduction ou non d'`AgentCore Memory` | seulement si un scénario inter-run apporte une valeur démonstrative | après le flux nominal |
 | PO-5 | Introduction ou non d'`API Gateway` | seulement si la démo requiert une façade HTTP classique | après le flux nominal |
 | PO-6 | Rétention des logs et alerting | à cadrer avec la cible infra | Lot 2 |
-| PO-7 | Packaging du pipeline dans le CodeZip déployé | **code** : copié au build via `uv pip install --target` (ARM64), à câbler dans le script — [docs/PACKAGING.md](docs/PACKAGING.md) §5. **Données** typées — [docs/PACKAGING.md](docs/PACKAGING.md) §4 : le runtime n'embarque que `scoring_weights.json` | avant premier déploiement runtime |
+| PO-7 | Packaging du pipeline dans le CodeZip déployé | **Résolu.** `deploy.sh` stage le package pur-Python + `data/` + `tools/scoring_weights.json` dans `codeLocation` au build ; `data_access` résout le layout conteneur. Prouvé sur le runtime déployé. (`data/` embarque encore zones/advertisers en interim jusqu'à PO-8) | ~~avant premier déploiement~~ **fait** |
 | PO-8 | `zones` / `advertisers` derrière les tools S3 | matérialiser `get_zones` / `get_advertisers` (backends S3, §7) ; aujourd'hui chargés localement dans le monolithe MVP | au câblage Gateway |
 
 ## 16. Hypothèses, limites et hors périmètre

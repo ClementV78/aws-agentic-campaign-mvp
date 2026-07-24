@@ -30,9 +30,18 @@ Chaque diagramme a :
 | `target-aws-architecture.archify.svg` | architecture AWS cible (services, boundaries, flux) |
 | `multi-agent-orchestration.archify.svg` | orchestration multi-agents cible (rôles, claims, arbitrage, review) |
 | `request-flow.archify.svg` | séquence d'une requête de recommandation de bout en bout |
+| `agentcore-capability-map.archify.svg` | carte des capacités AgentCore (calquée sur AWS) avec notre usage et son statut — référencée par `ARCHITECTURE.md` §6 |
+| `deployed-request.archify.svg` | séquence d'un run réel sur le runtime déployé : `InvokeAgentRuntime` → agent Nova Lite → tools → pipeline déterministe → reco — `RUNTIME_MAPPING.md` |
+| `observability-layers.archify.svg` | les 2 couches d'observabilité (trace GenAI AWS vs `RunTrace`) et leur corrélation par `trace_id`/`session_id` — `RUNTIME_MAPPING.md` |
 
 Régénération : modifier le `.archify.json`, re-rendre le `.archify.html` avec le renderer archify,
 puis ré-extraire / régénérer le `.archify.svg` statique pour les docs Markdown.
+
+**Exception — `agentcore-capability-map`** : ce schéma est *hand-placed* (grille de capacités + overlay
+statut par couleur, hors modes typés du renderer). Il n'a donc **pas** de `.archify.json` ; c'est le
+`.archify.html` qui fait office de **source éditable versionnée**, et le `.archify.svg` (dual-thème) en
+est extrait pour les inclusions Markdown. Statut des cases : vert = utilisé, ambre = partiel/câblé local,
+rose = cible, gris = non utilisé/différé.
 
 ---
 

@@ -1,29 +1,28 @@
 # Status
 
-run_id=run_7463c4868c72 mode=scenario steps=13 duration=2.6 ms tokens=None
+run_id=run_b465ff2985d5 mode=scenario steps=13 duration=1.7 ms tokens=None
+
+Le gantt agrège les steps par composant (une barre par composant) pour rester lisible ; le log
+d'exécution conserve, lui, le détail step par step. En mode `prompt`, une barre
+`UrbanCampaignStrandsAgent` en tête de `Input` porte la latence de l'orchestration (round-trip agent).
+
 ```mermaid
 gantt
-    title Run run_7463c4868c72 — 2.6 ms total (axis in us)
+    title Run run_b465ff2985d5 — 1.7 ms total (axis in us)
     dateFormat x
     axisFormat %L
     todayMarker off
     section Input
-    pre_hook 37us :0, 37
+    PreHook 26us :0, 26
     section Context
-    get_weather 87us :37, 124
-    get_events 39us :124, 163
-    get_mobility 24us :163, 187
-    weather_agent 51us :187, 238
-    events_agent 31us :238, 269
-    mobility_agent 20us :269, 289
-    city_context_builder 39us :289, 328
+    GatewayProvider 93us :26, 119
+    ContextAgents 76us :119, 195
+    CityContextBuilder 27us :195, 222
     section Decision
-    zone_analyzer_agent 1922us :328, 2250
-    advertiser_matcher_agent 47us :2250, 2297
-    campaign_allocator_agent 117us :2297, 2414
+    ScoringEngine 1414us :222, 1636
     section Output
-    review_agent 107us :2414, 2521
-    executive_summary_agent 48us :2521, 2569
+    ReviewAgent 33us :1636, 1669
+    ExecutiveSummary 27us :1669, 1696
 ```
 
 ## Objectif
@@ -62,8 +61,9 @@ Règle d'usage :
 | Weather semi-real backend | `done` | `Open-Meteo` branché avec fallback mock |
 | Events semi-real backend | `done` | Paris Open Data branché avec fallback mock |
 | Mobility forecast backend | `done` | forecast déterministe `hour_of_week` branché |
-| AgentCore orchestration | `in_progress` | verticale locale fermée (`runtime_app.py`) : entrypoint AgentCore → noyau métier → réponse ; boucle Strands + Gateway restent à faire |
-| Déploiement AWS | `blocked` | déploiement réel tenté sur un compte AWS de démo, bloqué par quota `AWS::BedrockAgentCore::Runtime` (`maxAgents limit exceeded`) |
+| AgentCore orchestration | `done` | mode `prompt` réellement agentique **sur le runtime déployé** : un agent Strands (Nova Lite / Bedrock) interprète le prompt et décide des tool calls (`orchestrator.py`), puis le pipeline déterministe score (ADR-002). Reste à câbler : la surface Gateway |
+| Accès modèle Bedrock | `done` | débloqué au niveau compte ; Nova Lite validé pour le tool use (fiable en one-shot), y compris **depuis le rôle d'exécution du runtime** |
+| Déploiement AWS | `done` | runtime AgentCore déployé (stack `AgentCore-UrbanCampaignIntelPoc-default`) ; verticale fermée par un vrai `InvokeAgentRuntime` (prompt Nike → reco). Le blocage n'était pas `maxAgents` mais le compte cible placeholder (`aws-targets.json`) + le packaging PO-7 |
 
 ---
 
@@ -167,10 +167,11 @@ Règle d'usage :
 | `bootstrap.sh` | `done` | vérifie les prérequis Lot 2 (`aws`, `agentcore`, `node`, région, identité AWS, projet AgentCore cible) et peut exécuter les tests locaux |
 | `demo.sh` | `done` | lance les scénarios locaux |
 | Cadrage infra MVP | `done` | cible `InvokeAgentRuntime + AgentCore Runtime + Strands agent métier + Gateway-first security model`, documentée |
-| Verticale locale fermée | `done` | entrypoint **canonique** `app/…/main.py` branché sur le pipeline métier (package installable, `pip install -e .`) ; `POST /invocations` → 200, `/ping` → 200 (validé ASGI in-process). `handle_invocation` dans `urban_campaign_intelligence.invocation`, testé. 38 tests verts |
-| Packaging déploiement (CodeZip) | `todo` | le package doit entrer dans le zip ; path-dependency insuffisante. Décision ouverte PO-7 : copie au build vs index privé |
-| Agent Strands réel sur le runtime | `todo` | l'entrypoint appelle le pipeline déterministe ; la boucle Strands pilotant les tool calls est la marche suivante, `blocked` sur Bedrock |
-| `deploy.sh` | `blocked` | déploiement réel lancé, bootstrap CDK OK, bucket S3 et artefacts OK, échec runtime AgentCore sur quota `maxAgents` du compte AWS |
+| Verticale locale fermée | `done` | entrypoint **canonique** `app/…/main.py` branché sur le pipeline métier (package installable, `pip install -e .`) ; `POST /invocations` → 200, `/ping` → 200 (validé ASGI in-process). `handle_invocation` dans `urban_campaign_intelligence.invocation`, testé. 45 tests verts (1 skippé : l'intégration agent → Bedrock → tools, gated par `AGENTCAMPAIGN_RUN_LLM_TESTS=1`) |
+| Packaging déploiement (CodeZip) | `done` | PO-7 résolu : `deploy.sh` stage le package `urban_campaign_intelligence` (pur Python) + `data/` + `tools/scoring_weights.json` dans `codeLocation` au build ; `data_access` résout ses chemins pour le layout conteneur (`/var/task`). Prouvé dans le runtime déployé (imports + data OK) |
+| Agent Strands réel (mode `prompt`) | `done` | `orchestrator.py` : un `strands.Agent` sur Nova Lite (Bedrock) expose `get_weather`/`get_events`/`get_mobility` en `@tool`, extrait ville/datetime du prompt et décide des appels ; un collecteur capte les signaux, puis le pipeline déterministe score. **Validé sur le runtime AWS déployé** (agent → Bedrock → tools). Nova Lite retenu (Gemma rejeté, tool use non fiable) |
+| Routage `prompt` dans le runtime déployé | `done` | `InvokeAgentRuntime` est prompt-first ; un prompt NL (« Plan a Nike ad campaign in Paris this Saturday ») a traversé `from_dict` → `run_prompt_request` → agent → pipeline et renvoyé une reco focus Nike, sur le runtime déployé |
+| `deploy.sh` | `done` | déploiement réel réussi : bootstrap CDK OK, bucket S3 durci, staging package+data (PO-7), `agentcore deploy` → runtime créé, `agentcore status` déployé. Premier échec dû au compte cible placeholder dans `aws-targets.json`, corrigé |
 | `destroy.sh` | `in_progress` | teardown AgentCore/CDK + nettoyage S3 pilotés par `deploy-outputs.json` ou le manifeste |
 | AgentCore Gateway | `todo` | non démarré |
 | Guardrails / Policy Gateway | `todo` | non démarré |
@@ -184,12 +185,13 @@ Règle d'usage :
 - `done` : sécuriser le bucket S3 et réordonner la validation AgentCore dans `deploy.sh`
 - `done` : consolider le repo autour d'un seul projet AgentCore cible dédié
 - `in_progress` : implémenter `destroy.sh` sur la même base
-- `next` : remplacer le `main.py` AgentCore template par un **Strands agent métier** crédible
-- `next` : brancher ce Strands agent sur le noyau métier déterministe existant
-- `next` : fermer un premier chemin `InvokeAgentRuntime` sur le runtime réel
+- `done` : remplacer le pipeline déterministe par un **agent Strands réel** qui décide des tool calls (mode `prompt`, sur Bedrock)
+- `done` : brancher cet agent Strands sur le noyau métier déterministe existant (l'agent orchestre l'entrée, le scoring reste hors agent — ADR-002)
+- `done` : router le mode `prompt` dans le runtime AgentCore déployé et fermer un `InvokeAgentRuntime` réel
 - `next` : brancher `AgentCore Gateway` sur `get_weather`, `get_events`, `get_mobility`
 - `next` : attacher `Policy` et `Bedrock Guardrails` à cette surface Gateway
-- `blocked` : reprendre le déploiement live après augmentation du quota AgentCore / runtime sur le compte AWS de démo
+- `next` : skills review (compliance + allocation-quality) adossées à un Knowledge Base, puis publier tools/agent/skills au `Registry`
+- `next` : corriger l'export OTEL (400 Bad Request sur l'endpoint de traces du runtime)
 
 ---
 
@@ -197,13 +199,14 @@ Règle d'usage :
 
 ### Now
 
-- attendre le retour AWS sur l'augmentation de quota AgentCore / Bedrock avant de relancer le déploiement live
+- brancher `AgentCore Gateway` sur les 3 tools (prochaine capacité manquante réelle)
+- skills review (compliance + allocation-quality) + Knowledge Base, puis `Registry`
+- `done` : verticale AWS fermée — `InvokeAgentRuntime` → runtime déployé → agent Nova Lite → pipeline → reco
+- `done` : tracer la latence de l'orchestration Strands — la `RunTrace` démarre désormais dans `run_prompt_request` et porte une étape `orchestrator_agent` (durée + tokens du round-trip agent) en tête du log
 
 ### Next
 
-- remplacer le `main.py` AgentCore template par un **Strands agent métier** crédible
-- brancher ce Strands agent sur le noyau métier déterministe
-- fermer un premier chemin `InvokeAgentRuntime` sur le runtime réel
+- router le mode `prompt` dans le runtime AgentCore déployé et fermer un `InvokeAgentRuntime` réel
 - brancher `AgentCore Gateway` sur `get_weather`, `get_events`, `get_mobility`
 - attacher `Policy` et `Bedrock Guardrails` à cette surface
 - ajouter un premier harness d'évaluation léger
@@ -264,8 +267,11 @@ Considéré comme `done` quand :
 État courant :
 
 - bootstrap CDK réel : `done`
-- déploiement live réel : `blocked`
-- cause du blocage : quota `AWS::BedrockAgentCore::Runtime` / `maxAgents limit exceeded` sur le compte AWS de démo
+- agent Strands réel décidant les tool calls (mode `prompt`, sur Bedrock) : `done`
+- accès modèle Bedrock : `done` (Nova Lite validé, y compris depuis le rôle runtime)
+- packaging CodeZip (PO-7) : `done`
+- déploiement live réel : `done` — runtime déployé, `InvokeAgentRuntime` fermé de bout en bout
+- Lot 2 : **`done`** (les vrais blocages étaient le compte cible placeholder + le packaging, pas le quota `maxAgents`)
 
 ---
 

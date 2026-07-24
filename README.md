@@ -41,7 +41,8 @@ Démontrer en peu de temps une chaîne de bout en bout crédible basée sur :
 - `deploy.sh` implémenté avec validation AgentCore, bucket S3 durci, manifest et `deploy-outputs.json`
 - `destroy.sh` implémenté avec teardown AgentCore/CDK et nettoyage S3 piloté par les outputs de déploiement
 - projet AgentCore cible présent sous `agentcore-project/UrbanCampaignIntelligencePoc`
-- cible AWS cadrée et partiellement implémentée autour de l'**option 2** : `AgentCore Runtime + Strands agent métier + AgentCore Gateway + noyau déterministe`, mais invocation directe `InvokeAgentRuntime`, tools gouvernés et exposition HTTP signée éventuelle pas encore démontrés de bout en bout
+- **mode `prompt` réellement agentique** : un agent Strands (Nova Lite / Bedrock, `orchestrator.py`) interprète un prompt en langage naturel et **décide des tool calls** ; le pipeline déterministe score ensuite (ADR-002). Testé réellement (agent → Bedrock → tools)
+- cible AWS cadrée et partiellement implémentée autour de l'**option 2** : `AgentCore Runtime + Strands agent métier + AgentCore Gateway + noyau déterministe`, mais le routage `prompt` sur le runtime déployé, les tools gouvernés via Gateway et l'exposition HTTP signée éventuelle ne sont pas encore démontrés de bout en bout (déploiement live bloqué par le quota `maxAgents`)
 
 Le suivi détaillé et la prochaine action prioritaire vivent dans [docs/STATUS.md](docs/STATUS.md).
 
@@ -80,7 +81,7 @@ Le suivi détaillé et la prochaine action prioritaire vivent dans [docs/STATUS.
 
 ## Known limitations
 
-- la cible AWS `AgentCore Runtime + Strands agent métier` n'est pas encore démontrée de bout en bout
+- l'agent Strands métier est réel en local (mode `prompt`, sur Bedrock) mais son routage sur le runtime AgentCore **déployé** n'est pas encore démontré de bout en bout (bloqué par le quota `maxAgents`)
 - `AgentCore Gateway` n'est pas encore branché sur le flux final
 - les Guardrails / Policy Gateway ne sont pas encore matérialisés sur les tools
 - l'invocation directe `InvokeAgentRuntime` reste à figer sur le runtime final de l'option 2

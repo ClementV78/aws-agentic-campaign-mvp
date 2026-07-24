@@ -124,3 +124,34 @@ Consequence:
 
 - src/ is no longer dependency-free: strands-agents and pydantic are required
 - the application still runs without a configured provider, degrading to heuristics
+
+## ADR-008 - Nova Lite for the prompt-mode orchestration agent
+
+Context:
+
+- the prompt mode (ARCHITECTURE §4.1, §12.1) needs a model that reliably drives tool use:
+  the agent must read a free-text prompt and emit clean tool calls for get_weather /
+  get_events / get_mobility, with a city and an ISO datetime, in one pass
+- this is a Bedrock model choice specific to the orchestration agent, distinct from the
+  per-role LLM model_id still open in PO-1 (events / review / summary)
+
+Decision:
+
+- use **Amazon Nova Lite** (`amazon.nova-lite-v1:0`) as the default model for the
+  orchestration agent in orchestrator.py, overridable via AGENTCAMPAIGN_BEDROCK_MODEL_ID
+- **Gemma is rejected** for this role
+
+Reason:
+
+- Nova Lite drives the three tool calls reliably in one shot, with well-formed arguments
+- Gemma was tested and gave no reliable tool use: 3-4 retries per run and poor output,
+  which breaks the "the LLM decides the tool calls" contract the mode depends on
+- Nova Lite is cheap, which matters because this agent runs on every prompt request
+
+Consequence:
+
+- the default is a Bedrock-hosted model, consistent with ADR-007 (Bedrock as the provider)
+- the choice is reversible per environment through AGENTCAMPAIGN_BEDROCK_MODEL_ID; the model
+  id is not hard-coded into the call sites
+- the live integration test (agent -> Bedrock -> tools) costs tokens, so it is skipped
+  unless AGENTCAMPAIGN_RUN_LLM_TESTS=1

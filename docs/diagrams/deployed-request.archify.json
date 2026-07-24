@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Requête déployée — bout en bout",
+    "subtitle": "InvokeAgentRuntime → agent Nova Lite décide les tools → pipeline déterministe → reco",
+    "output": "deployed-request.html",
+    "viewBox": [960, 860]
+  },
+  "participants": [
+    { "id": "client", "type": "external", "label": "Client", "sublabel": "InvokeAgentRuntime" },
+    { "id": "runtime", "type": "backend", "label": "Runtime", "sublabel": "main.py · /var/task" },
+    { "id": "agent", "type": "cloud", "label": "Strands Agent", "sublabel": "orchestrator.py" },
+    { "id": "bedrock", "type": "cloud", "label": "Bedrock", "sublabel": "Nova Lite" },
+    { "id": "tools", "type": "backend", "label": "Tools", "sublabel": "weather/events/mobility" },
+    { "id": "pipeline", "type": "backend", "label": "Pipeline", "sublabel": "scoring déterministe" }
+  ],
+  "segments": [
+    { "from": 158, "to": 500, "label": "01 / ORCHESTRATION — l'agent décide (Nova Lite)" },
+    { "from": 510, "to": 628, "label": "02 / DÉCISION déterministe (ADR-002)" },
+    { "from": 638, "to": 690, "label": "03 / RÉPONSE" }
+  ],
+  "messages": [
+    { "from": "client", "to": "runtime", "y": 205, "label": "InvokeAgentRuntime (prompt NL)", "variant": "emphasis" },
+    { "from": "runtime", "to": "agent", "y": 250, "label": "run_prompt(prompt)", "variant": "default" },
+    { "from": "agent", "to": "bedrock", "y": 295, "label": "quels tools ?", "variant": "default" },
+    { "from": "bedrock", "to": "agent", "y": 333, "label": "décision (tool calls)", "variant": "return" },
+    { "from": "agent", "to": "tools", "y": 380, "label": "get_weather / events / mobility", "variant": "emphasis" },
+    { "from": "tools", "to": "agent", "y": 418, "label": "signaux", "variant": "return" },
+    { "from": "agent", "to": "tools", "y": 458, "label": "set_campaign_focus — si marque", "variant": "security" },
+    { "from": "agent", "to": "runtime", "y": 498, "label": "contexte collecté (signaux + focus)", "variant": "return" },
+    { "from": "runtime", "to": "pipeline", "y": 558, "label": "_run_pipeline(signaux, focus)", "variant": "emphasis" },
+    { "from": "pipeline", "to": "runtime", "y": 602, "label": "reco (CityContext → scoring → review)", "variant": "return" },
+    { "from": "runtime", "to": "client", "y": 665, "label": "JSON explicable", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "runtime", "from": 205, "to": 668, "type": "backend" },
+    { "participant": "agent", "from": 250, "to": 502, "type": "cloud" },
+    { "participant": "bedrock", "from": 295, "to": 338, "type": "cloud" },
+    { "participant": "tools", "from": 375, "to": 462, "type": "backend" },
+    { "participant": "pipeline", "from": 558, "to": 606, "type": "backend" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Qui décide quoi",
+      "items": [
+        "L'agent (Nova Lite) décide QUELS tools appeler",
+        "Il n'appelle jamais le scoring : l'allocation reste hors prompt (ADR-002)",
+        "set_campaign_focus seulement si le prompt cible une marque du roster"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "Frontière agent / déterministe",
+      "items": [
+        "L'agent orchestre l'ENTRÉE : prompt → tools → signaux",
+        "À partir des signaux, tout est déterministe et testable",
+        "CityContext, scoring, allocation, review : du code, pas un prompt"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Sur le runtime déployé",
+      "items": [
+        "main.py (/var/task) : wrapper mince → handle_invocation",
+        "InvokeAgentRuntime est prompt-first : le texte devient le prompt",
+        "run_id + aws_trace_id + session_id pour la corrélation"
+      ]
+    }
+  ]
+}

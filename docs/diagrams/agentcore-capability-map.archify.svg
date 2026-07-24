@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 500" role="img" aria-label="AgentCore capability map for Urban Campaign Intelligence">
+  <style>
+    :root {
+      --bg:#f8fafc; --grid:#e2e8f0; --text:#0f172a; --text-muted:#64748b; --text-dim:#94a3b8;
+      --mask:#ffffff; --arrow:#94a3b8;
+      --backend-fill:rgba(52,211,153,0.18); --backend-stroke:#059669;
+      --cloud-fill:rgba(251,191,36,0.18); --cloud-stroke:#d97706;
+      --security-fill:rgba(251,113,133,0.15); --security-stroke:#e11d48;
+      --external-fill:rgba(148,163,184,0.18); --external-stroke:#64748b;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:#0f172a; --grid:#1e293b; --text:#e2e8f0; --text-muted:#94a3b8; --text-dim:#64748b;
+        --mask:#0f172a; --arrow:#64748b;
+        --backend-fill:rgba(6,78,59,0.4); --backend-stroke:#34d399;
+        --cloud-fill:rgba(120,53,15,0.3); --cloud-stroke:#fbbf24;
+        --security-fill:rgba(136,19,55,0.4); --security-stroke:#fb7185;
+        --external-fill:rgba(30,41,59,0.5); --external-stroke:#94a3b8;
+      }
+    }
+    svg[data-theme="dark"] {
+      --bg:#0f172a; --grid:#1e293b; --text:#e2e8f0; --text-muted:#94a3b8; --text-dim:#64748b;
+      --mask:#0f172a; --arrow:#64748b;
+      --backend-fill:rgba(6,78,59,0.4); --backend-stroke:#34d399;
+      --cloud-fill:rgba(120,53,15,0.3); --cloud-stroke:#fbbf24;
+      --security-fill:rgba(136,19,55,0.4); --security-stroke:#fb7185;
+      --external-fill:rgba(30,41,59,0.5); --external-stroke:#94a3b8;
+    }
+    .bg { fill: var(--bg); }
+    .c-grid { stroke: var(--grid); fill: none; }
+    .c-mask { fill: var(--mask); stroke: none; }
+    .c-backend  { fill: var(--backend-fill);  stroke: var(--backend-stroke); }
+    .c-cloud    { fill: var(--cloud-fill);    stroke: var(--cloud-stroke); }
+    .c-security { fill: var(--security-fill); stroke: var(--security-stroke); }
+    .c-external { fill: var(--external-fill); stroke: var(--external-stroke); }
+    .c-region { fill: rgba(251,191,36,0.05); stroke: var(--cloud-stroke); stroke-dasharray: 8,4; }
+    .t-primary { fill: var(--text); }
+    .t-muted   { fill: var(--text-muted); }
+    .t-dim     { fill: var(--text-dim); }
+    .t-backend  { fill: var(--backend-stroke); }
+    .t-cloud    { fill: var(--cloud-stroke); }
+    .t-security { fill: var(--security-stroke); }
+    .a-default  { stroke: var(--arrow); fill: none; }
+    .a-security { stroke: var(--security-stroke); fill: none; stroke-dasharray: 4,4; }
+    .m-default  { fill: var(--arrow); }
+    .m-security { fill: var(--security-stroke); }
+    text { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
+  </style>
+
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-default" />
+          </marker>
+          <marker id="arrowhead-emphasis" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-emphasis" />
+          </marker>
+          <marker id="arrowhead-security" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-security" />
+          </marker>
+          <marker id="arrowhead-dashed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-dashed" />
+          </marker>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" class="c-grid" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" class="bg"/>
+        <rect width="100%" height="100%" fill="url(#grid)" />
+        <!-- lifecycle connectors -->
+        <line x1="768" y1="46" x2="684" y2="52" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <text x="726" y="40" class="t-muted" font-size="8" text-anchor="middle">build</text>
+        <line x1="1025" y1="62" x2="1025" y2="94" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <text x="1043" y="82" class="t-muted" font-size="8" text-anchor="start">deploy</text>
+        <line x1="1145" y1="62" x2="1145" y2="94" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+        <text x="1163" y="82" class="t-security" font-size="8" text-anchor="start">assess</text>
+        <!-- Agent -->
+        <rect x="30" y="24" width="650" height="60" rx="6" class="c-mask"/>
+        <rect x="30" y="24" width="650" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="355" y="48" class="t-primary" font-size="12" font-weight="600" text-anchor="middle">Agent — UrbanCampaignStrandsAgent</text>
+        <text x="355" y="65" class="t-muted" font-size="9" text-anchor="middle">Strands · Nova Lite (Bedrock) · mode prompt · décide les tool calls · InvokeAgentRuntime</text>
+        <text x="355" y="78" class="t-backend" font-size="8" text-anchor="middle">Any framework, any model — chez nous : Strands + Bedrock</text>
+        <!-- lifecycle pills -->
+        <rect x="770" y="30" width="90" height="30" rx="6" class="c-mask"/>
+        <rect x="770" y="30" width="90" height="30" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="815" y="49" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Build</text>
+        <rect x="980" y="30" width="90" height="30" rx="6" class="c-mask"/>
+        <rect x="980" y="30" width="90" height="30" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="1025" y="49" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Deploy</text>
+        <rect x="1100" y="30" width="90" height="30" rx="6" class="c-mask"/>
+        <rect x="1100" y="30" width="90" height="30" rx="6" class="c-security" stroke-width="1.5"/>
+        <text x="1145" y="49" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Assess</text>
+        <!-- AgentCore boundary -->
+        <rect x="20" y="96" width="1180" height="300" rx="12" class="c-region" stroke-width="1"/>
+        <text x="34" y="114" class="t-cloud" font-size="11" font-weight="700" text-anchor="start">AgentCore</text>
+        <!-- SDK / CLI band -->
+        <rect x="40" y="126" width="1140" height="40" rx="6" class="c-mask"/>
+        <rect x="40" y="126" width="1140" height="40" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="610" y="145" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">SDK / CLI — Strands SDK (BedrockModel · structured_output) + AgentCore CLI</text>
+        <text x="610" y="159" class="t-muted" font-size="8" text-anchor="middle">notre couche d'accès modèle et d'orchestration (ADR-007)</text>
+        <!-- Built-in tools -->
+        <rect x="40" y="182" width="135" height="140" rx="6" class="c-mask"/>
+        <rect x="40" y="182" width="135" height="140" rx="6" class="c-external" stroke-width="1.5"/>
+        <text x="107.5" y="206" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Built-in tools</text>
+        <text x="107.5" y="224" class="t-muted" font-size="8" font-weight="700" text-anchor="middle">NON UTILISE</text>
+        <text x="107.5" y="246" class="t-muted" font-size="8" text-anchor="middle">Browser, Code</text>
+        <text x="107.5" y="260" class="t-muted" font-size="8" text-anchor="middle">interpreter, KB,</text>
+        <text x="107.5" y="274" class="t-muted" font-size="8" text-anchor="middle">Search</text>
+        <!-- Gateway -->
+        <rect x="184" y="182" width="135" height="140" rx="6" class="c-mask"/>
+        <rect x="184" y="182" width="135" height="140" rx="6" class="c-security" stroke-width="1.5"/>
+        <text x="251.07" y="206" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Gateway</text>
+        <text x="251.07" y="224" class="t-security" font-size="8" font-weight="700" text-anchor="middle">CIBLE</text>
+        <text x="251.07" y="246" class="t-muted" font-size="8" text-anchor="middle">get_weather · events</text>
+        <text x="251.07" y="260" class="t-muted" font-size="8" text-anchor="middle">· mobility</text>
+        <text x="251.07" y="274" class="t-muted" font-size="8" text-anchor="middle">in-process → Gateway</text>
+        <!-- Identity -->
+        <rect x="327" y="182" width="135" height="140" rx="6" class="c-mask"/>
+        <rect x="327" y="182" width="135" height="140" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="394.64" y="206" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Identity</text>
+        <text x="394.64" y="224" class="t-cloud" font-size="8" font-weight="700" text-anchor="middle">PARTIEL</text>
+        <text x="394.64" y="246" class="t-muted" font-size="8" text-anchor="middle">inbound IAM /</text>
+        <text x="394.64" y="260" class="t-muted" font-size="8" text-anchor="middle">SigV4 ok</text>
+        <text x="394.64" y="274" class="t-muted" font-size="8" text-anchor="middle">outbound : cible</text>
+        <!-- Memory -->
+        <rect x="471" y="182" width="135" height="140" rx="6" class="c-mask"/>
+        <rect x="471" y="182" width="135" height="140" rx="6" class="c-external" stroke-width="1.5"/>
+        <text x="538.21" y="206" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Memory</text>
+        <text x="538.21" y="224" class="t-muted" font-size="8" font-weight="700" text-anchor="middle">DIFFERE</text>
+        <text x="538.21" y="246" class="t-muted" font-size="8" text-anchor="middle">PO-4 : seulement</text>
+        <text x="538.21" y="260" class="t-muted" font-size="8" text-anchor="middle">si la démo</text>
+        <text x="538.21" y="274" class="t-muted" font-size="8" text-anchor="middle">le justifie</text>
+        <!-- Policy -->
+        <rect x="614" y="182" width="135" height="140" rx="6" class="c-mask"/>
+        <rect x="614" y="182" width="135" height="140" rx="6" class="c-security" stroke-width="1.5"/>
+        <text x="681.78" y="206" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Policy</text>
+        <text x="681.78" y="224" class="t-security" font-size="8" font-weight="700" text-anchor="middle">CIBLE</text>
+        <text x="681.78" y="246" class="t-muted" font-size="8" text-anchor="middle">Policy + Bedrock</text>
+        <text x="681.78" y="260" class="t-muted" font-size="8" text-anchor="middle">Guardrails</text>
+        <text x="681.78" y="274" class="t-muted" font-size="8" text-anchor="middle">sur Gateway</text>
+        <!-- Payments -->
+        <rect x="758" y="182" width="135" height="140" rx="6" class="c-mask"/>
+        <rect x="758" y="182" width="135" height="140" rx="6" class="c-external" stroke-width="1.5"/>
+        <text x="825.3499999999999" y="206" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Payments</text>
+        <text x="825.3499999999999" y="224" class="t-muted" font-size="8" font-weight="700" text-anchor="middle">HORS SCOPE</text>
+        <text x="825.3499999999999" y="246" class="t-muted" font-size="8" text-anchor="middle">micro-</text>
+        <text x="825.3499999999999" y="260" class="t-muted" font-size="8" text-anchor="middle">transactions</text>
+        <text x="825.3499999999999" y="274" class="t-muted" font-size="8" text-anchor="middle">non pertinent</text>
+        <!-- Registry -->
+        <rect x="901" y="182" width="135" height="140" rx="6" class="c-mask"/>
+        <rect x="901" y="182" width="135" height="140" rx="6" class="c-external" stroke-width="1.5"/>
+        <text x="968.92" y="206" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Registry</text>
+        <text x="968.92" y="224" class="t-muted" font-size="8" font-weight="700" text-anchor="middle">NON UTILISE</text>
+        <text x="968.92" y="246" class="t-muted" font-size="8" text-anchor="middle">agents, MCP</text>
+        <text x="968.92" y="260" class="t-muted" font-size="8" text-anchor="middle">servers, tools,</text>
+        <text x="968.92" y="274" class="t-muted" font-size="8" text-anchor="middle">skills</text>
+        <!-- Runtime -->
+        <rect x="1045" y="182" width="135" height="140" rx="6" class="c-mask"/>
+        <rect x="1045" y="182" width="135" height="140" rx="6" class="c-backend" stroke-width="1.5"/>
+        <text x="1112.49" y="206" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Runtime</text>
+        <text x="1112.49" y="224" class="t-backend" font-size="8" font-weight="700" text-anchor="middle">UTILISE</text>
+        <text x="1112.49" y="246" class="t-muted" font-size="8" text-anchor="middle">main.py + agent</text>
+        <text x="1112.49" y="260" class="t-muted" font-size="8" text-anchor="middle">déployé sur AWS</text>
+        <text x="1112.49" y="274" class="t-muted" font-size="8" text-anchor="middle">InvokeAgentRuntime ok</text>
+        <!-- Observability -->
+        <rect x="40" y="334" width="555" height="54" rx="6" class="c-mask"/>
+        <rect x="40" y="334" width="555" height="54" rx="6" class="c-cloud" stroke-width="1.5"/>
+        <text x="317" y="353" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Observability</text>
+        <text x="317" y="366" class="t-cloud" font-size="8" font-weight="700" text-anchor="middle">PARTIEL — app-level réel</text>
+        <text x="317" y="379" class="t-muted" font-size="8" text-anchor="middle">RunTrace : logs structurés · gantt · mermaid · CloudWatch au deploy</text>
+        <!-- Evaluations -->
+        <rect x="625" y="334" width="555" height="54" rx="6" class="c-mask"/>
+        <rect x="625" y="334" width="555" height="54" rx="6" class="c-security" stroke-width="1.5"/>
+        <text x="902" y="353" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Evaluations</text>
+        <text x="902" y="366" class="t-security" font-size="8" font-weight="700" text-anchor="middle">CIBLE</text>
+        <text x="902" y="379" class="t-muted" font-size="8" text-anchor="middle">harness d'éval non démarré (batch · online · custom evaluators)</text>
+        <!-- status legend -->
+        <text x="40" y="424" class="t-primary" font-size="9" font-weight="600" text-anchor="start">Statut :</text>
+        <rect x="100" y="416" width="16" height="10" rx="2" class="c-backend" stroke-width="1"/>
+        <text x="122" y="424" class="t-muted" font-size="8" text-anchor="start">Utilisé</text>
+        <rect x="177.8" y="416" width="16" height="10" rx="2" class="c-cloud" stroke-width="1"/>
+        <text x="199.8" y="424" class="t-muted" font-size="8" text-anchor="start">Partiel / câblé local</text>
+        <rect x="331.20000000000005" y="416" width="16" height="10" rx="2" class="c-security" stroke-width="1"/>
+        <text x="353.20000000000005" y="424" class="t-muted" font-size="8" text-anchor="start">Cible (à construire)</text>
+        <rect x="479.20000000000005" y="416" width="16" height="10" rx="2" class="c-external" stroke-width="1"/>
+        <text x="501.20000000000005" y="424" class="t-muted" font-size="8" text-anchor="start">Non utilisé / différé</text>
+        <text x="40" y="446" class="t-dim" font-size="8" text-anchor="start">Calqué sur la carte des capacités AgentCore (AWS) — voir ARCHITECTURE.md §6 &amp; §12</text>
+      </svg>

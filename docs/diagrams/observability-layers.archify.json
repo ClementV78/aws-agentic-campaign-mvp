@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Observabilité — deux couches, une corrélation",
+    "subtitle": "AgentCore trace l'agentique (X-Ray) · notre RunTrace trace la décision · cousues par trace_id / session_id",
+    "output": "observability-layers.html",
+    "viewBox": [1140, 660]
+  },
+  "components": [
+    { "id": "run", "type": "external", "label": "1 requête", "sublabel": "InvokeAgentRuntime · run_id", "pos": [490, 34], "size": [170, 60] },
+
+    { "id": "agent_span", "type": "cloud", "label": "invoke_agent span", "sublabel": "latence · status", "pos": [70, 150], "size": [155, 60] },
+    { "id": "tokens", "type": "cloud", "label": "tokens", "sublabel": "in / out / total", "pos": [245, 150], "size": [155, 60] },
+    { "id": "tool_calls", "type": "cloud", "label": "tool calls", "sublabel": "weather…set_focus", "pos": [70, 240], "size": [155, 60] },
+    { "id": "model_turns", "type": "cloud", "label": "tours de modèle", "sublabel": "event_loop ×2", "pos": [245, 240], "size": [155, 60] },
+
+    { "id": "prehook", "type": "backend", "label": "pre_hook", "sublabel": "normalisation", "pos": [740, 150], "size": [155, 60] },
+    { "id": "decide", "type": "backend", "label": "scoring + allocation", "sublabel": "reasons · focus", "pos": [915, 150], "size": [165, 60] },
+    { "id": "review", "type": "backend", "label": "review", "sublabel": "guardrails · warnings", "pos": [740, 240], "size": [155, 60] },
+    { "id": "summary", "type": "backend", "label": "executive summary", "sublabel": "narratif focus-aware", "pos": [915, 240], "size": [165, 60] },
+
+    { "id": "corr", "type": "security", "label": "trace_id + session_id", "sublabel": "join X-Ray ↔ CloudWatch", "pos": [470, 500], "size": [200, 66] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Couche agentique — AgentCore / X-Ray (natif, gratuit)", "wraps": ["agent_span", "tokens", "tool_calls", "model_turns"] },
+    { "kind": "region", "label": "Couche décision — notre RunTrace (code, ADR-002)", "wraps": ["prehook", "decide", "review", "summary"] }
+  ],
+  "connections": [
+    { "from": "run", "to": "agent_span", "label": "vu par AgentCore", "variant": "emphasis", "fromSide": "left", "toSide": "top" },
+    { "from": "run", "to": "prehook", "label": "vu par notre code", "variant": "emphasis", "fromSide": "right", "toSide": "top" },
+    { "from": "tool_calls", "to": "corr", "label": "aws_trace_id", "variant": "security", "fromSide": "bottom", "toSide": "left" },
+    { "from": "review", "to": "corr", "label": "run_id · session_id", "variant": "security", "fromSide": "bottom", "toSide": "right" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Ce qu'AgentCore voit seul",
+      "items": [
+        "Span agent, tokens, chaque tool call, tours de modèle",
+        "Instrumentation OTEL de Strands → X-Ray, sans code de notre part",
+        "Inutile de le re-tracer : le per-tool timing applicatif a été retiré"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Ce que seule la RunTrace voit",
+      "items": [
+        "build_city_context, scoring, allocation (reasons, focus)",
+        "review, guardrails, executive summary",
+        "Du Python interne : ni tool ni appel modèle → invisible pour X-Ray"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "La couture",
+      "items": [
+        "Chaque entrée RunTrace porte aws_trace_id (span OTEL) + session_id",
+        "Dans CloudWatch on pivote du raisonnement vers la trace X-Ray",
+        "Absents en local (pas d'OTEL) → simplement omis"
+      ]
+    }
+  ]
+}
