@@ -511,8 +511,10 @@ du §5.1.2, câblé de bout en bout et testé réellement (agent → Bedrock →
 L'agent orchestre **l'entrée** uniquement ; il n'appelle pas lui-même le scoring, qui reste hors
 prompt. Ce chemin est désormais **fermé sur le runtime AgentCore déployé** : un `InvokeAgentRuntime`
 (prompt NL) traverse l'agent Nova Lite, les tool calls et le pipeline déterministe, et renvoie une
-recommandation explicable (voir §12.2). Le seul écart restant est la surface **Gateway** : les tools
-sont encore des providers Python in-process, pas des tools gouvernés.
+recommandation explicable (voir §12.2). La surface **Gateway** est désormais câblée : les 3 context
+tools sont exposés en **MCP** derrière une Lambda gouvernée (AgentCore Gateway, `authorizerType
+AWS_IAM`), et l'agent les consomme via MCP+SigV4 — plus de providers in-process sur le chemin agent.
+Il reste à attacher **Policy / Guardrails** à cette surface Gateway.
 
 La couche modèle passe par le **SDK Strands** (`BedrockModel` + `Agent.structured_output`,
 ADR-007), avec OpenRouter en repli transitoire destiné à être retiré. Les contrats de sortie LLM

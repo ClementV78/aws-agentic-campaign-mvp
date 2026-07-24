@@ -173,8 +173,8 @@ Règle d'usage :
 | Routage `prompt` dans le runtime déployé | `done` | `InvokeAgentRuntime` est prompt-first ; un prompt NL (« Plan a Nike ad campaign in Paris this Saturday ») a traversé `from_dict` → `run_prompt_request` → agent → pipeline et renvoyé une reco focus Nike, sur le runtime déployé |
 | `deploy.sh` | `done` | déploiement réel réussi : bootstrap CDK OK, bucket S3 durci, staging package+data (PO-7), `agentcore deploy` → runtime créé, `agentcore status` déployé. Premier échec dû au compte cible placeholder dans `aws-targets.json`, corrigé |
 | `destroy.sh` | `in_progress` | teardown AgentCore/CDK + nettoyage S3 pilotés par `deploy-outputs.json` ou le manifeste |
-| AgentCore Gateway | `todo` | non démarré |
-| Guardrails / Policy Gateway | `todo` | non démarré |
+| AgentCore Gateway | `done` | les 3 context tools (`get_weather`/`get_events`/`get_mobility`) sont exposés en **MCP** derrière une Lambda gouvernée (`agentcore.json` → CDK). L'agent les consomme via MCP+SigV4 (`gateway_mcp.py` + `orchestrator.py`), un hook `AfterToolCallEvent` capte les résultats. Validé sur le runtime déployé (logs Lambda : `contextTools___get_weather/...`) |
+| Guardrails / Policy Gateway | `todo` | non démarré (surface Gateway maintenant en place pour les accueillir) |
 | Bedrock model mapping | `todo` | non démarré |
 | Hooks AWS réels | `todo` | non démarré |
 
@@ -199,7 +199,8 @@ Règle d'usage :
 
 ### Now
 
-- brancher `AgentCore Gateway` sur les 3 tools (prochaine capacité manquante réelle)
+- `done` : brancher `AgentCore Gateway` sur les 3 tools — l'agent les consomme via MCP+SigV4
+- attacher `Policy` / `Bedrock Guardrails` à la surface Gateway (maintenant en place)
 - skills review (compliance + allocation-quality) + Knowledge Base, puis `Registry`
 - `done` : verticale AWS fermée — `InvokeAgentRuntime` → runtime déployé → agent Nova Lite → pipeline → reco
 - `done` : tracer la latence de l'orchestration Strands — la `RunTrace` démarre désormais dans `run_prompt_request` et porte une étape `orchestrator_agent` (durée + tokens du round-trip agent) en tête du log
