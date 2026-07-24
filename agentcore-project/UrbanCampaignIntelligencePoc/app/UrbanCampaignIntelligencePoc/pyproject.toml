@@ -14,7 +14,10 @@ dependencies = [
     "botocore[crt] >= 1.35.0",
     "mcp >= 1.19.0",
     "strands-agents >= 1.15.0",
-    
+    # Runtime dep of the copied urban_campaign_intelligence package (llm_schemas). The package
+    # itself is pure Python and staged into codeLocation at build time by deploy.sh (see PO-7);
+    # its only third-party import beyond strands/botocore is pydantic.
+    "pydantic >= 2.0",
 ]
 
 [tool.hatch.build.targets.wheel]

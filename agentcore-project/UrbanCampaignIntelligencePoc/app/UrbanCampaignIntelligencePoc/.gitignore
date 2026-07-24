@@ -1,6 +1,12 @@
 # Environment variables
 .env
 
+# Business package + runtime data staged into the CodeZip at build time by deploy.sh (PO-7).
+# Sources of truth are src/urban_campaign_intelligence, data/ and tools/ at the repo root.
+/urban_campaign_intelligence/
+/data/
+/tools/
+
 # Python
 __pycache__/
 *.py[cod]

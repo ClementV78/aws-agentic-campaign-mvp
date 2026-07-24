@@ -341,6 +341,39 @@ ensure_foundations() {
   log "This script ensures the shared artifact bucket and deploy manifest before delegating runtime creation."
 }
 
+package_business_code() {
+  # PO-7: main.py imports urban_campaign_intelligence, which lives in src/ (outside codeLocation)
+  # and is not a PyPI package. CodeZip contains only codeLocation, so the module must be staged
+  # into it at build time. It is pure Python — no wheel or ARM64 concern for our own code; its
+  # single third-party dep (pydantic) is resolved by agentcore from the app pyproject. Without this
+  # the runtime deploys but ImportErrors on the first InvokeAgentRuntime.
+  local src="${PROJECT_ROOT}/src/urban_campaign_intelligence"
+  local code_location="${AGENTCORE_PROJECT_DIR}/app/UrbanCampaignIntelligencePoc"
+  local dest="${code_location}/urban_campaign_intelligence"
+  [[ -d "${src}" ]] || fail "Business package not found at ${src}"
+
+  if [[ "${DRY_RUN}" == "1" ]]; then
+    log "Dry-run mode: would stage business package + data files into ${code_location}"
+    return 0
+  fi
+
+  log "Staging business package into CodeZip: ${dest}"
+  rm -rf "${dest}"
+  cp -r "${src}" "${dest}"
+
+  # Data the deterministic core reads at runtime (data_access.py resolves data/ & tools/ beside the
+  # package inside /var/task). Interim: zones/advertisers are embedded until they move behind S3
+  # tools (PO-8); today the pipeline loads them locally, so they must ship in the CodeZip.
+  log "Staging runtime data (data/, tools/scoring_weights.json) into CodeZip"
+  rm -rf "${code_location}/data" "${code_location}/tools"
+  cp -r "${PROJECT_ROOT}/data" "${code_location}/data"
+  mkdir -p "${code_location}/tools"
+  cp "${PROJECT_ROOT}/tools/scoring_weights.json" "${code_location}/tools/scoring_weights.json"
+
+  # Bytecode compiled on this arch/OS must not travel into the ARM64 runtime.
+  find "${dest}" -type d -name '__pycache__' -prune -exec rm -rf {} + 2>/dev/null || true
+}
+
 deploy_agentcore_runtime() {
   [[ "${ENABLE_AGENTCORE_DEPLOY}" == "1" ]] || {
     warn "AgentCore deployment skipped"
@@ -426,6 +459,7 @@ main() {
   load_config
   check_prereqs
   resolve_aws_context
+  package_business_code
   validate_agentcore_project
   build_deployment_manifest
   ensure_s3_bucket

@@ -46,8 +46,13 @@ agentcore-project/UrbanCampaignIntelligencePoc/agentcore/.cli/logs/
 agentcore-project/UrbanCampaignIntelligencePoc/agentcore/cdk/node_modules/
 agentcore-project/UrbanCampaignIntelligencePoc/agentcore/cdk/dist/
 agentcore-project/UrbanCampaignIntelligencePoc/agentcore/cdk/cdk.out/
+# AgentCore CLI local logs and cache (build artifacts, not source)
+agentcore-project/**/agentcore/.cli/
+agentcore-project/**/agentcore/.cache/
 
 # Generated diagram renders — regenerate from the .archify.json source
 # (the .archify.svg IS versioned: it is embedded in the Markdown docs)
 docs/diagrams/*.archify.html
+# Exception: this diagram is hand-placed (no .json), so its .archify.html IS the source of truth.
+!docs/diagrams/agentcore-capability-map.archify.html
 docs/generated/
