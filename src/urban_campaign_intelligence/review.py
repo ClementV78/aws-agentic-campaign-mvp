@@ -5,6 +5,7 @@ from typing import Any
 
 from urban_campaign_intelligence.llm_client import get_llm_client
 from urban_campaign_intelligence.llm_schemas import AllocationReview
+from urban_campaign_intelligence.scoring import headline_match
 
 
 def review_allocation(city_context: dict[str, Any], allocation_plan: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -19,12 +20,14 @@ def review_allocation(city_context: dict[str, Any], allocation_plan: dict[str, A
 
 def _review_allocation_heuristic(city_context: dict[str, Any], allocation_plan: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
     warnings = list(city_context["warnings"])
+    focus = allocation_plan.get("focus_advertiser")
     recommended_matches = allocation_plan.get("recommended_matches", allocation_plan["ranked_matches"])
     recommended_advertisers = {match["advertiser_name"] for match in recommended_matches[:5]}
-    if len(recommended_advertisers) < 3:
+    # In single-brand mode the concentration is intended, so it is not a diversity/saturation flag.
+    if not focus and len(recommended_advertisers) < 3:
         warnings.append("Low advertiser diversity in top recommendations.")
 
-    top_match = recommended_matches[0] if recommended_matches else None
+    top_match = headline_match(allocation_plan)
     low_confidence_matches = [match for match in recommended_matches if match["confidence"] < 0.55]
     if low_confidence_matches:
         warnings.append("Some top matches have low confidence and should be treated as indicative only.")
@@ -32,7 +35,7 @@ def _review_allocation_heuristic(city_context: dict[str, Any], allocation_plan: 
     review = {
         "guardrails_passed": True,
         "hallucination_risk": "low",
-        "saturation_risk": "medium" if len(recommended_advertisers) <= 3 else "low",
+        "saturation_risk": "low" if focus or len(recommended_advertisers) > 3 else "medium",
         "warnings": warnings,
         "top_match_summary": (
             f"{top_match['advertiser_name']} -> {top_match['zone_name']} ({top_match['total_score']})"
@@ -67,10 +70,18 @@ def _review_allocation_llm(city_context: dict[str, Any], allocation_plan: dict[s
         "You must review coherence, identify warnings, estimate hallucination risk, "
         "and summarize the top recommendation briefly."
     )
+    focus = allocation_plan.get("focus_advertiser")
+    focus_line = (
+        f"This is a single-brand campaign focused on {focus}: the concentration on {focus} is "
+        f"intended, do not flag it as low diversity; summarize {focus}'s lead placement.\n"
+        if focus
+        else ""
+    )
     user_prompt = (
         "Review the following recommendation output. "
         "Return JSON with keys: guardrails_passed, hallucination_risk, saturation_risk, warnings, top_match_summary. "
         "hallucination_risk and saturation_risk must be one of low, medium, high. "
+        f"{focus_line}"
         f"City context: {city_context}\n"
         f"Allocation summary: {allocation_plan['summary']}\n"
         f"Top ranked matches: {allocation_plan['ranked_matches'][:5]}"

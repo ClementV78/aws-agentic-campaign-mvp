@@ -7,6 +7,9 @@ TRAFFIC_SCORES = {"low": 0.25, "medium": 0.5, "high": 0.75, "very_high": 0.95}
 WEATHER_SENSITIVITY = {"low": 0.9, "medium": 0.7, "high": 0.45}
 RECOMMENDED_MATCH_COUNT = 10
 MAX_RECOMMENDED_PER_ADVERTISER = 2
+# Single-brand mode: the focused advertiser may take a majority of the billboards, but not all —
+# the rest stay open to the other brands, so the plan stays proportional rather than exclusive.
+MAX_RECOMMENDED_FOR_FOCUS = 6
 
 
 def _score_zone_attractiveness(zone: dict[str, Any], city_context: dict[str, Any]) -> tuple[float, list[str]]:
@@ -155,13 +158,41 @@ def score_allocations(
     return scorecards, log_entries
 
 
-def allocate_campaigns(scorecards: list[dict[str, Any]]) -> tuple[dict[str, Any], dict[str, Any]]:
+def headline_match(allocation_plan: dict[str, Any]) -> dict[str, Any] | None:
+    """The match the narrative should lead with.
+
+    In single-brand mode that is the focused advertiser's best placement, not the globally
+    top-scored one — otherwise a Nike campaign gets summarized around whichever brand scored
+    highest. Matches are score-sorted, so the first focus match is its best. Falls back to the
+    top match when no focus is set or the focus won no billboard.
+    """
+    matches = allocation_plan.get("recommended_matches") or allocation_plan.get("ranked_matches") or []
+    if not matches:
+        return None
+    focus = allocation_plan.get("focus_advertiser")
+    if focus:
+        for match in matches:
+            if match["advertiser_name"] == focus:
+                return match
+    return matches[0]
+
+
+def allocate_campaigns(
+    scorecards: list[dict[str, Any]], focus_advertiser: str | None = None
+) -> tuple[dict[str, Any], dict[str, Any]]:
     by_zone: dict[str, dict[str, Any]] = {}
     by_advertiser: dict[str, list[dict[str, Any]]] = {}
     recommended_matches: list[dict[str, Any]] = []
     recommended_by_advertiser: dict[str, int] = {}
     recommended_zone_ids: set[str] = set()
     sorted_scorecards = sorted(scorecards, key=lambda item: item["total_score"], reverse=True)
+
+    def _cap(advertiser_name: str) -> int:
+        # Single-brand mode lifts only the focused advertiser's cap; the scoring itself is
+        # untouched, so the focus wins panels on merit, not on a distorted score.
+        if focus_advertiser and advertiser_name == focus_advertiser:
+            return MAX_RECOMMENDED_FOR_FOCUS
+        return MAX_RECOMMENDED_PER_ADVERTISER
 
     for scorecard in sorted_scorecards:
         by_advertiser.setdefault(scorecard["advertiser_name"], [])
@@ -172,7 +203,7 @@ def allocate_campaigns(scorecards: list[dict[str, Any]]) -> tuple[dict[str, Any]
         if len(recommended_matches) >= RECOMMENDED_MATCH_COUNT:
             continue
         advertiser_name = scorecard["advertiser_name"]
-        if recommended_by_advertiser.get(advertiser_name, 0) >= MAX_RECOMMENDED_PER_ADVERTISER:
+        if recommended_by_advertiser.get(advertiser_name, 0) >= _cap(advertiser_name):
             continue
         if scorecard["zone_id"] in recommended_zone_ids:
             continue
@@ -189,12 +220,22 @@ def allocate_campaigns(scorecards: list[dict[str, Any]]) -> tuple[dict[str, Any]
             recommended_matches.append(scorecard)
             recommended_zone_ids.add(scorecard["zone_id"])
 
+    focus_share = recommended_by_advertiser.get(focus_advertiser, 0) if focus_advertiser else 0
+    if focus_advertiser:
+        summary = (
+            f"Single-brand plan focused on {focus_advertiser}: {focus_share} of "
+            f"{len(recommended_matches)} billboards, the rest across {len(by_advertiser) - 1} other advertisers."
+        )
+    else:
+        summary = f"Allocated {len(by_zone)} zones across {len(by_advertiser)} advertisers."
+
     allocation_plan = {
         "ranked_matches": sorted_scorecards[:RECOMMENDED_MATCH_COUNT],
         "recommended_matches": recommended_matches,
         "by_zone": by_zone,
         "by_advertiser": by_advertiser,
-        "summary": f"Allocated {len(by_zone)} zones across {len(by_advertiser)} advertisers.",
+        "focus_advertiser": focus_advertiser,
+        "summary": summary,
     }
     log_entry = {
         "agent": "campaign_allocator_agent",
@@ -203,6 +244,8 @@ def allocate_campaigns(scorecards: list[dict[str, Any]]) -> tuple[dict[str, Any]
             "top_match": allocation_plan["recommended_matches"][0]["advertiser_name"] if allocation_plan["recommended_matches"] else None,
             "allocated_zone_count": len(by_zone),
             "recommended_advertiser_count": len({match["advertiser_name"] for match in recommended_matches}),
+            "focus_advertiser": focus_advertiser,
+            "focus_billboards": focus_share if focus_advertiser else None,
         },
     }
     return allocation_plan, log_entry

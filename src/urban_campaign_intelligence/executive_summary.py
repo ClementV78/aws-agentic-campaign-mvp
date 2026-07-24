@@ -5,6 +5,7 @@ from typing import Any
 
 from urban_campaign_intelligence.llm_client import get_llm_client
 from urban_campaign_intelligence.llm_schemas import ExecutiveSummary
+from urban_campaign_intelligence.scoring import headline_match
 
 
 def generate_executive_summary(
@@ -32,8 +33,8 @@ def _generate_executive_summary_deterministic(
     allocation_plan: dict[str, Any],
     review: dict[str, Any],
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    recommended_matches = allocation_plan.get("recommended_matches", allocation_plan["ranked_matches"])
-    top_match = recommended_matches[0] if recommended_matches else None
+    focus = allocation_plan.get("focus_advertiser")
+    top_match = headline_match(allocation_plan)
     event_names = [event.get("display_name") or event.get("type", "event") for event in city_context["events"][:2]]
     event_fragment = ", ".join(event_names) if event_names else "no major event"
     if top_match is None:
@@ -42,8 +43,14 @@ def _generate_executive_summary_deterministic(
             f"Context remained {city_context['weather']['summary']} with {city_context['mobility']['global_status']} mobility."
         )
     else:
+        # In single-brand mode, lead with the focused advertiser's placement, not the global top.
+        lead = (
+            f"Single-brand plan for {focus} in {scenario['city']}: leads on {top_match['zone_name']}"
+            if focus
+            else f"{scenario['name']} in {scenario['city']} favors {top_match['advertiser_name']} on {top_match['zone_name']}"
+        )
         text = (
-            f"{scenario['name']} in {scenario['city']} favors {top_match['advertiser_name']} on {top_match['zone_name']}. "
+            f"{lead}. "
             f"The recommendation is driven by {city_context['weather']['summary']} weather, "
             f"{city_context['mobility']['global_status']} mobility, and {event_fragment}. "
             f"Overall confidence is {city_context['confidence']} with {review['hallucination_risk']} hallucination risk."
@@ -71,6 +78,13 @@ def _generate_executive_summary_llm(
         return None
 
     recommended_matches = allocation_plan.get("recommended_matches", allocation_plan["ranked_matches"])[:3]
+    focus = allocation_plan.get("focus_advertiser")
+    focus_line = (
+        f"This is a single-brand campaign focused on {focus}: lead the summary with {focus}'s "
+        f"placements; other brands appear only because the plan stays proportional.\n"
+        if focus
+        else ""
+    )
     system_prompt = (
         "You write concise executive summaries for a contextual campaign allocation demo. "
         "Return strict JSON only with one key: executive_summary. "
@@ -78,6 +92,7 @@ def _generate_executive_summary_llm(
     )
     user_prompt = (
         f"Scenario: {scenario['name']} in {scenario['city']} at {scenario['datetime']}\n"
+        f"{focus_line}"
         f"City context: {city_context}\n"
         f"Top recommendations: {recommended_matches}\n"
         f"Review: {review}\n"
