@@ -109,7 +109,15 @@ class UrbanCampaignApplicationService:
         """
         from urban_campaign_intelligence.orchestrator import run_prompt
 
-        context = run_prompt(prompt)
+        # Start the trace here, not in _run_pipeline: the agent round-trip is the slowest part of a
+        # prompt run and runs before the pipeline, so timing it from _run_pipeline would hide it.
+        trace = RunTrace(request_mode="prompt")
+        context, meta = run_prompt(prompt)
+        # record() stamps t_ms as the time since the trace started, i.e. the agent's real duration.
+        # One coarse bar for the agent round-trip (latency + tokens); the per-tool detail is left to
+        # AgentCore's native GenAI trace, which breaks out each tool call and the model turns.
+        trace.record({"step": "orchestrator_agent", "status": "completed", "details": {"mode": "llm", **meta}})
+
         scenario = self._build_live_scenario(datetime_str=context["datetime"], city=context["city"])
         return self._run_pipeline(
             scenario=scenario,
@@ -117,6 +125,8 @@ class UrbanCampaignApplicationService:
             events_payload=context["events"],
             mobility_payload=context["mobility"],
             request_mode="prompt",
+            trace=trace,
+            focus_advertiser=context.get("focus_advertiser"),
         )
 
     def run_live_request(self, datetime_str: str, city: str = LIVE_CITY) -> dict[str, Any]:
@@ -220,6 +230,8 @@ class UrbanCampaignApplicationService:
         events_payload: dict[str, Any],
         mobility_payload: dict[str, Any],
     ) -> list[dict[str, Any]]:
+        # Provenance of each signal (provider, mode, fallback). Per-tool timing is intentionally
+        # not measured here: on the deployed runtime AgentCore traces each tool call natively.
         return [
             {
                 "tool": "get_weather",
@@ -261,10 +273,15 @@ class UrbanCampaignApplicationService:
         mobility_payload: dict[str, Any],
         request_mode: str,
         degraded_signals: list[str] | None = None,
+        trace: RunTrace | None = None,
+        focus_advertiser: str | None = None,
     ) -> dict[str, Any]:
         zones, advertisers, weights = self._load_reference_data()
 
-        trace = RunTrace(request_mode=request_mode)
+        # The prompt mode passes a trace already carrying the orchestrator step; the structured
+        # modes have nothing before the pipeline, so they start a fresh one here.
+        if trace is None:
+            trace = RunTrace(request_mode=request_mode)
 
         pre_hook_output, pre_hook_log = run_pre_hook(scenario)
         trace.record_all(pre_hook_log)
@@ -288,7 +305,7 @@ class UrbanCampaignApplicationService:
         scorecards, scoring_logs = score_allocations(zones, advertisers, city_context, weights)
         trace.record_all(scoring_logs)
 
-        allocation_plan, allocation_log = allocate_campaigns(scorecards)
+        allocation_plan, allocation_log = allocate_campaigns(scorecards, focus_advertiser=focus_advertiser)
         trace.record(allocation_log)
 
         review, review_log = review_allocation(city_context, allocation_plan)

@@ -33,7 +33,11 @@ def build_app(debug: bool = False) -> BedrockAgentCoreApp:
     @app.entrypoint
     def invoke(payload: dict[str, Any], context: Any = None) -> dict[str, Any]:
         # Deterministic request/response: return JSON, not a stream. The correlation id is
-        # inside the response under result["run"]["run_id"].
+        # inside the response under result["run"]["run_id"]. Record the runtime session id so the
+        # business trace (RunTrace) can be pivoted to AgentCore's GenAI trace for the same request.
+        from urban_campaign_intelligence.observability import set_request_context
+
+        set_request_context(session_id=getattr(context, "session_id", None))
         return handle_invocation(payload)
 
     return app

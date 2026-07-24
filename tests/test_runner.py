@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import os
 import unittest
+from unittest import mock
 
 from urban_campaign_intelligence.app_service import UrbanCampaignApplicationService, run_live_request
-from urban_campaign_intelligence.gateway_tools import MobilityForecastProvider
+from urban_campaign_intelligence.gateway_tools import MobilityForecastProvider, MockGatewayProvider
 from urban_campaign_intelligence.llm_client import StrandsBedrockClient, get_llm_client
 from urban_campaign_intelligence.observability import to_gantt, to_mermaid, to_timeline
 from urban_campaign_intelligence.local_agent import CampaignRequest, LocalRequestMapper, UrbanCampaignStrandsAgent
 from urban_campaign_intelligence.runner import format_summary, run_scenario
+from urban_campaign_intelligence.scoring import allocate_campaigns
 from urban_campaign_intelligence.invocation import handle_invocation
 
 
@@ -350,6 +352,92 @@ class RunnerTestCase(unittest.TestCase):
         tools = [e["tool"] for e in result["execution_log"] if e.get("tool")]
         self.assertIn("get_weather", tools)
         self.assertTrue(result["allocation_plan"]["recommended_matches"])
+
+    def test_prompt_mode_traces_orchestrator_latency(self) -> None:
+        # Deterministic: patch the Bedrock agent out and assert the orchestrator round-trip lands
+        # on the trace (its latency and tokens), ahead of the pipeline. The real agent path stays
+        # covered by the gated test above.
+        dt = "2026-07-11T15:00:00+02:00"
+        provider = MockGatewayProvider()
+
+        def fake_run_prompt(prompt: str, **kwargs: object) -> tuple[dict, dict]:
+            context = {
+                "city": "Paris",
+                "datetime": dt,
+                "weather": provider.get_weather(city="Paris", datetime_iso=dt),
+                "events": provider.get_events(city="Paris", datetime_iso=dt),
+                "mobility": provider.get_mobility(city="Paris", datetime_iso=dt),
+            }
+            meta = {"model_id": "amazon.nova-lite-v1:0", "input_tokens": 120, "output_tokens": 30, "total_tokens": 150}
+            return context, meta
+
+        with mock.patch("urban_campaign_intelligence.orchestrator.run_prompt", fake_run_prompt):
+            result = handle_invocation({"prompt": "Recommend campaigns for Paris this Saturday afternoon"})
+
+        self.assertEqual(result["scenario"]["mode"], "prompt")
+        first = result["execution_log"][0]
+        self.assertEqual(first["step"], "orchestrator_agent")
+        self.assertEqual(first["component"], "UrbanCampaignStrandsAgent")
+        self.assertIn("t_ms", first)
+        # the orchestration tokens feed the run summary, and it gets its own bar on the gantt
+        self.assertEqual(result["run"]["total_tokens"], 150)
+        self.assertIn("UrbanCampaignStrandsAgent", to_gantt(result))
+
+    def test_focus_advertiser_stays_proportional(self) -> None:
+        # Single-brand mode lifts only the focused advertiser's cap; the others still get panels,
+        # so the plan is proportional, not exclusive. Scoring is untouched (crafted here directly).
+        advertisers = ["Nike", "Chanel", "Coca-Cola", "OUIGO", "Parc Asterix"]
+        homes = {"Chanel": "z6", "Coca-Cola": "z7", "OUIGO": "z8", "Parc Asterix": "z9"}
+        scorecards = []
+        for i in range(10):
+            zone = f"z{i}"
+            for adv in advertisers:
+                if adv == "Nike":
+                    score = 0.9 if i < 6 else 0.3
+                elif homes.get(adv) == zone:
+                    score = 0.85
+                else:
+                    score = 0.4
+                scorecards.append({"zone_id": zone, "advertiser_name": adv, "advertiser_id": adv.lower(), "total_score": score})
+
+        def nike_count(plan: dict) -> int:
+            return sum(1 for m in plan["recommended_matches"] if m["advertiser_name"] == "Nike")
+
+        multi, _ = allocate_campaigns(scorecards)
+        mono, _ = allocate_campaigns(scorecards, focus_advertiser="Nike")
+
+        self.assertEqual(nike_count(multi), 2)   # default cap
+        self.assertEqual(nike_count(mono), 6)    # focus cap lifted, but not to all 10
+        self.assertEqual(len(mono["recommended_matches"]), 10)
+        # the other brands still get panels — proportional, not a takeover
+        others = {m["advertiser_name"] for m in mono["recommended_matches"] if m["advertiser_name"] != "Nike"}
+        self.assertTrue(others)
+        self.assertEqual(mono["focus_advertiser"], "Nike")
+
+    def test_prompt_focus_leads_the_narrative(self) -> None:
+        # When the agent sets a brand focus, the summary and review must lead with that brand,
+        # not the globally top-scored one, and must not flag the intended concentration.
+        dt = "2026-07-25T14:00:00+02:00"
+        provider = MockGatewayProvider()
+
+        def fake_run_prompt(prompt: str, **kwargs: object) -> tuple[dict, dict]:
+            context = {
+                "city": "Paris",
+                "datetime": dt,
+                "focus_advertiser": "Nike",
+                "weather": provider.get_weather(city="Paris", datetime_iso=dt),
+                "events": provider.get_events(city="Paris", datetime_iso=dt, event_types=["concert", "sports_match"]),
+                "mobility": provider.get_mobility(city="Paris", datetime_iso=dt),
+            }
+            return context, {"model_id": "x", "total_tokens": 10}
+
+        with mock.patch("urban_campaign_intelligence.orchestrator.run_prompt", fake_run_prompt):
+            result = handle_invocation({"prompt": "Nike campaign in Paris"})
+
+        self.assertEqual(result["allocation_plan"]["focus_advertiser"], "Nike")
+        self.assertIn("Nike", result["executive_summary"]["text"])
+        self.assertTrue(result["review"]["top_match_summary"].startswith("Nike ->"))
+        self.assertNotIn("Low advertiser diversity in top recommendations.", result["review"]["warnings"])
 
     def test_inline_scenario_refused_without_flag(self) -> None:
         # Secure-by-default: inline injection is off unless explicitly enabled.
