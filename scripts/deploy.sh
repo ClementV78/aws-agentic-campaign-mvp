@@ -370,8 +370,17 @@ package_business_code() {
   mkdir -p "${code_location}/tools"
   cp "${PROJECT_ROOT}/tools/scoring_weights.json" "${code_location}/tools/scoring_weights.json"
 
+  # Gateway Lambda target: stage the same pure-stdlib provider module next to the Lambda handler,
+  # so agent -> Gateway -> Lambda calls the identical business logic. Single source of truth in src/.
+  local gw_lambda_dir="${code_location%/UrbanCampaignIntelligencePoc}/gateway_tools"
+  if [[ -d "${gw_lambda_dir}" ]]; then
+    log "Staging provider module into the Gateway Lambda: ${gw_lambda_dir}"
+    cp "${PROJECT_ROOT}/src/urban_campaign_intelligence/gateway_tools.py" "${gw_lambda_dir}/gateway_tools.py"
+  fi
+
   # Bytecode compiled on this arch/OS must not travel into the ARM64 runtime.
   find "${dest}" -type d -name '__pycache__' -prune -exec rm -rf {} + 2>/dev/null || true
+  find "${gw_lambda_dir:-/nonexistent}" -type d -name '__pycache__' -prune -exec rm -rf {} + 2>/dev/null || true
 }
 
 deploy_agentcore_runtime() {

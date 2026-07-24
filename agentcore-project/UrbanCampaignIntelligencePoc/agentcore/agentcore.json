@@ -23,7 +23,66 @@
   "credentials": [],
   "evaluators": [],
   "onlineEvalConfigs": [],
-  "agentCoreGateways": [],
+  "agentCoreGateways": [
+    {
+      "name": "UrbanCampaignTools",
+      "protocolType": "MCP",
+      "authorizerType": "AWS_IAM",
+      "targets": [
+        {
+          "name": "contextTools",
+          "targetType": "lambda",
+          "compute": {
+            "host": "Lambda",
+            "implementation": {
+              "language": "Python",
+              "path": "app/gateway_tools",
+              "handler": "handler.handler"
+            },
+            "pythonVersion": "PYTHON_3_13"
+          },
+          "toolDefinitions": [
+            {
+              "name": "get_weather",
+              "description": "Get weather signals for a city at an ISO 8601 datetime.",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "city": { "type": "string", "description": "City name, e.g. Paris." },
+                  "datetime_iso": { "type": "string", "description": "ISO 8601 datetime." }
+                },
+                "required": ["city", "datetime_iso"]
+              }
+            },
+            {
+              "name": "get_events",
+              "description": "Get urban events for a city at an ISO 8601 datetime.",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "city": { "type": "string", "description": "City name, e.g. Paris." },
+                  "datetime_iso": { "type": "string", "description": "ISO 8601 datetime." }
+                },
+                "required": ["city", "datetime_iso"]
+              }
+            },
+            {
+              "name": "get_mobility",
+              "description": "Get mobility signals for a city at an ISO 8601 datetime.",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "city": { "type": "string", "description": "City name, e.g. Paris." },
+                  "datetime_iso": { "type": "string", "description": "ISO 8601 datetime." }
+                },
+                "required": ["city", "datetime_iso"]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
   "policyEngines": [],
   "configBundles": [],
   "abTests": [],
